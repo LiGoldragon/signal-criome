@@ -486,15 +486,15 @@ pub struct Rejection {
 
 signal_channel! {
     request CriomeRequest {
-        Sign(SignRequest),
-        VerifyAttestation(VerifyRequest),
-        RegisterIdentity(IdentityRegistration),
-        RevokeIdentity(IdentityRevocation),
-        LookupIdentity(IdentityLookup),
-        AttestArchive(ArchiveAttestationRequest),
-        AttestChannelGrant(ChannelGrantAttestationRequest),
-        AttestAuthorization(AuthorizationAttestationRequest),
-        SubscribeIdentityUpdates(IdentitySubscription),
+        Assert Sign(SignRequest),
+        Validate VerifyAttestation(VerifyRequest),
+        Assert RegisterIdentity(IdentityRegistration),
+        Retract RevokeIdentity(IdentityRevocation),
+        Match LookupIdentity(IdentityLookup),
+        Assert AttestArchive(ArchiveAttestationRequest),
+        Assert AttestChannelGrant(ChannelGrantAttestationRequest),
+        Assert AttestAuthorization(AuthorizationAttestationRequest),
+        Subscribe SubscribeIdentityUpdates(IdentitySubscription),
     }
 
     reply CriomeReply {

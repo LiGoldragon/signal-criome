@@ -45,6 +45,24 @@ CriomeRequest                    CriomeReply
 
 Closed enums only. No `Unknown` variant and no string-tagged dispatch.
 
+### Signal Root Verbs
+
+Every `CriomeRequest` variant declares its root verb in the `signal_channel!`
+declaration. `signal-core` generates `CriomeRequest::signal_verb()` and
+`CriomeRequest::into_signal_request()` from that declaration.
+
+```text
+Sign                       -> Assert
+VerifyAttestation          -> Validate
+RegisterIdentity           -> Assert
+RevokeIdentity             -> Retract
+LookupIdentity             -> Match
+AttestArchive              -> Assert
+AttestChannelGrant         -> Assert
+AttestAuthorization        -> Assert
+SubscribeIdentityUpdates   -> Subscribe
+```
+
 ## Domain Separation
 
 Every signed payload binds an `ObjectDigest` to a `ContentPurpose`,

@@ -1,5 +1,5 @@
 use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode};
-use signal_core::{FrameBody, Reply, Request, SemaVerb};
+use signal_core::{FrameBody, Reply, Request, SignalVerb};
 use signal_criome::{
     ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext, BlsPublicKey,
     BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
@@ -47,13 +47,14 @@ fn attestation(purpose: ContentPurpose) -> Attestation {
 }
 
 fn round_trip_request(request: CriomeRequest) -> CriomeRequest {
-    let frame = Frame::new(FrameBody::Request(Request::assert(request.clone())));
+    let expected_verb = request.signal_verb();
+    let frame = Frame::new(FrameBody::Request(request.into_signal_request()));
     let bytes = frame.encode_length_prefixed().expect("encode request");
     let decoded = Frame::decode_length_prefixed(&bytes).expect("decode request");
 
     match decoded.into_body() {
         FrameBody::Request(Request::Operation { verb, payload }) => {
-            assert_eq!(verb, SemaVerb::Assert);
+            assert_eq!(verb, expected_verb);
             payload
         }
         other => panic!("expected request, got {other:?}"),
@@ -137,6 +138,88 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
 
     for request in requests {
         assert_eq!(round_trip_request(request.clone()), request);
+    }
+}
+
+#[test]
+fn request_variants_declare_expected_signal_root_verbs() {
+    let cases = [
+        (
+            CriomeRequest::Sign(SignRequest {
+                content: content(ContentPurpose::SignedObject),
+                signer: Identity::developer("operator"),
+                audit_context: audit(ContentPurpose::SignedObject),
+                expires_at: None,
+            }),
+            SignalVerb::Assert,
+        ),
+        (
+            CriomeRequest::VerifyAttestation(VerifyRequest {
+                attestation: attestation(ContentPurpose::SignedObject),
+                content: content(ContentPurpose::SignedObject),
+            }),
+            SignalVerb::Validate,
+        ),
+        (
+            CriomeRequest::RegisterIdentity(IdentityRegistration {
+                identity: Identity::persona("designer"),
+                public_key: BlsPublicKey::new("designer-public-key"),
+                fingerprint: PublicKeyFingerprint::new("fingerprint-designer"),
+                purpose: KeyPurpose::PersonaRequest,
+            }),
+            SignalVerb::Assert,
+        ),
+        (
+            CriomeRequest::RevokeIdentity(IdentityRevocation {
+                identity: Identity::persona("designer"),
+                fingerprint: PublicKeyFingerprint::new("fingerprint-designer"),
+                reason: PrincipalName::new("retired"),
+            }),
+            SignalVerb::Retract,
+        ),
+        (
+            CriomeRequest::LookupIdentity(IdentityLookup {
+                identity: Identity::host("prometheus"),
+            }),
+            SignalVerb::Match,
+        ),
+        (
+            CriomeRequest::AttestArchive(ArchiveAttestationRequest {
+                release: ComponentRelease {
+                    component: PrincipalName::new("persona-router"),
+                    artifact: ObjectDigest::from_bytes(b"closure"),
+                    authorized_by: Identity::developer("operator"),
+                },
+                audit_context: audit(ContentPurpose::Archive),
+            }),
+            SignalVerb::Assert,
+        ),
+        (
+            CriomeRequest::AttestChannelGrant(ChannelGrantAttestationRequest {
+                grant_content: content(ContentPurpose::ChannelGrant),
+                source: Identity::persona("mind"),
+                audit_context: audit(ContentPurpose::ChannelGrant),
+            }),
+            SignalVerb::Assert,
+        ),
+        (
+            CriomeRequest::AttestAuthorization(signal_criome::AuthorizationAttestationRequest {
+                authorization_content: content(ContentPurpose::Authorization),
+                source: Identity::persona("mind"),
+                audit_context: audit(ContentPurpose::Authorization),
+            }),
+            SignalVerb::Assert,
+        ),
+        (
+            CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription {
+                subscriber: Identity::agent("operator"),
+            }),
+            SignalVerb::Subscribe,
+        ),
+    ];
+
+    for (request, verb) in cases {
+        assert_eq!(request.signal_verb(), verb);
     }
 }
 
