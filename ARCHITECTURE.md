@@ -80,7 +80,5 @@ registered public key, not as a hard-coded global.
 
 ## See Also
 
-- `~/primary/reports/designer/141-minimal-criome-bls-auth-substrate.md`
-- `~/primary/reports/designer-assistant/30-minimal-criome-persona-auth-research.md`
 - `~/primary/skills/contract-repo.md`
 - `../signal-core/ARCHITECTURE.md`
