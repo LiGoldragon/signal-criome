@@ -484,26 +484,43 @@ pub struct Rejection {
     pub reason: RejectionReason,
 }
 
-signal_channel! {
-    request CriomeRequest {
-        Assert Sign(SignRequest),
-        Validate VerifyAttestation(VerifyRequest),
-        Assert RegisterIdentity(IdentityRegistration),
-        Retract RevokeIdentity(IdentityRevocation),
-        Match LookupIdentity(IdentityLookup),
-        Assert AttestArchive(ArchiveAttestationRequest),
-        Assert AttestChannelGrant(ChannelGrantAttestationRequest),
-        Assert AttestAuthorization(AuthorizationAttestationRequest),
-        Subscribe SubscribeIdentityUpdates(IdentitySubscription),
-    }
+/// Per-subscription identity for the identity-updates stream.
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct IdentitySubscriptionToken {
+    pub subscriber: Identity,
+}
 
-    reply CriomeReply {
-        SignReceipt(SignReceipt),
-        VerificationResult(VerificationResult),
-        IdentityReceipt(IdentityReceipt),
-        IdentitySnapshot(IdentitySnapshot),
-        AttestationReceipt(AttestationReceipt),
-        IdentityUpdate(IdentityUpdate),
-        Rejection(Rejection),
+signal_channel! {
+    channel Criome {
+        request CriomeRequest {
+            Assert Sign(SignRequest),
+            Validate VerifyAttestation(VerifyRequest),
+            Assert RegisterIdentity(IdentityRegistration),
+            Retract RevokeIdentity(IdentityRevocation),
+            Match LookupIdentity(IdentityLookup),
+            Assert AttestArchive(ArchiveAttestationRequest),
+            Assert AttestChannelGrant(ChannelGrantAttestationRequest),
+            Assert AttestAuthorization(AuthorizationAttestationRequest),
+            Subscribe SubscribeIdentityUpdates(IdentitySubscription) opens IdentityUpdateStream,
+            Retract IdentitySubscriptionRetraction(IdentitySubscriptionToken),
+        }
+        reply CriomeReply {
+            SignReceipt(SignReceipt),
+            VerificationResult(VerificationResult),
+            IdentityReceipt(IdentityReceipt),
+            IdentitySnapshot(IdentitySnapshot),
+            AttestationReceipt(AttestationReceipt),
+            Rejection(Rejection),
+        }
+        event CriomeEvent {
+            IdentityUpdate(IdentityUpdate) belongs IdentityUpdateStream,
+        }
+        stream IdentityUpdateStream {
+            token IdentitySubscriptionToken;
+            opened IdentitySnapshot;
+            event IdentityUpdate;
+            close IdentitySubscriptionRetraction;
+        }
     }
 }
