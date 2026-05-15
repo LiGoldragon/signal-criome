@@ -1,11 +1,15 @@
 use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode};
-use signal_core::{FrameBody, Reply, Request, SignalVerb};
+use signal_core::{
+    ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
+    SignalVerb, StreamEventIdentifier, SubReply, SubscriptionTokenInner,
+};
 use signal_criome::{
     ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext, BlsPublicKey,
     BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
-    ContentReference, CriomeReply, CriomeRequest, Frame, Identity, IdentityLookup, IdentityReceipt,
-    IdentityRegistration, IdentityRevocation, IdentitySnapshot, IdentitySubscription,
-    IdentityUpdate, KeyPurpose, ObjectDigest, PrincipalName, PrincipalStatus, PublicKeyFingerprint,
+    ContentReference, CriomeEvent, CriomeFrame as Frame, CriomeFrameBody as FrameBody, CriomeReply,
+    CriomeRequest, Identity, IdentityLookup, IdentityReceipt, IdentityRegistration,
+    IdentityRevocation, IdentitySnapshot, IdentitySubscription, IdentityUpdate, KeyPurpose,
+    IdentitySubscriptionToken, ObjectDigest, PrincipalName, PrincipalStatus, PublicKeyFingerprint,
     Rejection, RejectionReason, ReplayNonce, SignReceipt, SignRequest, SignatureEnvelope,
     SignatureScheme, TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
 };
@@ -46,29 +50,76 @@ fn attestation(purpose: ContentPurpose) -> Attestation {
     }
 }
 
+fn exchange() -> ExchangeIdentifier {
+    ExchangeIdentifier::new(
+        SessionEpoch::new(1),
+        ExchangeLane::Connector,
+        LaneSequence::first(),
+    )
+}
+
+fn stream_event() -> StreamEventIdentifier {
+    StreamEventIdentifier::new(
+        SessionEpoch::new(1),
+        ExchangeLane::Acceptor,
+        LaneSequence::first(),
+    )
+}
+
 fn round_trip_request(request: CriomeRequest) -> CriomeRequest {
     let expected_verb = request.signal_verb();
-    let frame = Frame::new(FrameBody::Request(request.into_signal_request()));
+    let frame = Frame::new(FrameBody::Request {
+        exchange: exchange(),
+        request: request.into_request(),
+    });
     let bytes = frame.encode_length_prefixed().expect("encode request");
     let decoded = Frame::decode_length_prefixed(&bytes).expect("decode request");
 
     match decoded.into_body() {
-        FrameBody::Request(Request::Operation { verb, payload }) => {
-            assert_eq!(verb, expected_verb);
-            payload
+        FrameBody::Request { request, .. } => {
+            let operation = request.operations().head();
+            assert_eq!(operation.verb, expected_verb);
+            operation.payload.clone()
         }
-        other => panic!("expected request, got {other:?}"),
+        other => panic!("expected request operation, got {other:?}"),
     }
 }
 
 fn round_trip_reply(reply: CriomeReply) -> CriomeReply {
-    let frame = Frame::new(FrameBody::Reply(Reply::operation(reply.clone())));
+    let frame = Frame::new(FrameBody::Reply {
+        exchange: exchange(),
+        reply: Reply::completed(NonEmpty::single(SubReply::Ok {
+            verb: SignalVerb::Assert,
+            payload: reply,
+        })),
+    });
     let bytes = frame.encode_length_prefixed().expect("encode reply");
     let decoded = Frame::decode_length_prefixed(&bytes).expect("decode reply");
 
     match decoded.into_body() {
-        FrameBody::Reply(Reply::Operation(payload)) => payload,
-        other => panic!("expected reply, got {other:?}"),
+        FrameBody::Reply { reply, .. } => match reply {
+            Reply::Accepted { per_operation, .. } => match per_operation.into_head() {
+                SubReply::Ok { payload, .. } => payload,
+                other => panic!("expected accepted reply payload, got {other:?}"),
+            },
+            other => panic!("expected accepted reply, got {other:?}"),
+        },
+        other => panic!("expected reply operation, got {other:?}"),
+    }
+}
+
+fn round_trip_event(event: CriomeEvent) -> CriomeEvent {
+    let frame = Frame::new(FrameBody::SubscriptionEvent {
+        event_identifier: stream_event(),
+        token: SubscriptionTokenInner::new(1),
+        event,
+    });
+    let bytes = frame.encode_length_prefixed().expect("encode event");
+    let decoded = Frame::decode_length_prefixed(&bytes).expect("decode event");
+
+    match decoded.into_body() {
+        FrameBody::SubscriptionEvent { event, .. } => event,
+        other => panic!("expected subscription event, got {other:?}"),
     }
 }
 
@@ -132,6 +183,9 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
             audit_context: audit(ContentPurpose::Authorization),
         }),
         CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription {
+            subscriber: Identity::agent("operator"),
+        }),
+        CriomeRequest::IdentitySubscriptionRetraction(IdentitySubscriptionToken {
             subscriber: Identity::agent("operator"),
         }),
     ];
@@ -216,6 +270,12 @@ fn request_variants_declare_expected_signal_root_verbs() {
             }),
             SignalVerb::Subscribe,
         ),
+        (
+            CriomeRequest::IdentitySubscriptionRetraction(IdentitySubscriptionToken {
+                subscriber: Identity::agent("operator"),
+            }),
+            SignalVerb::Retract,
+        ),
     ];
 
     for (request, verb) in cases {
@@ -246,7 +306,6 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
         CriomeReply::AttestationReceipt(AttestationReceipt {
             attestation: attestation(ContentPurpose::Archive),
         }),
-        CriomeReply::IdentityUpdate(IdentityUpdate { receipt }),
         CriomeReply::Rejection(Rejection {
             reason: RejectionReason::ReplayAttempted,
         }),
@@ -255,6 +314,16 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
     for reply in replies {
         assert_eq!(round_trip_reply(reply.clone()), reply);
     }
+}
+
+#[test]
+fn identity_update_event_round_trips_through_length_prefixed_frame() {
+    let receipt = IdentityReceipt {
+        identity: Identity::persona("designer"),
+        status: PrincipalStatus::Active,
+    };
+    let event = CriomeEvent::IdentityUpdate(IdentityUpdate { receipt });
+    assert_eq!(round_trip_event(event.clone()), event);
 }
 
 #[test]
