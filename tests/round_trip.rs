@@ -8,10 +8,11 @@ use signal_criome::{
     BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
     ContentReference, CriomeEvent, CriomeFrame as Frame, CriomeFrameBody as FrameBody, CriomeReply,
     CriomeRequest, Identity, IdentityLookup, IdentityReceipt, IdentityRegistration,
-    IdentityRevocation, IdentitySnapshot, IdentitySubscription, IdentityUpdate, KeyPurpose,
-    IdentitySubscriptionToken, ObjectDigest, PrincipalName, PrincipalStatus, PublicKeyFingerprint,
+    IdentityRevocation, IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken,
+    IdentityUpdate, KeyPurpose, ObjectDigest, PrincipalName, PrincipalStatus, PublicKeyFingerprint,
     Rejection, RejectionReason, ReplayNonce, SignReceipt, SignRequest, SignatureEnvelope,
-    SignatureScheme, TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
+    SignatureScheme, SubscriptionRetracted, TimestampNanos, VerificationDecision,
+    VerificationResult, VerifyRequest,
 };
 
 fn content(purpose: ContentPurpose) -> ContentReference {
@@ -305,6 +306,11 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
         }),
         CriomeReply::AttestationReceipt(AttestationReceipt {
             attestation: attestation(ContentPurpose::Archive),
+        }),
+        CriomeReply::SubscriptionRetracted(SubscriptionRetracted {
+            token: IdentitySubscriptionToken {
+                subscriber: Identity::agent("operator"),
+            },
         }),
         CriomeReply::Rejection(Rejection {
             reason: RejectionReason::ReplayAttempted,

@@ -478,6 +478,16 @@ pub struct IdentityUpdate {
     pub receipt: IdentityReceipt,
 }
 
+/// Typed acknowledgement that a subscription has been retracted.
+///
+/// Returned in reply to `IdentitySubscriptionRetraction`. Carries the
+/// retracted token so callers can match the ack to the request they sent.
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct SubscriptionRetracted {
+    pub token: IdentitySubscriptionToken,
+}
+
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct Rejection {
@@ -511,6 +521,7 @@ signal_channel! {
             IdentityReceipt(IdentityReceipt),
             IdentitySnapshot(IdentitySnapshot),
             AttestationReceipt(AttestationReceipt),
+            SubscriptionRetracted(SubscriptionRetracted),
             Rejection(Rejection),
         }
         event CriomeEvent {
