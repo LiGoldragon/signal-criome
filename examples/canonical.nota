@@ -1,0 +1,71 @@
+;; Canonical NOTA examples for signal-criome.
+;;
+;; One example per request variant, reply variant, and stream event
+;; variant. The text-form head is the payload's record-head, not the
+;; CriomeRequest / CriomeReply / CriomeEvent variant name — see
+;; ARCHITECTURE.md §7 "NOTA codec quirk on signal_channel! payload
+;; heads." `Identity` is the exception with a hand-written codec
+;; dispatching on a closed head-name set.
+;;
+;; Round-trip witness: tests/canonical_examples.rs parses each record
+;; and asserts the re-encoded text equals the canonical form.
+
+;; ─── Requests ─────────────────────────────────────────────────────
+
+;; CriomeRequest::Sign
+(SignRequest (ContentReference digest-abc SignedObject schema-1) (Persona alice) (AuditContext SignedObject audience-bob policy-1 nonce-7) None)
+
+;; CriomeRequest::VerifyAttestation
+(VerifyRequest (Attestation (ContentReference digest-abc SignedObject schema-1) (Persona alice) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1) 100 None (AuditContext SignedObject audience-bob policy-1 nonce-7)) (ContentReference digest-abc SignedObject schema-1))
+
+;; CriomeRequest::RegisterIdentity
+(IdentityRegistration (Persona alice) public-key-1 fingerprint-1 PersonaRequest)
+
+;; CriomeRequest::RevokeIdentity
+(IdentityRevocation (Persona alice) fingerprint-1 revoked-by-owner)
+
+;; CriomeRequest::LookupIdentity
+(IdentityLookup (Persona alice))
+
+;; CriomeRequest::AttestArchive
+(ArchiveAttestationRequest (ComponentRelease persona-router artifact-1 (Persona alice)) (AuditContext Archive audience-archive policy-1 nonce-8))
+
+;; CriomeRequest::AttestChannelGrant
+(ChannelGrantAttestationRequest (ContentReference digest-grant ChannelGrant schema-1) (Persona alice) (AuditContext ChannelGrant audience-bob policy-1 nonce-9))
+
+;; CriomeRequest::AttestAuthorization
+(AuthorizationAttestationRequest (ContentReference digest-auth Authorization schema-1) (Persona alice) (AuditContext Authorization audience-bob policy-1 nonce-10))
+
+;; CriomeRequest::SubscribeIdentityUpdates
+(IdentitySubscription (Persona alice))
+
+;; CriomeRequest::IdentitySubscriptionRetraction — payload head is the token type
+(IdentitySubscriptionToken (Persona alice))
+
+;; ─── Replies ──────────────────────────────────────────────────────
+
+;; CriomeReply::SignReceipt
+(SignReceipt (Attestation (ContentReference digest-abc SignedObject schema-1) (Persona alice) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1) 100 None (AuditContext SignedObject audience-bob policy-1 nonce-7)) 100)
+
+;; CriomeReply::VerificationResult — present identity
+(VerificationResult Valid (Persona alice) None)
+
+;; CriomeReply::IdentityReceipt
+(IdentityReceipt (Persona alice) Active)
+
+;; CriomeReply::IdentitySnapshot
+(IdentitySnapshot [(IdentityReceipt (Persona alice) Active)])
+
+;; CriomeReply::AttestationReceipt
+(AttestationReceipt (Attestation (ContentReference digest-abc SignedObject schema-1) (Persona alice) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1) 100 None (AuditContext SignedObject audience-bob policy-1 nonce-7)))
+
+;; CriomeReply::SubscriptionRetracted — Path A final ack
+(SubscriptionRetracted (IdentitySubscriptionToken (Persona alice)))
+
+;; CriomeReply::Rejection — positive rejection cause
+(Rejection UnknownIdentity)
+
+;; ─── Stream events on IdentityUpdateStream ────────────────────────
+
+;; CriomeEvent::IdentityUpdate
+(IdentityUpdate (IdentityReceipt (Persona alice) Active))
