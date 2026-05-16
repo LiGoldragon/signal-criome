@@ -61,7 +61,9 @@ fn attestation() -> Attestation {
 }
 
 fn token() -> IdentitySubscriptionToken {
-    IdentitySubscriptionToken { subscriber: alice() }
+    IdentitySubscriptionToken {
+        subscriber: alice(),
+    }
 }
 
 fn round_trip<T>(value: T, canonical_text: &str)
@@ -173,7 +175,9 @@ fn canonical_request_examples_round_trip() {
         "(AuthorizationAttestationRequest (ContentReference digest-auth Authorization schema-1) (Persona alice) (AuditContext Authorization audience-bob policy-1 nonce-10))",
     );
     round_trip(
-        CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription { subscriber: alice() }),
+        CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription {
+            subscriber: alice(),
+        }),
         "(IdentitySubscription (Persona alice))",
     );
     round_trip(
