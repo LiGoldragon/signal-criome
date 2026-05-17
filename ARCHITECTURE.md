@@ -26,8 +26,16 @@ close-is-Retract shape.
 
 | Side | Component |
 |---|---|
-| Request side | Persona, Lojix, Forge, ClaviFaber feeds, or future Criome clients. |
+| Request side | Two classes of client. **Consumers** (Lojix, Persona components, Forge, ClaviFaber feeds — anything asking *"is this allowed?"* and trusting the answer). **Peer criome daemons** (cross-criome signature-solicitation routing for quorum policies). |
 | Reply / event side | `criome` daemon |
+
+`signal-criome` is **not** the surface for owner-class operations on
+the daemon itself (passphrase submission, master-key operations,
+policy mutation, peer-routing table mutation, escalation-approval
+replies). Those live on the separate `owner-signal-criome` contract
+between the daemon's single Unix-user owner and the daemon. See
+`criome/ARCHITECTURE.md` §"Security model — Unix-user as boundary"
+for the discipline.
 
 Criome verifies and records cryptographic authority. Persona decides
 and acts. Attestations are separate records that reference content
@@ -82,34 +90,49 @@ the resulting signatures, and returns one of:
 - `AuthorizationDenied`, `AuthorizationExpired`, or
   `AuthorizationUnavailable` — closed terminal or temporary outcomes.
 
-`AuthorizationGrant` is the permission surface: permission comes from
-signatures over the exact request. Lojix consumes only the envelope
-and verifies that it names the exact request digest it is about to
-execute.
+`AuthorizationGrant` is the permission surface visible to consumers:
+permission is constituted by *signatures over the exact request
+digest that satisfy criome's policy*. Lojix consumes only the
+envelope and verifies that it names the exact request digest it is
+about to execute. The policy that says *which signatures count* is
+held in criome's owned state (see `criome/ARCHITECTURE.md`
+§"Authorization model").
 
-`tui-criome` is the expected stateful signing client. It owns a local
-Sema database for request history and key material, speaks this
-contract to `criome-daemon`, receives signature solicitations, submits
-signatures, and can create signed requests for Criome to route.
+The `RouteSignatureRequest` / `SubmitSignature` /
+`RejectAuthorization` verbs travel on this contract between criome
+daemons (peer routing for quorum policies). The route from criome to
+its own Unix-user owner — *"may I sign this with my master key?"* —
+is **not** on this contract; it is on `owner-signal-criome` as an
+escalation-to-approve prompt.
 
 ### Current authorization model
 
 - This contract is published as the public GitHub repository
   `LiGoldragon/signal-criome`.
 - The authorized object is the exact canonical Signal request digest.
-- Authorization permission comes from signatures over that digest.
+- Authorization permission is constituted by signatures over that
+  digest *that satisfy criome's policy*. Policy alone does not
+  grant; signatures alone are not enough without policy that names
+  them as sufficient. Criome's policy lives in criome's owned state
+  (see `criome/ARCHITECTURE.md` §"Owned"); this contract is the
+  wire vocabulary that surfaces the *outcomes* of policy plus
+  signatures to consumers, and the *solicitation traffic* between
+  peer criome daemons.
 - The contract vocabulary is signature-solicitation shaped:
   `AuthorizeSignalCall` starts the authorization relation,
-  `RouteSignatureRequest` presents work to a signing surface,
-  `SubmitSignature` and `RejectAuthorization` close a signer decision,
-  and `ObserveAuthorization` pushes pending/granted/denied state.
-- `signal-criome` does not model daemon-owned permission slots,
-  local ACL grants, or an in-band proof gate. The durable authority
-  object is the signed authorization envelope over the exact request.
-- `tui-criome` is a stateful signing client of this contract. It owns
-  local request history, signing decisions, and signing-client key
-  material in its own Sema database; it can receive signature
-  requests and create signed requests for Criome.
+  `RouteSignatureRequest` presents work to a peer criome daemon,
+  `SubmitSignature` and `RejectAuthorization` close a peer's
+  decision, and `ObserveAuthorization` pushes pending/granted/denied
+  state.
+- `signal-criome` does **not** carry owner-class operations on
+  criome itself (master-key passphrase, policy mutation, peer-route
+  mutation, escalation-approval prompts and replies). Those live on
+  the separate `owner-signal-criome` contract.
+- `tui-criome` and the `criome` CLI are **owner clients of their
+  own criome daemon over `owner-signal-criome`**, not signing
+  clients of this contract. The TUI exists to host long-running
+  escalation-to-approve flows; the CLI handles one-shot owner
+  operations.
 
 Authorization observation follows the same subscription discipline as
 identity updates: `ObserveAuthorization` opens
@@ -221,10 +244,34 @@ over raw bytes are not modeled by this contract.
 
 ## 5 · Bootstrap Convention
 
-Consumers discover Criome's root public key at `/etc/criome/root.pub`
-in deployed systems. Test runners may override that path with an
-explicit environment variable, but the contract's vocabulary treats
-the root key as a registered public key, not as a hard-coded global.
+Consumers discover their local Criome's master public key at a known
+per-user path (typically under the per-user runtime directory),
+mirrored at a stable filesystem location for early-boot consumers.
+Test runners may override the path with an explicit environment
+variable. The contract's vocabulary treats the master key as a
+registered public key, not as a hard-coded global — there are many
+criome daemons (one per Unix-user trust boundary), so "the" root
+key is per-daemon, not a singleton.
+
+### 5.1 Peer discovery (predictable socket names)
+
+Peer criome daemons (cross-criome solicitation for quorum policies)
+are found by predictable socket names of the form:
+
+```text
+${PER_USER_RUNTIME_DIR}/criome/<short-hash-of-master-pubkey>.sock
+```
+
+The short hash is for ergonomics; signature verification at the
+requester remains the authoritative check, so socket-name
+collisions are inconvenient (the routing layer disambiguates) but
+not dangerous.
+
+**Cross-host transport is an open design slot.** Local Unix sockets
+do not cross hosts; quorum policies that name peers on other hosts
+need a wire-crypto layer (TLS, signed envelopes, or SSH tunnelling).
+The choice is deferred to a follow-up designer report. See
+`criome/ARCHITECTURE.md` §6.1.
 
 ## 6 · Constraints
 
@@ -242,7 +289,8 @@ the root key as a registered public key, not as a hard-coded global.
 | Round-trip witnesses cover every variant in rkyv. | `tests/round_trip.rs` covers every request, reply, and event variant. |
 | Round-trip witnesses cover every variant in NOTA. | `examples/canonical.nota` holds one canonical text example per request/reply/event variant; round-trip tests parse and re-emit each. |
 | Routed authorization names the exact Signal request digest being authorized. | `SignalCallAuthorization`, `AuthorizationVerification`, `AuthorizationGrant`, and `AuthorizationStateRecord` all carry the typed `ObjectDigest`; round-trip tests cover the request, grant, verification, pending state, and event forms. |
-| Authorization grants derive permission from signatures. | `AuthorizationGrant` carries scope, signature result, and signatures; permission comes from signatures over the exact request. |
+| Authorization is constituted by signatures-over-the-exact-digest that satisfy criome's policy. | `AuthorizationGrant` carries scope, the signatures collected, and the threshold that says why those signatures are sufficient (per the policy criome holds in its own state — see `criome/ARCHITECTURE.md` §"Owned"). |
+| `signal-criome` carries no owner-class operations. | Source scan: no `SubmitPassphrase`, no `RegisterPolicy`, no `RegisterPeer`, no `RequestOwnerApproval`, no `OwnerApprovalReply`. Those variants live (or will live) on `owner-signal-criome` only. |
 | Authorization observation uses Path A stream close. | The `signal_channel!` declaration names `Retract AuthorizationObservationRetraction(AuthorizationObservationToken)` and the `AuthorizationObservationStream` close block; round-trip witnesses cover the retract request and `AuthorizationObservationRetracted` reply. |
 | No stringly-typed dispatch (`match s.as_str()`) for closed-set states. | All decision / reason / purpose / identity fields are typed closed enums (custom `Identity` codec dispatches on a closed head-name set). |
 | Contract crate dependencies use a named API reference (branch or tag), not a raw revision pin. | `Cargo.toml` review: `signal-core` is declared `git = "..."` with a named-branch shape; raw `rev = "..."` pins are not used. |
@@ -277,6 +325,10 @@ API branch/bookmark once that lane is declared.
 - No private-key storage.
 - No prompt audit or policy engine.
 - No embedded proof fields in Persona content contracts.
+- **No owner-class operations** — passphrase submission, master-key
+  generation/rotation, policy mutation, peer-route mutation, and
+  escalation-to-approve prompts/replies all live on the separate
+  `owner-signal-criome` contract.
 
 ## 10 · Code map
 
