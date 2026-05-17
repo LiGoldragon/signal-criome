@@ -43,7 +43,7 @@
 (AuthorizationObservation authorization-request-1)
 
 ;; CriomeRequest::VerifyAuthorization
-(AuthorizationVerification digest-lojix-request (AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))
+(AuthorizationVerification digest-lojix-request (AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os (AuthorizationPolicySatisfaction ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))
 
 ;; CriomeRequest::RouteSignatureRequest
 (SignatureSolicitationRoute (SignatureSolicitation authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa))
@@ -84,10 +84,10 @@
 (AuthorizationPending authorization-request-1 digest-lojix-request [(Developer reviewer)] (AuthorizationObservationToken authorization-request-1))
 
 ;; CriomeReply::AuthorizationGranted
-(AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)
+(AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os (AuthorizationPolicySatisfaction ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)
 
 ;; CriomeReply::AuthorizationDenied
-(AuthorizationDenied authorization-request-1 SignatureScopeMismatch)
+(AuthorizationDenied authorization-request-1 (AuthorizationDenial Policy SignatureScopeMismatch))
 
 ;; CriomeReply::AuthorizationExpired
 (AuthorizationExpired authorization-request-1 111)

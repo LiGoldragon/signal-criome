@@ -9,21 +9,23 @@
 use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode};
 use signal_criome::{
     ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext,
-    AuthorizationAttestationRequest, AuthorizationDenialReason, AuthorizationDenied,
-    AuthorizationExpired, AuthorizationGrant, AuthorizationObservation,
-    AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
-    AuthorizationObservationToken, AuthorizationPending, AuthorizationRejection,
-    AuthorizationRequestSlot, AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus,
-    AuthorizationUnavailable, AuthorizationUpdate, AuthorizationVerification, AuthorizedSignalVerb,
-    BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
+    AuthorizationAttestationRequest, AuthorizationDenial, AuthorizationDenialReason,
+    AuthorizationDenialSource, AuthorizationDenied, AuthorizationExpired, AuthorizationGrant,
+    AuthorizationObservation, AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
+    AuthorizationObservationToken, AuthorizationPending, AuthorizationPolicyClass,
+    AuthorizationPolicySatisfaction, AuthorizationRejection, AuthorizationRequestSlot,
+    AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus, AuthorizationUnavailable,
+    AuthorizationUpdate, AuthorizationVerification, AuthorizedSignalVerb, BlsPublicKey,
+    BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
     ContentReference, ContractName, CriomeEvent, CriomeReply, CriomeRequest, Identity,
     IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
     IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
     PrincipalName, PrincipalStatus, PublicKeyFingerprint, Rejection, RejectionReason, ReplayNonce,
-    SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
-    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
-    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
-    SubscriptionRetracted, TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
+    RequiredSignatureThreshold, SignReceipt, SignRequest, SignalCallAuthorization,
+    SignatureAuthorizationResult, SignatureEnvelope, SignatureRouteReceipt, SignatureScheme,
+    SignatureSolicitation, SignatureSolicitationRoute, SignatureSubmission,
+    SignatureSubmissionReceipt, SubscriptionRetracted, TimestampNanos, VerificationDecision,
+    VerificationResult, VerifyRequest,
 };
 
 const CANONICAL: &str = include_str!("../examples/canonical.nota");
@@ -98,6 +100,11 @@ fn authorization_grant() -> AuthorizationGrant {
         authorized_contract: contract_name(),
         authorized_verb: AuthorizedSignalVerb::Assert,
         authorization_scope: authorization_scope(),
+        policy_satisfaction: AuthorizationPolicySatisfaction {
+            policy_class: AuthorizationPolicyClass::ComplexQuorum,
+            required_signature_threshold: RequiredSignatureThreshold::new(1),
+            satisfied_signers: vec![Identity::Cluster(PrincipalName::new("uranus"))],
+        },
         signature_result: SignatureAuthorizationResult::RequiredSignaturesSatisfied,
         signatures: vec![envelope()],
         issued_by: Identity::Cluster(PrincipalName::new("uranus")),
@@ -260,7 +267,7 @@ fn canonical_request_examples_round_trip() {
             request_digest: ObjectDigest::new("digest-lojix-request"),
             authorization: authorization_grant(),
         }),
-        "(AuthorizationVerification digest-lojix-request (AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))",
+        "(AuthorizationVerification digest-lojix-request (AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os (AuthorizationPolicySatisfaction ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))",
     );
     round_trip(
         CriomeRequest::RouteSignatureRequest(SignatureSolicitationRoute {
@@ -351,14 +358,17 @@ fn canonical_reply_examples_round_trip() {
     );
     round_trip(
         CriomeReply::AuthorizationGranted(authorization_grant()),
-        "(AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)",
+        "(AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os (AuthorizationPolicySatisfaction ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)",
     );
     round_trip(
         CriomeReply::AuthorizationDenied(AuthorizationDenied {
             request_slot: authorization_request_slot(),
-            reason: AuthorizationDenialReason::SignatureScopeMismatch,
+            denial: AuthorizationDenial {
+                source: AuthorizationDenialSource::Policy,
+                reason: AuthorizationDenialReason::SignatureScopeMismatch,
+            },
         }),
-        "(AuthorizationDenied authorization-request-1 SignatureScopeMismatch)",
+        "(AuthorizationDenied authorization-request-1 (AuthorizationDenial Policy SignatureScopeMismatch))",
     );
     round_trip(
         CriomeReply::AuthorizationExpired(AuthorizationExpired {

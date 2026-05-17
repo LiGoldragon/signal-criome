@@ -4,22 +4,25 @@ use signal_core::{
     SignalVerb, StreamEventIdentifier, SubReply, SubscriptionTokenInner,
 };
 use signal_criome::{
-    ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext,
-    AuthorizationDenialReason, AuthorizationDenied, AuthorizationExpired, AuthorizationGrant,
-    AuthorizationObservation, AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
-    AuthorizationObservationToken, AuthorizationPending, AuthorizationRejection,
-    AuthorizationRequestSlot, AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus,
-    AuthorizationUnavailable, AuthorizationUpdate, AuthorizationVerification, AuthorizedSignalVerb,
-    BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
+    ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext, AuthorizationDenial,
+    AuthorizationDenialReason, AuthorizationDenialSource, AuthorizationDenied,
+    AuthorizationExpired, AuthorizationGrant, AuthorizationObservation,
+    AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
+    AuthorizationObservationToken, AuthorizationPending, AuthorizationPolicyClass,
+    AuthorizationPolicySatisfaction, AuthorizationRejection, AuthorizationRequestSlot,
+    AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus, AuthorizationUnavailable,
+    AuthorizationUpdate, AuthorizationVerification, AuthorizedSignalVerb, BlsPublicKey,
+    BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
     ContentReference, ContractName, CriomeEvent, CriomeFrame as Frame,
     CriomeFrameBody as FrameBody, CriomeReply, CriomeRequest, Identity, IdentityLookup,
     IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
     IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
     PrincipalName, PrincipalStatus, PublicKeyFingerprint, Rejection, RejectionReason, ReplayNonce,
-    SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
-    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
-    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
-    SubscriptionRetracted, TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
+    RequiredSignatureThreshold, SignReceipt, SignRequest, SignalCallAuthorization,
+    SignatureAuthorizationResult, SignatureEnvelope, SignatureRouteReceipt, SignatureScheme,
+    SignatureSolicitation, SignatureSolicitationRoute, SignatureSubmission,
+    SignatureSubmissionReceipt, SubscriptionRetracted, TimestampNanos, VerificationDecision,
+    VerificationResult, VerifyRequest,
 };
 
 fn content(purpose: ContentPurpose) -> ContentReference {
@@ -94,6 +97,11 @@ fn authorization_grant() -> AuthorizationGrant {
         authorized_contract: contract_name(),
         authorized_verb: AuthorizedSignalVerb::Assert,
         authorization_scope: authorization_scope(),
+        policy_satisfaction: AuthorizationPolicySatisfaction {
+            policy_class: AuthorizationPolicyClass::ComplexQuorum,
+            required_signature_threshold: RequiredSignatureThreshold::new(1),
+            satisfied_signers: vec![Identity::cluster("uranus")],
+        },
         signature_result: SignatureAuthorizationResult::RequiredSignaturesSatisfied,
         signatures: vec![envelope()],
         issued_by: Identity::cluster("uranus"),
@@ -109,8 +117,10 @@ fn authorization_state(status: AuthorizationStatus) -> AuthorizationStateRecord 
         status,
         missing_authorities: vec![Identity::developer("reviewer")],
         grant: (status == AuthorizationStatus::Granted).then(authorization_grant),
-        denial: (status == AuthorizationStatus::Denied)
-            .then_some(AuthorizationDenialReason::SignatureRejected),
+        denial: (status == AuthorizationStatus::Denied).then_some(AuthorizationDenial {
+            source: AuthorizationDenialSource::Signers,
+            reason: AuthorizationDenialReason::SignatureRejected,
+        }),
     }
 }
 
@@ -458,7 +468,10 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
         CriomeReply::AuthorizationGranted(authorization_grant()),
         CriomeReply::AuthorizationDenied(AuthorizationDenied {
             request_slot: authorization_request_slot(),
-            reason: AuthorizationDenialReason::SignatureScopeMismatch,
+            denial: AuthorizationDenial {
+                source: AuthorizationDenialSource::Policy,
+                reason: AuthorizationDenialReason::SignatureScopeMismatch,
+            },
         }),
         CriomeReply::AuthorizationExpired(AuthorizationExpired {
             request_slot: authorization_request_slot(),
@@ -516,6 +529,55 @@ fn authorization_update_event_round_trips_through_length_prefixed_frame() {
 }
 
 #[test]
+fn authorization_grant_carries_satisfied_policy_threshold() {
+    let grant = authorization_grant();
+
+    assert_eq!(
+        grant.policy_satisfaction.policy_class,
+        AuthorizationPolicyClass::ComplexQuorum,
+    );
+    assert_eq!(
+        grant
+            .policy_satisfaction
+            .required_signature_threshold
+            .into_u16(),
+        1,
+    );
+    assert_eq!(
+        grant.policy_satisfaction.satisfied_signers,
+        vec![Identity::cluster("uranus")],
+    );
+}
+
+#[test]
+fn authorization_denial_distinguishes_policy_from_signer_refusal() {
+    let policy_denial = AuthorizationDenied {
+        request_slot: authorization_request_slot(),
+        denial: AuthorizationDenial {
+            source: AuthorizationDenialSource::Policy,
+            reason: AuthorizationDenialReason::PolicyRefused,
+        },
+    };
+    let signer_denial = AuthorizationDenied {
+        request_slot: authorization_request_slot(),
+        denial: AuthorizationDenial {
+            source: AuthorizationDenialSource::Signers,
+            reason: AuthorizationDenialReason::SignerThresholdRejected,
+        },
+    };
+
+    assert_ne!(policy_denial, signer_denial);
+    assert_eq!(
+        round_trip_reply(CriomeReply::AuthorizationDenied(policy_denial.clone())),
+        CriomeReply::AuthorizationDenied(policy_denial)
+    );
+    assert_eq!(
+        round_trip_reply(CriomeReply::AuthorizationDenied(signer_denial.clone())),
+        CriomeReply::AuthorizationDenied(signer_denial)
+    );
+}
+
+#[test]
 fn root_request_round_trips_through_nota_text() {
     round_trip_nota(
         CriomeRequest::LookupIdentity(IdentityLookup {
@@ -561,5 +623,24 @@ fn contract_crate_carries_no_daemon_runtime_or_storage() {
     for forbidden in ["kameo", "tokio", "redb", "sema", "ractor"] {
         assert!(!manifest.contains(forbidden));
         assert!(!source.contains(forbidden));
+    }
+}
+
+#[test]
+fn contract_crate_carries_no_owner_class_operations() {
+    let source = std::fs::read_to_string("src/lib.rs").expect("read source");
+
+    for forbidden in [
+        "SubmitPassphrase",
+        "RegisterPolicy",
+        "RegisterPeer",
+        "RetractPeer",
+        "RequestOwnerApproval",
+        "OwnerApprovalReply",
+    ] {
+        assert!(
+            !source.contains(forbidden),
+            "owner operation leaked: {forbidden}"
+        );
     }
 }

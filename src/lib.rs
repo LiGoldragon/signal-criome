@@ -305,11 +305,54 @@ pub enum SignatureAuthorizationResult {
 }
 
 #[derive(
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaTransparent,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct RequiredSignatureThreshold(u16);
+
+impl RequiredSignatureThreshold {
+    pub const fn new(value: u16) -> Self {
+        Self(value)
+    }
+
+    pub const fn into_u16(self) -> u16 {
+        self.0
+    }
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub enum AuthorizationPolicyClass {
+    SimpleSelfSigned,
+    ComplexQuorum,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationPolicySatisfaction {
+    pub policy_class: AuthorizationPolicyClass,
+    pub required_signature_threshold: RequiredSignatureThreshold,
+    pub satisfied_signers: Vec<Identity>,
+}
+
+#[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum AuthorizationStatus {
     Pending,
+    Signing,
     Granted,
     Denied,
     Expired,
@@ -321,12 +364,30 @@ pub enum AuthorizationStatus {
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum AuthorizationDenialReason {
+    PolicyRefused,
     RequiredSignatureMissing,
     SignatureRejected,
+    SignerThresholdRejected,
     SignatureExpired,
     RequestDigestMismatch,
     SignatureScopeMismatch,
     SignerUnavailable,
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub enum AuthorizationDenialSource {
+    Policy,
+    Signers,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationDenial {
+    pub source: AuthorizationDenialSource,
+    pub reason: AuthorizationDenialReason,
 }
 
 #[derive(
@@ -561,6 +622,7 @@ pub struct AuthorizationGrant {
     pub authorized_contract: ContractName,
     pub authorized_verb: AuthorizedSignalVerb,
     pub authorization_scope: AuthorizationScope,
+    pub policy_satisfaction: AuthorizationPolicySatisfaction,
     pub signature_result: SignatureAuthorizationResult,
     pub signatures: Vec<SignatureEnvelope>,
     pub issued_by: Identity,
@@ -581,7 +643,7 @@ pub struct AuthorizationPending {
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationDenied {
     pub request_slot: AuthorizationRequestSlot,
-    pub reason: AuthorizationDenialReason,
+    pub denial: AuthorizationDenial,
 }
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
@@ -606,7 +668,7 @@ pub struct AuthorizationStateRecord {
     pub status: AuthorizationStatus,
     pub missing_authorities: Vec<Identity>,
     pub grant: Option<AuthorizationGrant>,
-    pub denial: Option<AuthorizationDenialReason>,
+    pub denial: Option<AuthorizationDenial>,
 }
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
