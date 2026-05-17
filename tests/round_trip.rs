@@ -4,15 +4,22 @@ use signal_core::{
     SignalVerb, StreamEventIdentifier, SubReply, SubscriptionTokenInner,
 };
 use signal_criome::{
-    ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext, BlsPublicKey,
-    BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
-    ContentReference, CriomeEvent, CriomeFrame as Frame, CriomeFrameBody as FrameBody, CriomeReply,
-    CriomeRequest, Identity, IdentityLookup, IdentityReceipt, IdentityRegistration,
-    IdentityRevocation, IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken,
-    IdentityUpdate, KeyPurpose, ObjectDigest, PrincipalName, PrincipalStatus, PublicKeyFingerprint,
-    Rejection, RejectionReason, ReplayNonce, SignReceipt, SignRequest, SignatureEnvelope,
-    SignatureScheme, SubscriptionRetracted, TimestampNanos, VerificationDecision,
-    VerificationResult, VerifyRequest,
+    ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext,
+    AuthorizationDenialReason, AuthorizationDenied, AuthorizationExpired, AuthorizationGrant,
+    AuthorizationObservation, AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
+    AuthorizationObservationToken, AuthorizationPending, AuthorizationRejection,
+    AuthorizationRequestSlot, AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus,
+    AuthorizationUnavailable, AuthorizationUpdate, AuthorizationVerification, AuthorizedSignalVerb,
+    BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
+    ContentReference, ContractName, CriomeEvent, CriomeFrame as Frame,
+    CriomeFrameBody as FrameBody, CriomeReply, CriomeRequest, Identity, IdentityLookup,
+    IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
+    IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
+    PrincipalName, PrincipalStatus, PublicKeyFingerprint, Rejection, RejectionReason, ReplayNonce,
+    SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
+    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
+    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
+    SubscriptionRetracted, TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
 };
 
 fn content(purpose: ContentPurpose) -> ContentReference {
@@ -48,6 +55,74 @@ fn attestation(purpose: ContentPurpose) -> Attestation {
         issued_at: TimestampNanos::new(1),
         expires_at: Some(TimestampNanos::new(2)),
         audit_context: audit(purpose),
+    }
+}
+
+fn authorization_request_slot() -> AuthorizationRequestSlot {
+    AuthorizationRequestSlot::new("authorization-request-1")
+}
+
+fn authorization_scope() -> AuthorizationScope {
+    AuthorizationScope::new("deploy:zeus:FullOs")
+}
+
+fn contract_name() -> ContractName {
+    ContractName::new("signal-lojix")
+}
+
+fn signal_call_authorization() -> SignalCallAuthorization {
+    SignalCallAuthorization {
+        request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
+        contract: contract_name(),
+        verb: AuthorizedSignalVerb::Assert,
+        scope: authorization_scope(),
+        requester: Identity::developer("operator"),
+        nonce: ReplayNonce::new("authorization-nonce-1"),
+        expires_at: Some(TimestampNanos::new(10)),
+    }
+}
+
+fn authorization_observation_token() -> AuthorizationObservationToken {
+    AuthorizationObservationToken {
+        request_slot: authorization_request_slot(),
+    }
+}
+
+fn authorization_grant() -> AuthorizationGrant {
+    AuthorizationGrant {
+        authorized_object_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
+        authorized_contract: contract_name(),
+        authorized_verb: AuthorizedSignalVerb::Assert,
+        authorization_scope: authorization_scope(),
+        signature_result: SignatureAuthorizationResult::RequiredSignaturesSatisfied,
+        signatures: vec![envelope()],
+        issued_by: Identity::cluster("uranus"),
+        issued_at: TimestampNanos::new(11),
+        expires_at: Some(TimestampNanos::new(12)),
+    }
+}
+
+fn authorization_state(status: AuthorizationStatus) -> AuthorizationStateRecord {
+    AuthorizationStateRecord {
+        request_slot: authorization_request_slot(),
+        request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
+        status,
+        missing_authorities: vec![Identity::developer("reviewer")],
+        grant: (status == AuthorizationStatus::Granted).then(authorization_grant),
+        denial: (status == AuthorizationStatus::Denied)
+            .then_some(AuthorizationDenialReason::SignatureRejected),
+    }
+}
+
+fn signature_solicitation() -> SignatureSolicitation {
+    SignatureSolicitation {
+        request_slot: authorization_request_slot(),
+        request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
+        contract: contract_name(),
+        verb: AuthorizedSignalVerb::Assert,
+        scope: authorization_scope(),
+        requester: Identity::developer("operator"),
+        required_signer: Identity::developer("reviewer"),
     }
 }
 
@@ -183,12 +258,35 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
             source: Identity::persona("mind"),
             audit_context: audit(ContentPurpose::Authorization),
         }),
+        CriomeRequest::AuthorizeSignalCall(signal_call_authorization()),
+        CriomeRequest::ObserveAuthorization(AuthorizationObservation {
+            request_slot: authorization_request_slot(),
+        }),
+        CriomeRequest::VerifyAuthorization(AuthorizationVerification {
+            request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
+            authorization: authorization_grant(),
+        }),
+        CriomeRequest::RouteSignatureRequest(SignatureSolicitationRoute {
+            solicitation: signature_solicitation(),
+            routed_to: Identity::host("balboa"),
+        }),
+        CriomeRequest::SubmitSignature(SignatureSubmission {
+            request_slot: authorization_request_slot(),
+            signer: Identity::developer("reviewer"),
+            envelope: envelope(),
+        }),
+        CriomeRequest::RejectAuthorization(AuthorizationRejection {
+            request_slot: authorization_request_slot(),
+            rejector: Identity::developer("reviewer"),
+            reason: AuthorizationDenialReason::SignatureRejected,
+        }),
         CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription {
             subscriber: Identity::agent("operator"),
         }),
         CriomeRequest::IdentitySubscriptionRetraction(IdentitySubscriptionToken {
             subscriber: Identity::agent("operator"),
         }),
+        CriomeRequest::AuthorizationObservationRetraction(authorization_observation_token()),
     ];
 
     for request in requests {
@@ -266,6 +364,46 @@ fn request_variants_declare_expected_signal_root_verbs() {
             SignalVerb::Assert,
         ),
         (
+            CriomeRequest::AuthorizeSignalCall(signal_call_authorization()),
+            SignalVerb::Assert,
+        ),
+        (
+            CriomeRequest::ObserveAuthorization(AuthorizationObservation {
+                request_slot: authorization_request_slot(),
+            }),
+            SignalVerb::Subscribe,
+        ),
+        (
+            CriomeRequest::VerifyAuthorization(AuthorizationVerification {
+                request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
+                authorization: authorization_grant(),
+            }),
+            SignalVerb::Validate,
+        ),
+        (
+            CriomeRequest::RouteSignatureRequest(SignatureSolicitationRoute {
+                solicitation: signature_solicitation(),
+                routed_to: Identity::host("balboa"),
+            }),
+            SignalVerb::Assert,
+        ),
+        (
+            CriomeRequest::SubmitSignature(SignatureSubmission {
+                request_slot: authorization_request_slot(),
+                signer: Identity::developer("reviewer"),
+                envelope: envelope(),
+            }),
+            SignalVerb::Assert,
+        ),
+        (
+            CriomeRequest::RejectAuthorization(AuthorizationRejection {
+                request_slot: authorization_request_slot(),
+                rejector: Identity::developer("reviewer"),
+                reason: AuthorizationDenialReason::SignatureRejected,
+            }),
+            SignalVerb::Assert,
+        ),
+        (
             CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription {
                 subscriber: Identity::agent("operator"),
             }),
@@ -275,6 +413,10 @@ fn request_variants_declare_expected_signal_root_verbs() {
             CriomeRequest::IdentitySubscriptionRetraction(IdentitySubscriptionToken {
                 subscriber: Identity::agent("operator"),
             }),
+            SignalVerb::Retract,
+        ),
+        (
+            CriomeRequest::AuthorizationObservationRetraction(authorization_observation_token()),
             SignalVerb::Retract,
         ),
     ];
@@ -307,6 +449,39 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
         CriomeReply::AttestationReceipt(AttestationReceipt {
             attestation: attestation(ContentPurpose::Archive),
         }),
+        CriomeReply::AuthorizationPending(AuthorizationPending {
+            request_slot: authorization_request_slot(),
+            request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
+            missing_authorities: vec![Identity::developer("reviewer")],
+            observation_token: authorization_observation_token(),
+        }),
+        CriomeReply::AuthorizationGranted(authorization_grant()),
+        CriomeReply::AuthorizationDenied(AuthorizationDenied {
+            request_slot: authorization_request_slot(),
+            reason: AuthorizationDenialReason::SignatureScopeMismatch,
+        }),
+        CriomeReply::AuthorizationExpired(AuthorizationExpired {
+            request_slot: authorization_request_slot(),
+            expired_at: TimestampNanos::new(13),
+        }),
+        CriomeReply::AuthorizationUnavailable(AuthorizationUnavailable {
+            request_slot: authorization_request_slot(),
+            reason: PrincipalName::new("criome-peer-unreachable"),
+        }),
+        CriomeReply::AuthorizationObservationSnapshot(AuthorizationObservationSnapshot {
+            states: vec![authorization_state(AuthorizationStatus::Pending)],
+        }),
+        CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
+            request_slot: authorization_request_slot(),
+            routed_to: Identity::host("balboa"),
+        }),
+        CriomeReply::SignatureSubmissionReceipt(SignatureSubmissionReceipt {
+            request_slot: authorization_request_slot(),
+            signer: Identity::developer("reviewer"),
+        }),
+        CriomeReply::AuthorizationObservationRetracted(AuthorizationObservationRetracted {
+            token: authorization_observation_token(),
+        }),
         CriomeReply::SubscriptionRetracted(SubscriptionRetracted {
             token: IdentitySubscriptionToken {
                 subscriber: Identity::agent("operator"),
@@ -329,6 +504,14 @@ fn identity_update_event_round_trips_through_length_prefixed_frame() {
         status: PrincipalStatus::Active,
     };
     let event = CriomeEvent::IdentityUpdate(IdentityUpdate { receipt });
+    assert_eq!(round_trip_event(event.clone()), event);
+}
+
+#[test]
+fn authorization_update_event_round_trips_through_length_prefixed_frame() {
+    let event = CriomeEvent::AuthorizationUpdate(AuthorizationUpdate {
+        state: authorization_state(AuthorizationStatus::Granted),
+    });
     assert_eq!(round_trip_event(event.clone()), event);
 }
 

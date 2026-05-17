@@ -10,8 +10,9 @@ custody, no redb tables, no actors, no sockets.*
 ClaviFaber feeds, and other Criome clients send to the `criome`
 daemon. Identity registration, signature envelopes, attestations,
 verification replies, archive attestation, channel-grant
-attestation, authorization attestation. One bidirectional channel
-declared with `signal_channel!` in `src/lib.rs`.
+attestation, authorization attestation, and Criome-routed
+authorization of exact Signal request digests. One bidirectional
+channel declared with `signal_channel!` in `src/lib.rs`.
 
 Subscription close on the identity-updates stream follows the
 canonical lifecycle named in `~/primary/skills/subscription-lifecycle.md`:
@@ -35,27 +36,67 @@ fields.
 
 `signal-criome` deliberately avoids the name `AuthProof`. The
 contract uses specific records: `SignatureEnvelope`, `SignedObject`,
-`VerificationReceipt`, `DelegationGrant`, `ComponentRelease`, and
-`SignedPersonaRequest`.
+`VerificationReceipt`, `DelegationGrant`, `ComponentRelease`,
+`SignedPersonaRequest`, `SignalCallAuthorization`, and
+`AuthorizationGrant`.
 
 ## 2 · Messages
 
 ```text
-CriomeRequest                          CriomeReply
-├─ Sign                                ├─ SignReceipt
-├─ VerifyAttestation                   ├─ VerificationResult
-├─ RegisterIdentity                    ├─ IdentityReceipt
-├─ RevokeIdentity                      ├─ IdentitySnapshot
-├─ LookupIdentity                      ├─ AttestationReceipt
-├─ AttestArchive                       ├─ SubscriptionRetracted
-├─ AttestChannelGrant                  └─ Rejection
-├─ AttestAuthorization
-├─ SubscribeIdentityUpdates
-└─ IdentitySubscriptionRetraction(token)
+CriomeRequest                             CriomeReply
+├─ Sign                                   ├─ SignReceipt
+├─ VerifyAttestation                      ├─ VerificationResult
+├─ RegisterIdentity                       ├─ IdentityReceipt
+├─ RevokeIdentity                         ├─ IdentitySnapshot
+├─ LookupIdentity                         ├─ AttestationReceipt
+├─ AttestArchive                          ├─ AuthorizationPending
+├─ AttestChannelGrant                     ├─ AuthorizationGranted
+├─ AttestAuthorization                    ├─ AuthorizationDenied
+├─ AuthorizeSignalCall                    ├─ AuthorizationExpired
+├─ ObserveAuthorization                   ├─ AuthorizationUnavailable
+├─ VerifyAuthorization                    ├─ AuthorizationObservationSnapshot
+├─ RouteSignatureRequest                  ├─ SignatureRouteReceipt
+├─ SubmitSignature                        ├─ SignatureSubmissionReceipt
+├─ RejectAuthorization                    ├─ AuthorizationObservationRetracted
+├─ SubscribeIdentityUpdates               ├─ SubscriptionRetracted
+├─ IdentitySubscriptionRetraction(token)  └─ Rejection
+└─ AuthorizationObservationRetraction(token)
 
-CriomeEvent (on IdentityUpdateStream)
-└─ IdentityUpdate
+CriomeEvent
+├─ IdentityUpdate         (on IdentityUpdateStream)
+└─ AuthorizationUpdate    (on AuthorizationObservationStream)
 ```
+
+### Routed authorization relation
+
+The Lojix integration uses Criome as the authorization topology:
+`lojix-daemon` submits the exact canonical `signal-lojix` request
+digest to its local `criome-daemon`. Criome routes signature
+solicitations to the relevant signing clients or Criome peers, records
+the resulting signatures, and returns one of:
+
+- `AuthorizationPending` — signature work exists and can be observed.
+- `AuthorizationGranted` — an `AuthorizationGrant` names the exact
+  request digest, contract, root verb, scope, signature result,
+  signatures, issuer, and expiry.
+- `AuthorizationDenied`, `AuthorizationExpired`, or
+  `AuthorizationUnavailable` — closed terminal or temporary outcomes.
+
+`AuthorizationGrant` is the permission surface: permission comes from
+signatures over the exact request. Lojix consumes only the envelope
+and verifies that it names the exact request digest it is about to
+execute.
+
+`tui-criome` is the expected stateful signing client. It owns a local
+Sema database for request history and key material, speaks this
+contract to `criome-daemon`, receives signature solicitations, submits
+signatures, and can create signed requests for Criome to route.
+
+Authorization observation follows the same subscription discipline as
+identity updates: `ObserveAuthorization` opens
+`AuthorizationObservationStream`; `AuthorizationObservationRetraction`
+is the request-side `Retract` close carrying the stream token; the
+reply-side `AuthorizationObservationRetracted` echoes the token.
 
 Closed enums only. No `Unknown` variant on the wire; positive
 rejection causes (`UnknownSigner`, `UnknownIdentity`) name specific
@@ -97,8 +138,15 @@ LookupIdentity                    -> Match
 AttestArchive                     -> Assert
 AttestChannelGrant                -> Assert
 AttestAuthorization               -> Assert
+AuthorizeSignalCall               -> Assert
+ObserveAuthorization              -> Subscribe   (opens AuthorizationObservationStream)
+VerifyAuthorization               -> Validate
+RouteSignatureRequest             -> Assert
+SubmitSignature                   -> Assert
+RejectAuthorization               -> Assert
 SubscribeIdentityUpdates          -> Subscribe   (opens IdentityUpdateStream)
 IdentitySubscriptionRetraction    -> Retract     (closes IdentityUpdateStream)
+AuthorizationObservationRetraction -> Retract    (closes AuthorizationObservationStream)
 ```
 
 ## 3 · Closed-enum integrity
@@ -174,6 +222,9 @@ the root key as a registered public key, not as a hard-coded global.
 | Every `signal_channel!` request variant has a typed `signal_verb()` mapping. | Generated by the macro; round-trip witness asserts each variant. |
 | Round-trip witnesses cover every variant in rkyv. | `tests/round_trip.rs` covers every request, reply, and event variant. |
 | Round-trip witnesses cover every variant in NOTA. | `examples/canonical.nota` holds one canonical text example per request/reply/event variant; round-trip tests parse and re-emit each. |
+| Routed authorization names the exact Signal request digest being authorized. | `SignalCallAuthorization`, `AuthorizationVerification`, `AuthorizationGrant`, and `AuthorizationStateRecord` all carry the typed `ObjectDigest`; round-trip tests cover the request, grant, verification, pending state, and event forms. |
+| Authorization grants derive permission from signatures. | `AuthorizationGrant` carries scope, signature result, and signatures; permission comes from signatures over the exact request. |
+| Authorization observation uses Path A stream close. | The `signal_channel!` declaration names `Retract AuthorizationObservationRetraction(AuthorizationObservationToken)` and the `AuthorizationObservationStream` close block; round-trip witnesses cover the retract request and `AuthorizationObservationRetracted` reply. |
 | No stringly-typed dispatch (`match s.as_str()`) for closed-set states. | All decision / reason / purpose / identity fields are typed closed enums (custom `Identity` codec dispatches on a closed head-name set). |
 | Contract crate dependencies use a named API reference (branch or tag), not a raw revision pin. | `Cargo.toml` review: `signal-core` is declared `git = "..."` with a named-branch shape; raw `rev = "..."` pins are not used. |
 
@@ -216,9 +267,9 @@ src/
 examples/
 └── canonical.nota         — one canonical example per request/reply/event variant
 tests/
+├── canonical_examples.rs  — canonical NOTA examples parser
 └── round_trip.rs          — per-variant frame round trips + NOTA witnesses
                              + closed-enum + verb-mapping witnesses
-                             + canonical examples parser
                              + AuthProof + runtime-dependency absence witnesses
                              + full subscribe/event/retract/ack lifecycle witness
 ```

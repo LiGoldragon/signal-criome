@@ -36,11 +36,32 @@
 ;; CriomeRequest::AttestAuthorization
 (AuthorizationAttestationRequest (ContentReference digest-auth Authorization schema-1) (Persona alice) (AuditContext Authorization audience-bob policy-1 nonce-10))
 
+;; CriomeRequest::AuthorizeSignalCall
+(SignalCallAuthorization digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) authorization-nonce-1 None)
+
+;; CriomeRequest::ObserveAuthorization
+(AuthorizationObservation authorization-request-1)
+
+;; CriomeRequest::VerifyAuthorization
+(AuthorizationVerification digest-lojix-request (AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))
+
+;; CriomeRequest::RouteSignatureRequest
+(SignatureSolicitationRoute (SignatureSolicitation authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa))
+
+;; CriomeRequest::SubmitSignature
+(SignatureSubmission authorization-request-1 (Developer reviewer) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1))
+
+;; CriomeRequest::RejectAuthorization
+(AuthorizationRejection authorization-request-1 (Developer reviewer) SignatureRejected)
+
 ;; CriomeRequest::SubscribeIdentityUpdates
 (IdentitySubscription (Persona alice))
 
 ;; CriomeRequest::IdentitySubscriptionRetraction — payload head is the token type
 (IdentitySubscriptionToken (Persona alice))
+
+;; CriomeRequest::AuthorizationObservationRetraction — payload head is the token type
+(AuthorizationObservationToken authorization-request-1)
 
 ;; ─── Replies ──────────────────────────────────────────────────────
 
@@ -59,6 +80,33 @@
 ;; CriomeReply::AttestationReceipt
 (AttestationReceipt (Attestation (ContentReference digest-abc SignedObject schema-1) (Persona alice) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1) 100 None (AuditContext SignedObject audience-bob policy-1 nonce-7)))
 
+;; CriomeReply::AuthorizationPending
+(AuthorizationPending authorization-request-1 digest-lojix-request [(Developer reviewer)] (AuthorizationObservationToken authorization-request-1))
+
+;; CriomeReply::AuthorizationGranted
+(AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)
+
+;; CriomeReply::AuthorizationDenied
+(AuthorizationDenied authorization-request-1 SignatureScopeMismatch)
+
+;; CriomeReply::AuthorizationExpired
+(AuthorizationExpired authorization-request-1 111)
+
+;; CriomeReply::AuthorizationUnavailable
+(AuthorizationUnavailable authorization-request-1 criome-peer-unreachable)
+
+;; CriomeReply::AuthorizationObservationSnapshot
+(AuthorizationObservationSnapshot [(AuthorizationStateRecord authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None)])
+
+;; CriomeReply::SignatureRouteReceipt
+(SignatureRouteReceipt authorization-request-1 (Host balboa))
+
+;; CriomeReply::SignatureSubmissionReceipt
+(SignatureSubmissionReceipt authorization-request-1 (Developer reviewer))
+
+;; CriomeReply::AuthorizationObservationRetracted
+(AuthorizationObservationRetracted (AuthorizationObservationToken authorization-request-1))
+
 ;; CriomeReply::SubscriptionRetracted — Path A final ack
 (SubscriptionRetracted (IdentitySubscriptionToken (Persona alice)))
 
@@ -69,3 +117,6 @@
 
 ;; CriomeEvent::IdentityUpdate
 (IdentityUpdate (IdentityReceipt (Persona alice) Active))
+
+;; CriomeEvent::AuthorizationUpdate
+(AuthorizationUpdate (AuthorizationStateRecord authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None))

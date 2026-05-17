@@ -124,6 +124,54 @@ impl ReplayNonce {
 }
 
 #[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct ContractName(String);
+
+impl ContractName {
+    pub fn new(value: impl Into<String>) -> Self {
+        Self(value.into())
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationRequestSlot(String);
+
+impl AuthorizationRequestSlot {
+    pub fn new(value: impl Into<String>) -> Self {
+        Self(value.into())
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationScope(String);
+
+impl AuthorizationScope {
+    pub fn new(value: impl Into<String>) -> Self {
+        Self(value.into())
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+#[derive(
     Archive,
     RkyvSerialize,
     RkyvDeserialize,
@@ -155,6 +203,45 @@ impl TimestampNanos {
 pub enum SignatureScheme {
     Bls12_381MinPk,
     Bls12_381MinSig,
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub enum AuthorizedSignalVerb {
+    Assert,
+    Mutate,
+    Retract,
+    Match,
+    Subscribe,
+    Validate,
+}
+
+impl From<signal_core::SignalVerb> for AuthorizedSignalVerb {
+    fn from(verb: signal_core::SignalVerb) -> Self {
+        match verb {
+            signal_core::SignalVerb::Assert => Self::Assert,
+            signal_core::SignalVerb::Mutate => Self::Mutate,
+            signal_core::SignalVerb::Retract => Self::Retract,
+            signal_core::SignalVerb::Match => Self::Match,
+            signal_core::SignalVerb::Subscribe => Self::Subscribe,
+            signal_core::SignalVerb::Validate => Self::Validate,
+        }
+    }
+}
+
+impl From<AuthorizedSignalVerb> for signal_core::SignalVerb {
+    fn from(verb: AuthorizedSignalVerb) -> Self {
+        match verb {
+            AuthorizedSignalVerb::Assert => Self::Assert,
+            AuthorizedSignalVerb::Mutate => Self::Mutate,
+            AuthorizedSignalVerb::Retract => Self::Retract,
+            AuthorizedSignalVerb::Match => Self::Match,
+            AuthorizedSignalVerb::Subscribe => Self::Subscribe,
+            AuthorizedSignalVerb::Validate => Self::Validate,
+        }
+    }
 }
 
 #[derive(
@@ -203,6 +290,43 @@ pub enum VerificationDecision {
     Expired,
     Revoked,
     ReplayAttempted,
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub enum SignatureAuthorizationResult {
+    SingleSignature,
+    RequiredSignaturesSatisfied,
+    PendingSignatures,
+    Rejected,
+    Expired,
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub enum AuthorizationStatus {
+    Pending,
+    Granted,
+    Denied,
+    Expired,
+    Unavailable,
+}
+
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub enum AuthorizationDenialReason {
+    RequiredSignatureMissing,
+    SignatureRejected,
+    SignatureExpired,
+    RequestDigestMismatch,
+    SignatureScopeMismatch,
+    SignerUnavailable,
 }
 
 #[derive(
@@ -372,6 +496,159 @@ pub struct SignedPersonaRequest {
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
 #[rkyv(compare(PartialEq), derive(Debug))]
+pub struct SignalCallAuthorization {
+    pub request_digest: ObjectDigest,
+    pub contract: ContractName,
+    pub verb: AuthorizedSignalVerb,
+    pub scope: AuthorizationScope,
+    pub requester: Identity,
+    pub nonce: ReplayNonce,
+    pub expires_at: Option<TimestampNanos>,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationObservation {
+    pub request_slot: AuthorizationRequestSlot,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationVerification {
+    pub request_digest: ObjectDigest,
+    pub authorization: AuthorizationGrant,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct SignatureSolicitation {
+    pub request_slot: AuthorizationRequestSlot,
+    pub request_digest: ObjectDigest,
+    pub contract: ContractName,
+    pub verb: AuthorizedSignalVerb,
+    pub scope: AuthorizationScope,
+    pub requester: Identity,
+    pub required_signer: Identity,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct SignatureSolicitationRoute {
+    pub solicitation: SignatureSolicitation,
+    pub routed_to: Identity,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct SignatureSubmission {
+    pub request_slot: AuthorizationRequestSlot,
+    pub signer: Identity,
+    pub envelope: SignatureEnvelope,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationRejection {
+    pub request_slot: AuthorizationRequestSlot,
+    pub rejector: Identity,
+    pub reason: AuthorizationDenialReason,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationGrant {
+    pub authorized_object_digest: ObjectDigest,
+    pub authorized_contract: ContractName,
+    pub authorized_verb: AuthorizedSignalVerb,
+    pub authorization_scope: AuthorizationScope,
+    pub signature_result: SignatureAuthorizationResult,
+    pub signatures: Vec<SignatureEnvelope>,
+    pub issued_by: Identity,
+    pub issued_at: TimestampNanos,
+    pub expires_at: Option<TimestampNanos>,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationPending {
+    pub request_slot: AuthorizationRequestSlot,
+    pub request_digest: ObjectDigest,
+    pub missing_authorities: Vec<Identity>,
+    pub observation_token: AuthorizationObservationToken,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationDenied {
+    pub request_slot: AuthorizationRequestSlot,
+    pub reason: AuthorizationDenialReason,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationExpired {
+    pub request_slot: AuthorizationRequestSlot,
+    pub expired_at: TimestampNanos,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationUnavailable {
+    pub request_slot: AuthorizationRequestSlot,
+    pub reason: PrincipalName,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationStateRecord {
+    pub request_slot: AuthorizationRequestSlot,
+    pub request_digest: ObjectDigest,
+    pub status: AuthorizationStatus,
+    pub missing_authorities: Vec<Identity>,
+    pub grant: Option<AuthorizationGrant>,
+    pub denial: Option<AuthorizationDenialReason>,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationObservationSnapshot {
+    pub states: Vec<AuthorizationStateRecord>,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct SignatureRouteReceipt {
+    pub request_slot: AuthorizationRequestSlot,
+    pub routed_to: Identity,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct SignatureSubmissionReceipt {
+    pub request_slot: AuthorizationRequestSlot,
+    pub signer: Identity,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationObservationRetracted {
+    pub token: AuthorizationObservationToken,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationObservationToken {
+    pub request_slot: AuthorizationRequestSlot,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct AuthorizationUpdate {
+    pub state: AuthorizationStateRecord,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignRequest {
     pub content: ContentReference,
     pub signer: Identity,
@@ -512,8 +789,15 @@ signal_channel! {
             Assert AttestArchive(ArchiveAttestationRequest),
             Assert AttestChannelGrant(ChannelGrantAttestationRequest),
             Assert AttestAuthorization(AuthorizationAttestationRequest),
+            Assert AuthorizeSignalCall(SignalCallAuthorization),
+            Subscribe ObserveAuthorization(AuthorizationObservation) opens AuthorizationObservationStream,
+            Validate VerifyAuthorization(AuthorizationVerification),
+            Assert RouteSignatureRequest(SignatureSolicitationRoute),
+            Assert SubmitSignature(SignatureSubmission),
+            Assert RejectAuthorization(AuthorizationRejection),
             Subscribe SubscribeIdentityUpdates(IdentitySubscription) opens IdentityUpdateStream,
             Retract IdentitySubscriptionRetraction(IdentitySubscriptionToken),
+            Retract AuthorizationObservationRetraction(AuthorizationObservationToken),
         }
         reply CriomeReply {
             SignReceipt(SignReceipt),
@@ -521,17 +805,33 @@ signal_channel! {
             IdentityReceipt(IdentityReceipt),
             IdentitySnapshot(IdentitySnapshot),
             AttestationReceipt(AttestationReceipt),
+            AuthorizationPending(AuthorizationPending),
+            AuthorizationGranted(AuthorizationGrant),
+            AuthorizationDenied(AuthorizationDenied),
+            AuthorizationExpired(AuthorizationExpired),
+            AuthorizationUnavailable(AuthorizationUnavailable),
+            AuthorizationObservationSnapshot(AuthorizationObservationSnapshot),
+            SignatureRouteReceipt(SignatureRouteReceipt),
+            SignatureSubmissionReceipt(SignatureSubmissionReceipt),
+            AuthorizationObservationRetracted(AuthorizationObservationRetracted),
             SubscriptionRetracted(SubscriptionRetracted),
             Rejection(Rejection),
         }
         event CriomeEvent {
             IdentityUpdate(IdentityUpdate) belongs IdentityUpdateStream,
+            AuthorizationUpdate(AuthorizationUpdate) belongs AuthorizationObservationStream,
         }
         stream IdentityUpdateStream {
             token IdentitySubscriptionToken;
             opened IdentitySnapshot;
             event IdentityUpdate;
             close IdentitySubscriptionRetraction;
+        }
+        stream AuthorizationObservationStream {
+            token AuthorizationObservationToken;
+            opened AuthorizationObservationSnapshot;
+            event AuthorizationUpdate;
+            close AuthorizationObservationRetraction;
         }
     }
 }

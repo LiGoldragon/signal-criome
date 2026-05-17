@@ -25,9 +25,9 @@ Before changing code in this repo, read:
 BLS authentication and attestation substrate. The crate is pure wire
 vocabulary: typed records for identity registration, signature
 envelopes, attestations, verification replies, archive attestation,
-channel-grant attestation, and authorization attestation. One
-bidirectional channel declared with `signal_channel!` in
-`src/lib.rs`.
+channel-grant attestation, authorization attestation, and
+Criome-routed authorization of exact Signal request digests. One
+bidirectional channel declared with `signal_channel!` in `src/lib.rs`.
 
 Criome verifies and records cryptographic authority. Persona decides
 and acts. Attestations are separate records that reference content
@@ -48,6 +48,11 @@ ack echoing the token.
 - `CriomeRequest` / `CriomeReply` (closed enums).
 - `SignatureEnvelope`, `SignedObject`, `VerificationReceipt`,
   `DelegationGrant`, `ComponentRelease`, `SignedPersonaRequest`.
+- `SignalCallAuthorization`, `AuthorizationGrant`,
+  `AuthorizationPending`, `AuthorizationDenied`,
+  `AuthorizationExpired`, `AuthorizationUnavailable`,
+  `AuthorizationObservationToken`, and the signature-solicitation
+  records used by the criome-daemon topology.
 - `Identity` (closed enum: `Persona`, `Agent`, `Host`, `Developer`,
   `Cluster`).
 - `IdentitySubscriptionToken` and `SubscriptionRetracted`
@@ -78,12 +83,20 @@ ack echoing the token.
 - **Attestations stay out-of-band from Persona content records.**
   Content records do not grow proof fields; attestations reference
   content by typed `ObjectDigest` and `ContentPurpose`.
+- **Routed authorization names exact request bytes.** Authorization
+  records name the canonical Signal request digest, contract name,
+  root Signal verb, scope, signature result, and signature set.
+  Permission comes from signatures over the exact request. This
+  contract carries the request, pending/granted/denied states,
+  signature routing, and observation vocabulary.
 - **Subscription close uses both sides.** The kernel grammar at
   `signal-core/macros/src/validate.rs:303–331` requires the
   `stream` block to name a request-side `Retract` variant; the
-  reply-side `CriomeReply::SubscriptionRetracted` ack is the final
-  event consumers bind to. Both are present in `src/lib.rs`. Do
-  not remove either.
+  reply-side ack is the final event consumers bind to. This applies
+  to both `IdentityUpdateStream` (`SubscriptionRetracted`) and
+  `AuthorizationObservationStream`
+  (`AuthorizationObservationRetracted`). Do not remove either close
+  path.
 - **Wire enums are closed.** No `Unknown` variant for lifecycle
   uncertainty. `VerificationDecision::UnknownSigner` and
   `RejectionReason::UnknownIdentity` are **positive** closed
@@ -142,6 +155,20 @@ ack echoing the token.
    enforces the close-is-Retract shape.
 4. Witness the full subscribe → event → retract → ack → end
    lifecycle.
+
+### Adding a new routed authorization state
+
+1. Keep signature-derived permission as the model. New authorization
+   values are shaped around the exact request digest, signer identity,
+   signature envelope, and requested scope.
+2. Add only the state that crosses the wire: request digest, contract
+   name, root verb, scope, signer identity, signature envelope, or
+   observation token.
+3. Add the variant to `signal_channel!` with the correct root verb.
+   Authorization submission and signature facts are `Assert`;
+   observation opens with `Subscribe`; verification dry-runs with
+   `Validate`; observation close uses request-side `Retract`.
+4. Add rkyv and NOTA round-trip witnesses plus a canonical example.
 
 ---
 

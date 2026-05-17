@@ -9,12 +9,20 @@
 use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode};
 use signal_criome::{
     ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext,
-    AuthorizationAttestationRequest, BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest,
-    ComponentRelease, ContentPurpose, ContentReference, CriomeEvent, CriomeReply, CriomeRequest,
-    Identity, IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation,
-    IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose,
-    ObjectDigest, PrincipalName, PrincipalStatus, PublicKeyFingerprint, Rejection, RejectionReason,
-    ReplayNonce, SignReceipt, SignRequest, SignatureEnvelope, SignatureScheme,
+    AuthorizationAttestationRequest, AuthorizationDenialReason, AuthorizationDenied,
+    AuthorizationExpired, AuthorizationGrant, AuthorizationObservation,
+    AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
+    AuthorizationObservationToken, AuthorizationPending, AuthorizationRejection,
+    AuthorizationRequestSlot, AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus,
+    AuthorizationUnavailable, AuthorizationUpdate, AuthorizationVerification, AuthorizedSignalVerb,
+    BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
+    ContentReference, ContractName, CriomeEvent, CriomeReply, CriomeRequest, Identity,
+    IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
+    IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
+    PrincipalName, PrincipalStatus, PublicKeyFingerprint, Rejection, RejectionReason, ReplayNonce,
+    SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
+    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
+    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
     SubscriptionRetracted, TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
 };
 
@@ -63,6 +71,61 @@ fn attestation() -> Attestation {
 fn token() -> IdentitySubscriptionToken {
     IdentitySubscriptionToken {
         subscriber: alice(),
+    }
+}
+
+fn authorization_request_slot() -> AuthorizationRequestSlot {
+    AuthorizationRequestSlot::new("authorization-request-1")
+}
+
+fn authorization_observation_token() -> AuthorizationObservationToken {
+    AuthorizationObservationToken {
+        request_slot: authorization_request_slot(),
+    }
+}
+
+fn contract_name() -> ContractName {
+    ContractName::new("signal-lojix")
+}
+
+fn authorization_scope() -> AuthorizationScope {
+    AuthorizationScope::new("deploy-zeus-full-os")
+}
+
+fn authorization_grant() -> AuthorizationGrant {
+    AuthorizationGrant {
+        authorized_object_digest: ObjectDigest::new("digest-lojix-request"),
+        authorized_contract: contract_name(),
+        authorized_verb: AuthorizedSignalVerb::Assert,
+        authorization_scope: authorization_scope(),
+        signature_result: SignatureAuthorizationResult::RequiredSignaturesSatisfied,
+        signatures: vec![envelope()],
+        issued_by: Identity::Cluster(PrincipalName::new("uranus")),
+        issued_at: TimestampNanos::new(110),
+        expires_at: None,
+    }
+}
+
+fn authorization_state() -> AuthorizationStateRecord {
+    AuthorizationStateRecord {
+        request_slot: authorization_request_slot(),
+        request_digest: ObjectDigest::new("digest-lojix-request"),
+        status: AuthorizationStatus::Pending,
+        missing_authorities: vec![Identity::Developer(PrincipalName::new("reviewer"))],
+        grant: None,
+        denial: None,
+    }
+}
+
+fn signature_solicitation() -> SignatureSolicitation {
+    SignatureSolicitation {
+        request_slot: authorization_request_slot(),
+        request_digest: ObjectDigest::new("digest-lojix-request"),
+        contract: contract_name(),
+        verb: AuthorizedSignalVerb::Assert,
+        scope: authorization_scope(),
+        requester: alice(),
+        required_signer: Identity::Developer(PrincipalName::new("reviewer")),
     }
 }
 
@@ -175,6 +238,54 @@ fn canonical_request_examples_round_trip() {
         "(AuthorizationAttestationRequest (ContentReference digest-auth Authorization schema-1) (Persona alice) (AuditContext Authorization audience-bob policy-1 nonce-10))",
     );
     round_trip(
+        CriomeRequest::AuthorizeSignalCall(SignalCallAuthorization {
+            request_digest: ObjectDigest::new("digest-lojix-request"),
+            contract: contract_name(),
+            verb: AuthorizedSignalVerb::Assert,
+            scope: authorization_scope(),
+            requester: alice(),
+            nonce: ReplayNonce::new("authorization-nonce-1"),
+            expires_at: None,
+        }),
+        "(SignalCallAuthorization digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) authorization-nonce-1 None)",
+    );
+    round_trip(
+        CriomeRequest::ObserveAuthorization(AuthorizationObservation {
+            request_slot: authorization_request_slot(),
+        }),
+        "(AuthorizationObservation authorization-request-1)",
+    );
+    round_trip(
+        CriomeRequest::VerifyAuthorization(AuthorizationVerification {
+            request_digest: ObjectDigest::new("digest-lojix-request"),
+            authorization: authorization_grant(),
+        }),
+        "(AuthorizationVerification digest-lojix-request (AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))",
+    );
+    round_trip(
+        CriomeRequest::RouteSignatureRequest(SignatureSolicitationRoute {
+            solicitation: signature_solicitation(),
+            routed_to: Identity::Host(PrincipalName::new("balboa")),
+        }),
+        "(SignatureSolicitationRoute (SignatureSolicitation authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa))",
+    );
+    round_trip(
+        CriomeRequest::SubmitSignature(SignatureSubmission {
+            request_slot: authorization_request_slot(),
+            signer: Identity::Developer(PrincipalName::new("reviewer")),
+            envelope: envelope(),
+        }),
+        "(SignatureSubmission authorization-request-1 (Developer reviewer) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1))",
+    );
+    round_trip(
+        CriomeRequest::RejectAuthorization(AuthorizationRejection {
+            request_slot: authorization_request_slot(),
+            rejector: Identity::Developer(PrincipalName::new("reviewer")),
+            reason: AuthorizationDenialReason::SignatureRejected,
+        }),
+        "(AuthorizationRejection authorization-request-1 (Developer reviewer) SignatureRejected)",
+    );
+    round_trip(
         CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription {
             subscriber: alice(),
         }),
@@ -183,6 +294,10 @@ fn canonical_request_examples_round_trip() {
     round_trip(
         CriomeRequest::IdentitySubscriptionRetraction(token()),
         "(IdentitySubscriptionToken (Persona alice))",
+    );
+    round_trip(
+        CriomeRequest::AuthorizationObservationRetraction(authorization_observation_token()),
+        "(AuthorizationObservationToken authorization-request-1)",
     );
 }
 
@@ -226,6 +341,66 @@ fn canonical_reply_examples_round_trip() {
         "(AttestationReceipt (Attestation (ContentReference digest-abc SignedObject schema-1) (Persona alice) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1) 100 None (AuditContext SignedObject audience-bob policy-1 nonce-7)))",
     );
     round_trip(
+        CriomeReply::AuthorizationPending(AuthorizationPending {
+            request_slot: authorization_request_slot(),
+            request_digest: ObjectDigest::new("digest-lojix-request"),
+            missing_authorities: vec![Identity::Developer(PrincipalName::new("reviewer"))],
+            observation_token: authorization_observation_token(),
+        }),
+        "(AuthorizationPending authorization-request-1 digest-lojix-request [(Developer reviewer)] (AuthorizationObservationToken authorization-request-1))",
+    );
+    round_trip(
+        CriomeReply::AuthorizationGranted(authorization_grant()),
+        "(AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)",
+    );
+    round_trip(
+        CriomeReply::AuthorizationDenied(AuthorizationDenied {
+            request_slot: authorization_request_slot(),
+            reason: AuthorizationDenialReason::SignatureScopeMismatch,
+        }),
+        "(AuthorizationDenied authorization-request-1 SignatureScopeMismatch)",
+    );
+    round_trip(
+        CriomeReply::AuthorizationExpired(AuthorizationExpired {
+            request_slot: authorization_request_slot(),
+            expired_at: TimestampNanos::new(111),
+        }),
+        "(AuthorizationExpired authorization-request-1 111)",
+    );
+    round_trip(
+        CriomeReply::AuthorizationUnavailable(AuthorizationUnavailable {
+            request_slot: authorization_request_slot(),
+            reason: PrincipalName::new("criome-peer-unreachable"),
+        }),
+        "(AuthorizationUnavailable authorization-request-1 criome-peer-unreachable)",
+    );
+    round_trip(
+        CriomeReply::AuthorizationObservationSnapshot(AuthorizationObservationSnapshot {
+            states: vec![authorization_state()],
+        }),
+        "(AuthorizationObservationSnapshot [(AuthorizationStateRecord authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None)])",
+    );
+    round_trip(
+        CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
+            request_slot: authorization_request_slot(),
+            routed_to: Identity::Host(PrincipalName::new("balboa")),
+        }),
+        "(SignatureRouteReceipt authorization-request-1 (Host balboa))",
+    );
+    round_trip(
+        CriomeReply::SignatureSubmissionReceipt(SignatureSubmissionReceipt {
+            request_slot: authorization_request_slot(),
+            signer: Identity::Developer(PrincipalName::new("reviewer")),
+        }),
+        "(SignatureSubmissionReceipt authorization-request-1 (Developer reviewer))",
+    );
+    round_trip(
+        CriomeReply::AuthorizationObservationRetracted(AuthorizationObservationRetracted {
+            token: authorization_observation_token(),
+        }),
+        "(AuthorizationObservationRetracted (AuthorizationObservationToken authorization-request-1))",
+    );
+    round_trip(
         CriomeReply::SubscriptionRetracted(SubscriptionRetracted { token: token() }),
         "(SubscriptionRetracted (IdentitySubscriptionToken (Persona alice)))",
     );
@@ -247,5 +422,11 @@ fn canonical_event_examples_round_trip() {
             },
         }),
         "(IdentityUpdate (IdentityReceipt (Persona alice) Active))",
+    );
+    round_trip(
+        CriomeEvent::AuthorizationUpdate(AuthorizationUpdate {
+            state: authorization_state(),
+        }),
+        "(AuthorizationUpdate (AuthorizationStateRecord authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None))",
     );
 }
