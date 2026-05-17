@@ -57,6 +57,9 @@ ack echoing the token.
   `RequiredSignatureThreshold`, so grants carry the policy class,
   threshold, and satisfied signers that make the collected
   signatures sufficient.
+- `AuthorizationRequestSlot` on `AuthorizationGrant`, so grants
+  carry the daemon-minted durable authorization identity; consumers
+  and verification paths must not derive slots from request digests.
 - `AuthorizationDenial` and `AuthorizationDenialSource`, so policy
   refusal and signer refusal remain distinct on the wire.
 - `Identity` (closed enum: `Persona`, `Agent`, `Host`, `Developer`,

@@ -618,6 +618,7 @@ pub struct AuthorizationRejection {
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationGrant {
+    pub request_slot: AuthorizationRequestSlot,
     pub authorized_object_digest: ObjectDigest,
     pub authorized_contract: ContractName,
     pub authorized_verb: AuthorizedSignalVerb,

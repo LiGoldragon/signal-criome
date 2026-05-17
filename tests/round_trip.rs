@@ -93,6 +93,7 @@ fn authorization_observation_token() -> AuthorizationObservationToken {
 
 fn authorization_grant() -> AuthorizationGrant {
     AuthorizationGrant {
+        request_slot: authorization_request_slot(),
         authorized_object_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
         authorized_contract: contract_name(),
         authorized_verb: AuthorizedSignalVerb::Assert,
@@ -532,6 +533,7 @@ fn authorization_update_event_round_trips_through_length_prefixed_frame() {
 fn authorization_grant_carries_satisfied_policy_threshold() {
     let grant = authorization_grant();
 
+    assert_eq!(grant.request_slot, authorization_request_slot());
     assert_eq!(
         grant.policy_satisfaction.policy_class,
         AuthorizationPolicyClass::ComplexQuorum,

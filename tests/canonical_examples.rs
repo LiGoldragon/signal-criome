@@ -96,6 +96,7 @@ fn authorization_scope() -> AuthorizationScope {
 
 fn authorization_grant() -> AuthorizationGrant {
     AuthorizationGrant {
+        request_slot: authorization_request_slot(),
         authorized_object_digest: ObjectDigest::new("digest-lojix-request"),
         authorized_contract: contract_name(),
         authorized_verb: AuthorizedSignalVerb::Assert,
@@ -267,7 +268,7 @@ fn canonical_request_examples_round_trip() {
             request_digest: ObjectDigest::new("digest-lojix-request"),
             authorization: authorization_grant(),
         }),
-        "(AuthorizationVerification digest-lojix-request (AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os (AuthorizationPolicySatisfaction ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))",
+        "(AuthorizationVerification digest-lojix-request (AuthorizationGrant authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (AuthorizationPolicySatisfaction ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))",
     );
     round_trip(
         CriomeRequest::RouteSignatureRequest(SignatureSolicitationRoute {
@@ -358,7 +359,7 @@ fn canonical_reply_examples_round_trip() {
     );
     round_trip(
         CriomeReply::AuthorizationGranted(authorization_grant()),
-        "(AuthorizationGrant digest-lojix-request signal-lojix Assert deploy-zeus-full-os (AuthorizationPolicySatisfaction ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)",
+        "(AuthorizationGrant authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (AuthorizationPolicySatisfaction ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)",
     );
     round_trip(
         CriomeReply::AuthorizationDenied(AuthorizationDenied {

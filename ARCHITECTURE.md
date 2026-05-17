@@ -85,8 +85,8 @@ the resulting signatures, and returns one of:
 
 - `AuthorizationPending` — signature work exists and can be observed.
 - `AuthorizationGranted` — an `AuthorizationGrant` names the exact
-  request digest, contract, root verb, scope, signature result,
-  signatures, issuer, and expiry.
+  authorization request slot, request digest, contract, root verb,
+  scope, signature result, signatures, issuer, and expiry.
 - `AuthorizationDenied`, `AuthorizationExpired`, or
   `AuthorizationUnavailable` — closed terminal or temporary outcomes.
 
@@ -289,6 +289,7 @@ The choice is deferred to a follow-up designer report. See
 | Round-trip witnesses cover every variant in rkyv. | `tests/round_trip.rs` covers every request, reply, and event variant. |
 | Round-trip witnesses cover every variant in NOTA. | `examples/canonical.nota` holds one canonical text example per request/reply/event variant; round-trip tests parse and re-emit each. |
 | Routed authorization names the exact Signal request digest being authorized. | `SignalCallAuthorization`, `AuthorizationVerification`, `AuthorizationGrant`, and `AuthorizationStateRecord` all carry the typed `ObjectDigest`; round-trip tests cover the request, grant, verification, pending state, and event forms. |
+| Authorization grants carry the durable request identity. | `AuthorizationGrant` carries `AuthorizationRequestSlot`, so verification and denial paths do not mint or derive a slot from a digest. |
 | Authorization is constituted by signatures-over-the-exact-digest that satisfy criome's policy. | `AuthorizationGrant` carries scope, the signatures collected, and `AuthorizationPolicySatisfaction` with the policy class, required signature threshold, and satisfied signers (per the policy criome holds in its own state — see `criome/ARCHITECTURE.md` §"Owned"). |
 | `signal-criome` carries no owner-class operations. | Source scan: no `SubmitPassphrase`, no `RegisterPolicy`, no `RegisterPeer`, no `RequestOwnerApproval`, no `OwnerApprovalReply`. Those variants live (or will live) on `owner-signal-criome` only. |
 | Authorization observation uses Path A stream close. | The `signal_channel!` declaration names `Retract AuthorizationObservationRetraction(AuthorizationObservationToken)` and the `AuthorizationObservationStream` close block; round-trip witnesses cover the retract request and `AuthorizationObservationRetracted` reply. |
