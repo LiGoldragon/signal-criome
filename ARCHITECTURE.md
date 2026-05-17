@@ -92,6 +92,25 @@ Sema database for request history and key material, speaks this
 contract to `criome-daemon`, receives signature solicitations, submits
 signatures, and can create signed requests for Criome to route.
 
+### Current authorization model
+
+- This contract is published as the public GitHub repository
+  `LiGoldragon/signal-criome`.
+- The authorized object is the exact canonical Signal request digest.
+- Authorization permission comes from signatures over that digest.
+- The contract vocabulary is signature-solicitation shaped:
+  `AuthorizeSignalCall` starts the authorization relation,
+  `RouteSignatureRequest` presents work to a signing surface,
+  `SubmitSignature` and `RejectAuthorization` close a signer decision,
+  and `ObserveAuthorization` pushes pending/granted/denied state.
+- `signal-criome` does not model daemon-owned permission slots,
+  local ACL grants, or an in-band proof gate. The durable authority
+  object is the signed authorization envelope over the exact request.
+- `tui-criome` is a stateful signing client of this contract. It owns
+  local request history, signing decisions, and signing-client key
+  material in its own Sema database; it can receive signature
+  requests and create signed requests for Criome.
+
 Authorization observation follows the same subscription discipline as
 identity updates: `ObserveAuthorization` opens
 `AuthorizationObservationStream`; `AuthorizationObservationRetraction`
