@@ -53,6 +53,12 @@ ack echoing the token.
   `AuthorizationExpired`, `AuthorizationUnavailable`,
   `AuthorizationObservationToken`, and the signature-solicitation
   records used by the criome-daemon topology.
+- `AuthorizationPolicySatisfaction` and
+  `RequiredSignatureThreshold`, so grants carry the policy class,
+  threshold, and satisfied signers that make the collected
+  signatures sufficient.
+- `AuthorizationDenial` and `AuthorizationDenialSource`, so policy
+  refusal and signer refusal remain distinct on the wire.
 - `Identity` (closed enum: `Persona`, `Agent`, `Host`, `Developer`,
   `Cluster`).
 - `IdentitySubscriptionToken` and `SubscriptionRetracted`
@@ -86,9 +92,10 @@ ack echoing the token.
 - **Routed authorization names exact request bytes.** Authorization
   records name the canonical Signal request digest, contract name,
   root Signal verb, scope, signature result, and signature set.
-  Permission comes from signatures over the exact request. This
-  contract carries the request, pending/granted/denied states,
-  signature routing, and observation vocabulary.
+  Permission comes from signatures over the exact request that
+  satisfy criome's policy. This contract carries the request,
+  pending/granted/denied states, signature routing, policy
+  satisfaction evidence, and observation vocabulary.
 - **Subscription close uses both sides.** The kernel grammar at
   `signal-core/macros/src/validate.rs:303–331` requires the
   `stream` block to name a request-side `Retract` variant; the
