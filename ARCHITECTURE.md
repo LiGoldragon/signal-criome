@@ -14,6 +14,45 @@ attestation, authorization attestation, and Criome-routed
 authorization of exact Signal request digests. One bidirectional
 channel declared with `signal_channel!` in `src/lib.rs`.
 
+## MUST IMPLEMENT — signal architecture migration
+
+This contract is migrating to contract-local verbs per
+`primary/reports/designer/238-signal-architecture-redirection-contract-local-verbs.md`
+and `primary/reports/designer/239-signal-architecture-migration-plan.md`.
+
+Most variants already read as verb-form contract-local roots (`Sign`,
+`Verify`, `Register`, `Revoke`, `Lookup`, `Authorize`, `Observe`,
+`Route`, `Submit`, `Reject`) — the SignalVerb prefixes attached to
+them (`Assert Sign`, `Validate VerifyAttestation`, `Subscribe ObserveAuthorization`,
+etc.) are just the wrapper layer to drop. Concrete renames: rename
+`VerifyAttestation` to `Verify` (drop the redundant `Attestation`
+suffix — payload supplies it), `VerifyAuthorization` to a
+contract-local variant under `Verify` whose payload distinguishes
+target (attestation vs authorization), `LookupIdentity` payload to
+`Identity` (already named), `RegisterIdentity` payload to
+`Registration` (verb-form: `Register` carries `Registration`).
+Subscriptions (`SubscribeIdentityUpdates`, `ObserveAuthorization`)
+become `Watch` (or stay as `Observe` if the receiver context reads
+better that way); their retract counterparts become `Unwatch` (or
+stay as the verb-form word the designer chooses). The cross-criome
+peer routing verbs (`RouteSignatureRequest`, `SubmitSignature`,
+`RejectAuthorization`) are domain-specific actions on the criome-to-
+criome leg; keep the verb-form names.
+
+Open question for the designer: `signal-criome` has nineteen request
+variants spanning three relations (consumer ↔ criome, criome-peer ↔
+criome-peer, subscriber ↔ criome). Whether these stay one
+contract-relation or split into multiple `signal_channel!` blocks per
+`signal-persona` precedent is a designer call before the operator
+picks this up.
+
+References: `primary/reports/designer/238-signal-architecture-redirection-contract-local-verbs.md`,
+`primary/reports/designer/239-signal-architecture-migration-plan.md`.
+
+**Note to remover:** when the refactor lands, remove this section and
+add a `## Migration history — contract-local verbs (2026-05-XX)`
+paragraph noting the shape change.
+
 Subscription close on the identity-updates stream follows the
 canonical lifecycle named in `~/primary/skills/subscription-lifecycle.md`:
 a typed request-side `Retract IdentitySubscriptionRetraction` carries
