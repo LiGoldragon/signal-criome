@@ -99,11 +99,11 @@ ack echoing the token.
   satisfy criome's policy. This contract carries the request,
   pending/granted/denied states, signature routing, policy
   satisfaction evidence, and observation vocabulary.
-- **Subscription close uses both sides.** The kernel grammar at
-  `signal-core/macros/src/validate.rs:303–331` requires the
-  `stream` block to name a request-side `Retract` variant; the
-  reply-side ack is the final event consumers bind to. This applies
-  to both `IdentityUpdateStream` (`SubscriptionRetracted`) and
+- **Subscription close uses both sides.** The kernel grammar in
+  `signal-frame/macros/src/validate.rs` requires the `stream` block
+  to name a request-side `Retract` variant; the reply-side ack is the
+  final event consumers bind to. This applies to both
+  `IdentityUpdateStream` (`SubscriptionRetracted`) and
   `AuthorizationObservationStream`
   (`AuthorizationObservationRetracted`). Do not remove either close
   path.
@@ -112,10 +112,12 @@ ack echoing the token.
   `RejectionReason::UnknownIdentity` are **positive** closed
   rejection causes ("the entity you named is not in our
   registry"), not polling-shape placeholders.
-- **Every request variant declares a Signal root verb.** The
-  `signal_channel!` declaration is the source of truth; the macro
-  generates `CriomeRequest::signal_verb()` and round-trip tests
-  assert every variant.
+- **Every request variant is a contract-local verb in verb form.**
+  The `signal_channel!` declaration is the source of truth; the
+  payload's NOTA head names the contract-local verb. Round-trip tests
+  assert every variant's head. Under the three-layer model, Sema
+  classification labels are observation-only and do not appear on the
+  wire.
 - **No runtime code.** No Kameo, Tokio, socket, redb, or daemon
   glue in this crate. The `tests/round_trip.rs` source-scan
   witness asserts absence of runtime imports.
@@ -141,8 +143,9 @@ ack echoing the token.
 3. Add the typed reply (if it gets its own receipt shape) or reuse
    `AttestationReceipt`.
 4. Add the variant to the `CriomeRequest` `signal_channel!`
-   declaration with `Assert` as the root verb (attestations record
-   new typed facts).
+   declaration as a contract-local verb in verb form (e.g.
+   `Attest<Whatever>`); the daemon-side Component Command will project
+   to Sema `Assert` for observation.
 5. Add the round-trip witnesses through rkyv and NOTA.
 6. Update `ARCHITECTURE.md`.
 
@@ -172,12 +175,13 @@ ack echoing the token.
    values are shaped around the exact request digest, signer identity,
    signature envelope, and requested scope.
 2. Add only the state that crosses the wire: request digest, contract
-   name, root verb, scope, signer identity, signature envelope, or
-   observation token.
-3. Add the variant to `signal_channel!` with the correct root verb.
-   Authorization submission and signature facts are `Assert`;
-   observation opens with `Subscribe`; verification dry-runs with
-   `Validate`; observation close uses request-side `Retract`.
+   name, contract-local verb, scope, signer identity, signature
+   envelope, or observation token.
+3. Add the variant to `signal_channel!` as a contract-local verb in
+   verb form. Authorization submission and signature facts will
+   project to Sema `Assert`; observation opens with `Subscribe`;
+   verification dry-runs project to `Validate`; observation close uses
+   request-side `Retract`.
 4. Add rkyv and NOTA round-trip witnesses plus a canonical example.
 
 ---
