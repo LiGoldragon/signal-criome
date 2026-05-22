@@ -456,8 +456,8 @@ impl NotaDecode for Identity {
             "Host" => decode_identity(decoder, "Host", Self::Host),
             "Developer" => decode_identity(decoder, "Developer", Self::Developer),
             "Cluster" => decode_identity(decoder, "Cluster", Self::Cluster),
-            other => Err(nota_codec::Error::UnknownKindForVerb {
-                verb: "Identity",
+            other => Err(nota_codec::Error::UnknownVariant {
+                enum_name: "Identity",
                 got: other.to_string(),
             }),
         }
