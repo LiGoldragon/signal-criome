@@ -585,7 +585,7 @@ fn root_request_round_trips_through_nota_text() {
         CriomeRequest::LookupIdentity(IdentityLookup {
             identity: Identity::persona("designer"),
         }),
-        "(IdentityLookup (Persona designer))",
+        "(LookupIdentity ((Persona designer)))",
     );
 }
 
@@ -597,7 +597,7 @@ fn root_reply_round_trips_through_nota_text() {
             identity: None,
             expires_at: None,
         }),
-        "(VerificationResult UnknownSigner None None)",
+        "(VerificationResult (UnknownSigner None None))",
     );
 }
 

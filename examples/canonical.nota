@@ -13,110 +13,110 @@
 ;; ─── Requests ─────────────────────────────────────────────────────
 
 ;; CriomeRequest::Sign
-(SignRequest (ContentReference digest-abc SignedObject schema-1) (Persona alice) (AuditContext SignedObject audience-bob policy-1 nonce-7) None)
+(Sign ((digest-abc SignedObject schema-1) (Persona alice) (SignedObject audience-bob policy-1 nonce-7) None))
 
 ;; CriomeRequest::VerifyAttestation
-(VerifyRequest (Attestation (ContentReference digest-abc SignedObject schema-1) (Persona alice) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1) 100 None (AuditContext SignedObject audience-bob policy-1 nonce-7)) (ContentReference digest-abc SignedObject schema-1))
+(VerifyAttestation (((digest-abc SignedObject schema-1) (Persona alice) (Bls12_381MinPk public-key-1 signature-1) 100 None (SignedObject audience-bob policy-1 nonce-7)) (digest-abc SignedObject schema-1)))
 
 ;; CriomeRequest::RegisterIdentity
-(IdentityRegistration (Persona alice) public-key-1 fingerprint-1 PersonaRequest)
+(RegisterIdentity ((Persona alice) public-key-1 fingerprint-1 PersonaRequest))
 
 ;; CriomeRequest::RevokeIdentity
-(IdentityRevocation (Persona alice) fingerprint-1 revoked-by-owner)
+(RevokeIdentity ((Persona alice) fingerprint-1 revoked-by-owner))
 
 ;; CriomeRequest::LookupIdentity
-(IdentityLookup (Persona alice))
+(LookupIdentity ((Persona alice)))
 
 ;; CriomeRequest::AttestArchive
-(ArchiveAttestationRequest (ComponentRelease persona-router artifact-1 (Persona alice)) (AuditContext Archive audience-archive policy-1 nonce-8))
+(AttestArchive ((persona-router artifact-1 (Persona alice)) (Archive audience-archive policy-1 nonce-8)))
 
 ;; CriomeRequest::AttestChannelGrant
-(ChannelGrantAttestationRequest (ContentReference digest-grant ChannelGrant schema-1) (Persona alice) (AuditContext ChannelGrant audience-bob policy-1 nonce-9))
+(AttestChannelGrant ((digest-grant ChannelGrant schema-1) (Persona alice) (ChannelGrant audience-bob policy-1 nonce-9)))
 
 ;; CriomeRequest::AttestAuthorization
-(AuthorizationAttestationRequest (ContentReference digest-auth Authorization schema-1) (Persona alice) (AuditContext Authorization audience-bob policy-1 nonce-10))
+(AttestAuthorization ((digest-auth Authorization schema-1) (Persona alice) (Authorization audience-bob policy-1 nonce-10)))
 
 ;; CriomeRequest::AuthorizeSignalCall
-(SignalCallAuthorization digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) authorization-nonce-1 None)
+(AuthorizeSignalCall (digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) authorization-nonce-1 None))
 
 ;; CriomeRequest::ObserveAuthorization
-(AuthorizationObservation authorization-request-1)
+(ObserveAuthorization (authorization-request-1))
 
 ;; CriomeRequest::VerifyAuthorization
-(AuthorizationVerification digest-lojix-request (AuthorizationGrant authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (AuthorizationPolicySatisfaction ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))
+(VerifyAuthorization (digest-lojix-request (authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)))
 
 ;; CriomeRequest::RouteSignatureRequest
-(SignatureSolicitationRoute (SignatureSolicitation authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa))
+(RouteSignatureRequest ((authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa)))
 
 ;; CriomeRequest::SubmitSignature
-(SignatureSubmission authorization-request-1 (Developer reviewer) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1))
+(SubmitSignature (authorization-request-1 (Developer reviewer) (Bls12_381MinPk public-key-1 signature-1)))
 
 ;; CriomeRequest::RejectAuthorization
-(AuthorizationRejection authorization-request-1 (Developer reviewer) SignatureRejected)
+(RejectAuthorization (authorization-request-1 (Developer reviewer) SignatureRejected))
 
 ;; CriomeRequest::SubscribeIdentityUpdates
-(IdentitySubscription (Persona alice))
+(SubscribeIdentityUpdates ((Persona alice)))
 
 ;; CriomeRequest::IdentitySubscriptionRetraction — payload head is the token type
-(IdentitySubscriptionToken (Persona alice))
+(IdentitySubscriptionRetraction ((Persona alice)))
 
 ;; CriomeRequest::AuthorizationObservationRetraction — payload head is the token type
-(AuthorizationObservationToken authorization-request-1)
+(AuthorizationObservationRetraction (authorization-request-1))
 
 ;; ─── Replies ──────────────────────────────────────────────────────
 
 ;; CriomeReply::SignReceipt
-(SignReceipt (Attestation (ContentReference digest-abc SignedObject schema-1) (Persona alice) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1) 100 None (AuditContext SignedObject audience-bob policy-1 nonce-7)) 100)
+(SignReceipt (((digest-abc SignedObject schema-1) (Persona alice) (Bls12_381MinPk public-key-1 signature-1) 100 None (SignedObject audience-bob policy-1 nonce-7)) 100))
 
 ;; CriomeReply::VerificationResult — present identity
-(VerificationResult Valid (Persona alice) None)
+(VerificationResult (Valid (Some (Persona alice)) None))
 
 ;; CriomeReply::IdentityReceipt
-(IdentityReceipt (Persona alice) Active)
+(IdentityReceipt ((Persona alice) Active))
 
 ;; CriomeReply::IdentitySnapshot
-(IdentitySnapshot [(IdentityReceipt (Persona alice) Active)])
+(IdentitySnapshot ([((Persona alice) Active)]))
 
 ;; CriomeReply::AttestationReceipt
-(AttestationReceipt (Attestation (ContentReference digest-abc SignedObject schema-1) (Persona alice) (SignatureEnvelope Bls12_381MinPk public-key-1 signature-1) 100 None (AuditContext SignedObject audience-bob policy-1 nonce-7)))
+(AttestationReceipt (((digest-abc SignedObject schema-1) (Persona alice) (Bls12_381MinPk public-key-1 signature-1) 100 None (SignedObject audience-bob policy-1 nonce-7))))
 
 ;; CriomeReply::AuthorizationPending
-(AuthorizationPending authorization-request-1 digest-lojix-request [(Developer reviewer)] (AuthorizationObservationToken authorization-request-1))
+(AuthorizationPending (authorization-request-1 digest-lojix-request [(Developer reviewer)] (authorization-request-1)))
 
 ;; CriomeReply::AuthorizationGranted
-(AuthorizationGrant authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (AuthorizationPolicySatisfaction ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(SignatureEnvelope Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)
+(AuthorizationGranted (authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))
 
 ;; CriomeReply::AuthorizationDenied
-(AuthorizationDenied authorization-request-1 (AuthorizationDenial Policy SignatureScopeMismatch))
+(AuthorizationDenied (authorization-request-1 (Policy SignatureScopeMismatch)))
 
 ;; CriomeReply::AuthorizationExpired
-(AuthorizationExpired authorization-request-1 111)
+(AuthorizationExpired (authorization-request-1 111))
 
 ;; CriomeReply::AuthorizationUnavailable
-(AuthorizationUnavailable authorization-request-1 criome-peer-unreachable)
+(AuthorizationUnavailable (authorization-request-1 criome-peer-unreachable))
 
 ;; CriomeReply::AuthorizationObservationSnapshot
-(AuthorizationObservationSnapshot [(AuthorizationStateRecord authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None)])
+(AuthorizationObservationSnapshot ([(authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None)]))
 
 ;; CriomeReply::SignatureRouteReceipt
-(SignatureRouteReceipt authorization-request-1 (Host balboa))
+(SignatureRouteReceipt (authorization-request-1 (Host balboa)))
 
 ;; CriomeReply::SignatureSubmissionReceipt
-(SignatureSubmissionReceipt authorization-request-1 (Developer reviewer))
+(SignatureSubmissionReceipt (authorization-request-1 (Developer reviewer)))
 
 ;; CriomeReply::AuthorizationObservationRetracted
-(AuthorizationObservationRetracted (AuthorizationObservationToken authorization-request-1))
+(AuthorizationObservationRetracted ((authorization-request-1)))
 
 ;; CriomeReply::SubscriptionRetracted — Path A final ack
-(SubscriptionRetracted (IdentitySubscriptionToken (Persona alice)))
+(SubscriptionRetracted (((Persona alice))))
 
 ;; CriomeReply::Rejection — positive rejection cause
-(Rejection UnknownIdentity)
+(Rejection (UnknownIdentity))
 
 ;; ─── Stream events on IdentityUpdateStream ────────────────────────
 
 ;; CriomeEvent::IdentityUpdate
-(IdentityUpdate (IdentityReceipt (Persona alice) Active))
+(IdentityUpdate (((Persona alice) Active)))
 
 ;; CriomeEvent::AuthorizationUpdate
-(AuthorizationUpdate (AuthorizationStateRecord authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None))
+(AuthorizationUpdate ((authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None)))
