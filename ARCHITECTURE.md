@@ -411,6 +411,22 @@ tests/
                              + full subscribe/event/retract/ack lifecycle witness
 ```
 
+## Pending schema-engine upgrade
+
+**Status:** scheduled for migration to schema-language-based contract per `reports/designer/326-v13-spirit-complete-schema-vision.md` + `reports/designer/324-migration-mvp-spirit-handover-re-specification.md`.
+
+**Target:** this contract's hand-written `signal_channel!` invocation converts to a single `criome/criome.schema` file (shared with the `criome` daemon's repository). The brilliant macro library (`primary-ezqx.1`) reads the schema + emits this crate's wire types + ShortHeader projection + dispatcher binding + VersionProjection impls + the subscribe/event/retract/ack lifecycle scaffolding.
+
+**Sequence:** Spirit is the MVP pilot landing first via `primary-ezqx.1`; criome's contract follows after pilot succeeds and after schema-language stream-block syntax stabilises (criome's identity-updates stream is the canonical Path A subscription consumer and exercises the lifecycle the schema must encode).
+
+**Per-component concerns:** The Path A subscription FSM (subscribe/event/retract/ack) is the most schema-mechanically-complex feature in this contract. The schema-language stream-block syntax per `/326-v13` must encode this lifecycle round-trippably; cutover only after the schema reader supports the full Path A grammar.
+
+**References:**
+- `reports/designer/326-v13-spirit-complete-schema-vision.md` — uniform header form + schema-language design
+- `reports/designer/324-migration-mvp-spirit-handover-re-specification.md` — migration MVP + handover state
+- `reports/designer/322-spirit-mvp-positional-schema-worked-example.md` — Spirit MVP worked example
+- `reports/operator/174-schema-import-header-design-critique-2026-05-24.md` — header/body/feature separation + lowering rules
+
 ## See also
 
 - `~/primary/skills/contract-repo.md` — contract-repo discipline.
