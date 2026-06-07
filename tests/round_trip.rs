@@ -516,7 +516,7 @@ fn contract_crate_carries_no_daemon_runtime_or_storage() {
 }
 
 #[test]
-fn contract_crate_carries_no_owner_class_operations() {
+fn contract_crate_carries_no_meta_class_operations() {
     let source = std::fs::read_to_string("src/lib.rs").expect("read source");
 
     for forbidden in [
@@ -524,12 +524,26 @@ fn contract_crate_carries_no_owner_class_operations() {
         "RegisterPolicy",
         "RegisterPeer",
         "RetractPeer",
-        "RequestOwnerApproval",
-        "OwnerApprovalReply",
+        "RequestMetaApproval",
+        "MetaApprovalReply",
     ] {
         assert!(
             !source.contains(forbidden),
-            "owner operation leaked: {forbidden}"
+            "meta operation leaked: {forbidden}"
         );
     }
+}
+
+#[test]
+fn contract_crate_carries_no_database_action_mirror() {
+    let manifest = std::fs::read_to_string("Cargo.toml").expect("read manifest");
+    let source = std::fs::read_to_string("src/lib.rs").expect("read source");
+
+    for forbidden in ["AuthorizedSignalVerb", "SemaOperation", "ToSemaOperation"] {
+        assert!(
+            !source.contains(forbidden),
+            "database action mirror leaked: {forbidden}"
+        );
+    }
+    assert!(!manifest.contains("signal-sema"));
 }

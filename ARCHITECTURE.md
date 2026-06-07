@@ -14,15 +14,16 @@ attestation, authorization attestation, and Criome-routed
 authorization of exact Signal request digests. One bidirectional
 channel declared with `signal_channel!` in `src/lib.rs`.
 
-## Migration history — three-layer model
+## Contract operation model
 
-This contract now uses the three-layer model affirmed 2026-05-20 per
+This contract now uses contract-local public operation roots, affirmed
+2026-05-20 per
 `primary/reports/designer/246-v4-bundled-fix-deep-design-with-examples.md`
 and `primary/reports/designer/248-three-layer-changes-for-operators.md`.
 
-**Layer 1 — Contract operations on the wire (this crate).** The old
-`SignalVerb` wrappers are gone. The payload enum itself is the
-operation list, and each variant is a contract-local root such as
+**Contract operations on the wire (this crate).** The old `SignalVerb`
+wrappers are gone. The payload enum itself is the operation list, and each
+variant is a contract-local root such as
 `Sign`, `VerifyAttestation`, `RegisterIdentity`,
 `AuthorizeSignalCall`, `ObserveAuthorization`,
 `RouteSignatureRequest`, `SubmitSignature`, or
@@ -33,18 +34,16 @@ the mandatory `Tap`/`Untap` observable block does not apply. The
 existing identity-updates and authorization-observation subscriptions
 stay as domain-specific open and close operations.
 
-**Layer 2 — Component Commands (daemon crate).** Criome's daemon
-owns its typed Command enum (e.g. `CriomeCommand::AssertAttestation`,
-`CriomeCommand::RecordSignature`, `CriomeCommand::ReadIdentity`)
-plus a `CommandExecutor` that knows criome's tables. Lowering from
-contract operation to command happens in the daemon, not in this
+**Daemon commands are daemon-owned.** Criome's daemon owns its typed
+command vocabulary and the executor that knows criome's tables. Lowering
+from contract operation to command happens in the daemon, not in this
 contract crate.
 
-**Layer 3 — Sema classification (signal-sema).** Each Component
-Command projects to a payloadless `SemaOperation` class label via
-`ToSemaOperation`, so observers can filter cross-component activity.
-Criome does not import payload-bearing Sema variants; classification
-is observation-only.
+**Database-action classification is not wire vocabulary.** This contract
+does not define `AuthorizedSignalVerb`, does not import `signal-sema`, and
+does not name database action classes. If criome publishes internal
+classification for observation later, that projection is daemon-internal
+output, not an operation root clients send on this public contract.
 
 **Frame layer.** This crate depends on `signal-frame` (frame envelope,
 exchange identifiers, handshake, and the `signal_channel!` macro), not
@@ -75,11 +74,11 @@ per-stream `IdentitySubscriptionToken`; the daemon responds with
 | Request side | Two classes of client. **Consumers** (Lojix, Persona components, Forge, ClaviFaber feeds — anything asking *"is this allowed?"* and trusting the answer). **Peer criome daemons** (cross-criome signature-solicitation routing for quorum policies). |
 | Reply / event side | `criome` daemon |
 
-`signal-criome` is **not** the surface for owner-class operations on
+`signal-criome` is **not** the surface for meta-class operations on
 the daemon itself (passphrase submission, master-key operations,
 policy mutation, peer-routing table mutation, escalation-approval
-replies). Those live on the separate `owner-signal-criome` contract
-between the daemon's single Unix-user owner and the daemon. See
+replies). Those live on the separate `meta-signal-criome` contract
+between the daemon's single Unix-user meta authority and the daemon. See
 `criome/ARCHITECTURE.md` §"Security model — Unix-user as boundary"
 for the discipline.
 
@@ -147,8 +146,8 @@ held in criome's owned state (see `criome/ARCHITECTURE.md`
 The `RouteSignatureRequest` / `SubmitSignature` /
 `RejectAuthorization` operations travel on this contract between criome
 daemons (peer routing for quorum policies). The route from criome to
-its own Unix-user owner — *"may I sign this with my master key?"* —
-is **not** on this contract; it is on `owner-signal-criome` as an
+its own Unix-user meta authority — *"may I sign this with my master key?"* —
+is **not** on this contract; it is on `meta-signal-criome` as an
 escalation-to-approve prompt.
 
 ### Current authorization model
@@ -170,14 +169,14 @@ escalation-to-approve prompt.
   `SubmitSignature` and `RejectAuthorization` close a peer's
   decision, and `ObserveAuthorization` pushes pending/granted/denied
   state.
-- `signal-criome` does **not** carry owner-class operations on
+- `signal-criome` does **not** carry meta-class operations on
   criome itself (master-key passphrase, policy mutation, peer-route
   mutation, escalation-approval prompts and replies). Those live on
-  the separate `owner-signal-criome` contract.
-- `tui-criome` and the `criome` CLI are **owner clients of their
-  own criome daemon over `owner-signal-criome`**, not signing
+  the separate `meta-signal-criome` contract.
+- `tui-criome` and the `criome` CLI are **meta clients of their
+  own criome daemon over `meta-signal-criome`**, not signing
   clients of this contract. The TUI exists to host long-running
-  escalation-to-approve flows; the CLI handles one-shot owner
+  escalation-to-approve flows; the CLI handles one-shot meta
   operations.
 
 Authorization observation follows the same subscription discipline as
@@ -210,37 +209,14 @@ stream-block grammar; the reply ack is the final event consumers
 bind their in-flight subscribe to. Raw socket close is not semantic
 protocol.
 
-### Sema classification projections (Layer 3)
+### Daemon-internal classification boundary
 
-Once migrated, each daemon-side Component Command will project to one
-of the six payloadless Sema classes via `ToSemaOperation`. The
-projection below shows the *expected classification* of each
-contract operation's lowered command — used only for observation, not
-on the wire.
-
-```text
-Sign                              -> Assert        (records a signature)
-Verify                            -> Validate      (dry-run integrity check)
-Register                          -> Assert        (records new identity)
-Revoke                            -> Retract       (tombstones identity)
-Lookup                            -> Match         (read identity table)
-AttestArchive                     -> Assert
-AttestChannelGrant                -> Assert
-AttestAuthorization               -> Assert
-Authorize                         -> Assert        (records authorization)
-Observe                           -> Subscribe     (opens AuthorizationObservationStream)
-RouteSignatureRequest             -> Assert
-SubmitSignature                   -> Assert
-RejectAuthorization               -> Assert
-SubscribeIdentityUpdates          -> Subscribe     (opens IdentityUpdateStream)
-IdentitySubscriptionRetraction    -> Retract       (closes IdentityUpdateStream)
-AuthorizationObservationRetraction -> Retract      (closes AuthorizationObservationStream)
-```
-
-The wire form carries the contract-local operation head (`Sign`,
-`RegisterIdentity`, `RevokeIdentity`, etc.); the Sema class label is
-computed at observation publish time inside the daemon, not encoded
-into the request.
+The wire form carries only the contract-local operation head (`Sign`,
+`RegisterIdentity`, `RevokeIdentity`, etc.). The contract does not carry a
+database-action enum, a Sema operation enum, or an `AuthorizedSignalVerb`
+mirror. If the daemon classifies a lowered command for observation, that
+classification is produced inside `criome` and is not part of this public
+wire contract.
 
 ## 3 · Closed-enum integrity
 
@@ -342,7 +318,8 @@ The choice is deferred to a follow-up designer report. See
 | Routed authorization names the exact Signal request digest being authorized. | `SignalCallAuthorization`, `AuthorizationVerification`, `AuthorizationGrant`, and `AuthorizationStateRecord` all carry the typed `ObjectDigest`; round-trip tests cover the request, grant, verification, pending state, and event forms. |
 | Authorization grants carry the durable request identity. | `AuthorizationGrant` carries `AuthorizationRequestSlot`, so verification and denial paths do not mint or derive a slot from a digest. |
 | Authorization is constituted by signatures-over-the-exact-digest that satisfy criome's policy. | `AuthorizationGrant` carries scope, the signatures collected, and `AuthorizationPolicySatisfaction` with the policy class, required signature threshold, and satisfied signers (per the policy criome holds in its own state — see `criome/ARCHITECTURE.md` §"Owned"). |
-| `signal-criome` carries no owner-class operations. | Source scan: no `SubmitPassphrase`, no `RegisterPolicy`, no `RegisterPeer`, no `RequestOwnerApproval`, no `OwnerApprovalReply`. Those variants live (or will live) on `owner-signal-criome` only. |
+| `signal-criome` carries no meta-class operations. | Source scan: no `SubmitPassphrase`, no `RegisterPolicy`, no `RegisterPeer`, no `RequestMetaApproval`, no `MetaApprovalReply`. Those variants live (or will live) on `meta-signal-criome` only. |
+| `signal-criome` carries no database-action mirror enum. | Source scan: no `AuthorizedSignalVerb`, no `SemaOperation`, no `ToSemaOperation`, and no `signal-sema` dependency. |
 | Authorization observation uses Path A stream close. | The `signal_channel!` declaration names `AuthorizationObservationRetraction(AuthorizationObservationToken)` and binds it to `AuthorizationObservationStream`; round-trip witnesses cover the close request and `AuthorizationObservationRetracted` reply. |
 | No stringly-typed dispatch (`match s.as_str()`) for closed-set states. | All decision / reason / purpose / identity fields are typed closed enums (custom `Identity` codec dispatches on a closed head-name set). |
 | Contract crate dependencies use a named API reference (branch or tag), not a raw revision pin. | `Cargo.toml` review: `signal-frame` (and any other contract dependencies) are declared `git = "..."` with a named-branch shape; raw `rev = "..."` pins are not used. |
@@ -377,10 +354,10 @@ API branch/bookmark once that lane is declared.
 - No private-key storage.
 - No prompt audit or policy engine.
 - No embedded proof fields in Persona content contracts.
-- **No owner-class operations** — passphrase submission, master-key
+- **No meta-class operations** — passphrase submission, master-key
   generation/rotation, policy mutation, peer-route mutation, and
   escalation-to-approve prompts/replies all live on the separate
-  `owner-signal-criome` contract.
+  `meta-signal-criome` contract.
 
 ## 10 · Code map
 

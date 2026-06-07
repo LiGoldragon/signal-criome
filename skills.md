@@ -107,9 +107,10 @@ token.
 - **Every request variant is a contract-local operation in verb form.**
   The `signal_channel!` declaration is the source of truth; the
   payload's NOTA head names the contract-local operation. Round-trip tests
-  assert every variant's head. Under the three-layer model, Sema
-  classification labels are observation-only and do not appear on the
-  wire.
+  assert every variant's head. Database-action classification belongs in
+  the daemon, not in this public contract crate; do not add
+  `AuthorizedSignalVerb`, `SemaOperation`, `ToSemaOperation`, or a
+  `signal-sema` dependency here.
 - **No runtime code.** No Kameo, Tokio, socket, storage, or daemon
   glue in this crate. The `tests/round_trip.rs` source-scan
   witness asserts absence of runtime imports.
@@ -134,8 +135,8 @@ token.
    `AttestationReceipt`.
 4. Add the variant to the `CriomeRequest` `signal_channel!`
    declaration as a contract-local operation in verb form (e.g.
-   `Attest<Whatever>`); the daemon-side Component Command will project
-   to the appropriate payloadless Sema class for observation.
+   `Attest<Whatever>`). Daemon command lowering is implemented inside
+   `criome`, not here.
 5. Add the round-trip witnesses through rkyv and NOTA.
 6. Update `ARCHITECTURE.md`.
 
@@ -167,9 +168,9 @@ token.
    name, target contract operation head, scope, signer identity, signature
    envelope, or observation token.
 3. Add the variant to `signal_channel!` as a contract-local operation in
-   verb form. Authorization submission and signature facts will
-   project to the appropriate Sema class inside the daemon; observation
-   and verification remain contract-local operation heads on the wire.
+   verb form. Authorization submission and signature facts lower to
+   daemon-owned command vocabulary inside `criome`; observation and
+   verification remain contract-local operation heads on the wire.
 4. Add rkyv and NOTA round-trip witnesses plus a canonical example.
 
 ## NOTA codec quirk

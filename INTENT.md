@@ -9,7 +9,7 @@ and attestation substrate. Companion to `ARCHITECTURE.md` and
 This file carries only the intent that is FOR this `signal-criome`
 contract. Workspace-shape intent stays in the primary workspace
 `primary/INTENT.md`. Daemon intent stays in `criome/INTENT.md`.
-Owner-only daemon operations stay in `owner-signal-criome`.
+Meta-only daemon operations stay in `meta-signal-criome`.
 
 ## Why this repo exists
 
@@ -19,9 +19,9 @@ Forge, ClaviFaber feeds, and peer criome daemons send across the Criome
 boundary: identity registration, signature envelopes, attestations,
 verification replies, archive / channel-grant / authorization
 attestation, and Criome-routed authorization of exact Signal request
-digests. Owner-class operations on the daemon itself (passphrase
+digests. Meta-class operations on the daemon itself (passphrase
 submission, master-key operations, policy mutation, peer-routing-table
-mutation, escalation-approval replies) live in `owner-signal-criome`;
+mutation, escalation-approval replies) live in `meta-signal-criome`;
 runtime key custody, storage tables, actors, and sockets live in `criome`.
 
 ## Criome verifies; Persona decides
@@ -47,19 +47,17 @@ the rest of this contract's domain verbs); replies carry receipts,
 results, and snapshots. Subscriptions close through typed domain close
 operations such as `IdentitySubscriptionRetraction`.
 
-## Wire vocabulary discipline — three-layer direction
+## Wire vocabulary discipline — contract-local operation roots
 
 Per `primary/skills/contract-repo.md` §"Public contracts use
 contract-local operation verbs" and `primary/skills/component-triad.md`
 §"Verbs come in three layers", the contract shape is:
 
-- **Layer 1 (this crate):** contract-local operation roots in verb form.
-  The old `SignalVerb` wrappers are gone; payload enum variants are the
-  operation heads.
-- **Layer 2 (daemon):** `criome`'s own typed Command enum, lowered from
-  contract operations inside the daemon — never in this contract crate.
-- **Layer 3 (observation):** payloadless Sema class labels via
-  `ToSemaOperation`, for cross-component introspection only.
+This crate carries only contract-local operation roots in verb form. The
+old `SignalVerb` wrappers are gone; payload enum variants are the operation
+heads. Runtime command lowering and any database-action classification happen
+inside the `criome` daemon, never in this contract crate and never as public
+wire vocabulary.
 
 Criome is *not* a Persona component, so the mandatory `Tap`/`Untap`
 observable block does not apply; identity-update and
@@ -82,7 +80,7 @@ close operations.
 This crate does not own:
 
 - the `criome` daemon, key custody, signing, or verification logic;
-- owner-class daemon operations (those live in `owner-signal-criome`);
+- meta-class daemon operations (those live in `meta-signal-criome`);
 - Persona policy — Criome reports cryptographic facts; Persona decides
   and acts on them.
 
@@ -91,7 +89,7 @@ This crate does not own:
 - `ARCHITECTURE.md` — channel shape, message list, and the three-layer
   migration plan.
 - `../criome/ARCHITECTURE.md` §"Security model — Unix-user as boundary".
-- `../owner-signal-criome/` — owner-class daemon contract.
+- `../meta-signal-criome/` — meta-class daemon contract.
 - `primary/skills/contract-repo.md` — contract repo discipline and
   naming rules.
 - `primary/skills/component-triad.md` — repo triad structure and wire
