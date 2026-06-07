@@ -3,12 +3,21 @@
 //! This crate is pure vocabulary. It carries no daemon, actor runtime,
 //! transport, database, or signing implementation.
 
-use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode, NotaEnum, NotaRecord, NotaTransparent};
+use nota_next::{Block, Delimiter, NotaBlock, NotaDecode, NotaDecodeError, NotaEncode};
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use signal_frame::signal_channel;
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct PrincipalName(String);
@@ -24,7 +33,16 @@ impl PrincipalName {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct PrincipalId(String);
@@ -40,7 +58,16 @@ impl PrincipalId {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct PublicKeyFingerprint(String);
@@ -56,7 +83,16 @@ impl PublicKeyFingerprint {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct BlsPublicKey(String);
@@ -72,7 +108,16 @@ impl BlsPublicKey {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct BlsSignature(String);
@@ -88,7 +133,16 @@ impl BlsSignature {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct ObjectDigest(String);
@@ -108,7 +162,16 @@ impl ObjectDigest {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct ReplayNonce(String);
@@ -124,7 +187,16 @@ impl ReplayNonce {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct ContractName(String);
@@ -140,7 +212,16 @@ impl ContractName {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationRequestSlot(String);
@@ -156,7 +237,16 @@ impl AuthorizationRequestSlot {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationScope(String);
@@ -171,18 +261,7 @@ impl AuthorizationScope {
     }
 }
 
-#[derive(
-    Archive,
-    RkyvSerialize,
-    RkyvDeserialize,
-    NotaTransparent,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-)]
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct TimestampNanos(u64);
 
@@ -196,8 +275,30 @@ impl TimestampNanos {
     }
 }
 
+impl NotaEncode for TimestampNanos {
+    fn to_nota(&self) -> String {
+        self.0.to_nota()
+    }
+}
+
+impl NotaDecode for TimestampNanos {
+    fn from_nota_block(block: &Block) -> Result<Self, NotaDecodeError> {
+        Ok(Self(u64::from_nota_block(block)?))
+    }
+}
+
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum SignatureScheme {
@@ -206,7 +307,16 @@ pub enum SignatureScheme {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct ContractOperationHead(String);
@@ -222,7 +332,17 @@ impl ContractOperationHead {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum PrincipalStatus {
@@ -231,7 +351,17 @@ pub enum PrincipalStatus {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum KeyPurpose {
@@ -243,7 +373,17 @@ pub enum KeyPurpose {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum ContentPurpose {
@@ -257,7 +397,17 @@ pub enum ContentPurpose {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum VerificationDecision {
@@ -270,7 +420,17 @@ pub enum VerificationDecision {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum SignatureAuthorizationResult {
@@ -281,18 +441,7 @@ pub enum SignatureAuthorizationResult {
     Expired,
 }
 
-#[derive(
-    Archive,
-    RkyvSerialize,
-    RkyvDeserialize,
-    NotaTransparent,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-)]
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct RequiredSignatureThreshold(u16);
 
@@ -306,8 +455,34 @@ impl RequiredSignatureThreshold {
     }
 }
 
+impl NotaEncode for RequiredSignatureThreshold {
+    fn to_nota(&self) -> String {
+        u64::from(self.0).to_nota()
+    }
+}
+
+impl NotaDecode for RequiredSignatureThreshold {
+    fn from_nota_block(block: &Block) -> Result<Self, NotaDecodeError> {
+        let value = u64::from_nota_block(block)?;
+        let threshold = u16::try_from(value).map_err(|_| NotaDecodeError::InvalidInteger {
+            value: value.to_string(),
+        })?;
+        Ok(Self(threshold))
+    }
+}
+
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum AuthorizationPolicyClass {
@@ -315,7 +490,9 @@ pub enum AuthorizationPolicyClass {
     ComplexQuorum,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationPolicySatisfaction {
     pub policy_class: AuthorizationPolicyClass,
@@ -324,7 +501,17 @@ pub struct AuthorizationPolicySatisfaction {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum AuthorizationStatus {
@@ -337,7 +524,17 @@ pub enum AuthorizationStatus {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum AuthorizationDenialReason {
@@ -352,7 +549,17 @@ pub enum AuthorizationDenialReason {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum AuthorizationDenialSource {
@@ -360,7 +567,9 @@ pub enum AuthorizationDenialSource {
     Signers,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationDenial {
     pub source: AuthorizationDenialSource,
@@ -368,7 +577,17 @@ pub struct AuthorizationDenial {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive,
+    RkyvSerialize,
+    RkyvDeserialize,
+    NotaEncode,
+    NotaDecode,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub enum RejectionReason {
@@ -413,56 +632,56 @@ impl Identity {
 }
 
 impl NotaEncode for Identity {
-    fn encode(&self, encoder: &mut Encoder) -> nota_codec::Result<()> {
+    fn to_nota(&self) -> String {
         match self {
-            Self::Persona(name) => encode_identity("Persona", name, encoder),
-            Self::Agent(name) => encode_identity("Agent", name, encoder),
-            Self::Host(name) => encode_identity("Host", name, encoder),
-            Self::Developer(name) => encode_identity("Developer", name, encoder),
-            Self::Cluster(name) => encode_identity("Cluster", name, encoder),
+            Self::Persona(name) => Self::variant_to_nota("Persona", name),
+            Self::Agent(name) => Self::variant_to_nota("Agent", name),
+            Self::Host(name) => Self::variant_to_nota("Host", name),
+            Self::Developer(name) => Self::variant_to_nota("Developer", name),
+            Self::Cluster(name) => Self::variant_to_nota("Cluster", name),
         }
     }
 }
 
 impl NotaDecode for Identity {
-    fn decode(decoder: &mut Decoder<'_>) -> nota_codec::Result<Self> {
-        let head = decoder.peek_record_head()?;
-        match head.as_str() {
-            "Persona" => decode_identity(decoder, "Persona", Self::Persona),
-            "Agent" => decode_identity(decoder, "Agent", Self::Agent),
-            "Host" => decode_identity(decoder, "Host", Self::Host),
-            "Developer" => decode_identity(decoder, "Developer", Self::Developer),
-            "Cluster" => decode_identity(decoder, "Cluster", Self::Cluster),
-            other => Err(nota_codec::Error::UnknownVariant {
+    fn from_nota_block(block: &Block) -> Result<Self, NotaDecodeError> {
+        let fields =
+            NotaBlock::new(block).expect_children(Delimiter::Parenthesis, "Identity", 2)?;
+        let head = fields[0]
+            .demote_to_string()
+            .ok_or(NotaDecodeError::ExpectedAtom {
+                type_name: "Identity",
+            })?;
+        match head {
+            "Persona" => Self::variant_from_nota(&fields[1], Self::Persona),
+            "Agent" => Self::variant_from_nota(&fields[1], Self::Agent),
+            "Host" => Self::variant_from_nota(&fields[1], Self::Host),
+            "Developer" => Self::variant_from_nota(&fields[1], Self::Developer),
+            "Cluster" => Self::variant_from_nota(&fields[1], Self::Cluster),
+            other => Err(NotaDecodeError::UnknownVariant {
                 enum_name: "Identity",
-                got: other.to_string(),
+                variant: other.to_owned(),
             }),
         }
     }
 }
 
-fn encode_identity(
-    head: &str,
-    name: &PrincipalName,
-    encoder: &mut Encoder,
-) -> nota_codec::Result<()> {
-    encoder.start_record(head)?;
-    name.encode(encoder)?;
-    encoder.end_record()
+impl Identity {
+    fn variant_to_nota(head: &'static str, name: &PrincipalName) -> String {
+        Delimiter::Parenthesis.wrap([head.to_owned(), name.to_nota()])
+    }
+
+    fn variant_from_nota(
+        block: &Block,
+        constructor: fn(PrincipalName) -> Identity,
+    ) -> Result<Self, NotaDecodeError> {
+        Ok(constructor(PrincipalName::from_nota_block(block)?))
+    }
 }
 
-fn decode_identity(
-    decoder: &mut Decoder<'_>,
-    head: &'static str,
-    constructor: fn(PrincipalName) -> Identity,
-) -> nota_codec::Result<Identity> {
-    decoder.expect_record_head(head)?;
-    let name = PrincipalName::decode(decoder)?;
-    decoder.expect_record_end()?;
-    Ok(constructor(name))
-}
-
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct ContentReference {
     pub digest: ObjectDigest,
@@ -470,7 +689,9 @@ pub struct ContentReference {
     pub schema_version: PrincipalName,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuditContext {
     pub purpose: ContentPurpose,
@@ -479,7 +700,9 @@ pub struct AuditContext {
     pub nonce: ReplayNonce,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignatureEnvelope {
     pub scheme: SignatureScheme,
@@ -487,7 +710,9 @@ pub struct SignatureEnvelope {
     pub signature: BlsSignature,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct Attestation {
     pub content: ContentReference,
@@ -498,7 +723,9 @@ pub struct Attestation {
     pub audit_context: AuditContext,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignedObject {
     pub content: ContentReference,
@@ -506,7 +733,9 @@ pub struct SignedObject {
     pub envelope: SignatureEnvelope,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct DelegationGrant {
     pub issuer: Identity,
@@ -515,7 +744,9 @@ pub struct DelegationGrant {
     pub expires_at: Option<TimestampNanos>,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct ComponentRelease {
     pub component: PrincipalName,
@@ -523,7 +754,9 @@ pub struct ComponentRelease {
     pub authorized_by: Identity,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignedPersonaRequest {
     pub audience: Identity,
@@ -532,7 +765,9 @@ pub struct SignedPersonaRequest {
     pub envelope: SignatureEnvelope,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignalCallAuthorization {
     pub request_digest: ObjectDigest,
@@ -544,20 +779,26 @@ pub struct SignalCallAuthorization {
     pub expires_at: Option<TimestampNanos>,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationObservation {
     pub request_slot: AuthorizationRequestSlot,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationVerification {
     pub request_digest: ObjectDigest,
     pub authorization: AuthorizationGrant,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignatureSolicitation {
     pub request_slot: AuthorizationRequestSlot,
@@ -569,14 +810,18 @@ pub struct SignatureSolicitation {
     pub required_signer: Identity,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignatureSolicitationRoute {
     pub solicitation: SignatureSolicitation,
     pub routed_to: Identity,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignatureSubmission {
     pub request_slot: AuthorizationRequestSlot,
@@ -584,7 +829,9 @@ pub struct SignatureSubmission {
     pub envelope: SignatureEnvelope,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationRejection {
     pub request_slot: AuthorizationRequestSlot,
@@ -592,7 +839,9 @@ pub struct AuthorizationRejection {
     pub reason: AuthorizationDenialReason,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationGrant {
     pub request_slot: AuthorizationRequestSlot,
@@ -608,7 +857,9 @@ pub struct AuthorizationGrant {
     pub expires_at: Option<TimestampNanos>,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationPending {
     pub request_slot: AuthorizationRequestSlot,
@@ -617,28 +868,36 @@ pub struct AuthorizationPending {
     pub observation_token: AuthorizationObservationToken,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationDenied {
     pub request_slot: AuthorizationRequestSlot,
     pub denial: AuthorizationDenial,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationExpired {
     pub request_slot: AuthorizationRequestSlot,
     pub expired_at: TimestampNanos,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationUnavailable {
     pub request_slot: AuthorizationRequestSlot,
     pub reason: PrincipalName,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationStateRecord {
     pub request_slot: AuthorizationRequestSlot,
@@ -649,45 +908,59 @@ pub struct AuthorizationStateRecord {
     pub denial: Option<AuthorizationDenial>,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationObservationSnapshot {
     pub states: Vec<AuthorizationStateRecord>,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignatureRouteReceipt {
     pub request_slot: AuthorizationRequestSlot,
     pub routed_to: Identity,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignatureSubmissionReceipt {
     pub request_slot: AuthorizationRequestSlot,
     pub signer: Identity,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationObservationRetracted {
     pub token: AuthorizationObservationToken,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationObservationToken {
     pub request_slot: AuthorizationRequestSlot,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationUpdate {
     pub state: AuthorizationStateRecord,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignRequest {
     pub content: ContentReference,
@@ -696,14 +969,18 @@ pub struct SignRequest {
     pub expires_at: Option<TimestampNanos>,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct VerifyRequest {
     pub attestation: Attestation,
     pub content: ContentReference,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct IdentityRegistration {
     pub identity: Identity,
@@ -712,7 +989,9 @@ pub struct IdentityRegistration {
     pub purpose: KeyPurpose,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct IdentityRevocation {
     pub identity: Identity,
@@ -720,20 +999,26 @@ pub struct IdentityRevocation {
     pub reason: PrincipalName,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct IdentityLookup {
     pub identity: Identity,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct ArchiveAttestationRequest {
     pub release: ComponentRelease,
     pub audit_context: AuditContext,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct ChannelGrantAttestationRequest {
     pub grant_content: ContentReference,
@@ -741,7 +1026,9 @@ pub struct ChannelGrantAttestationRequest {
     pub audit_context: AuditContext,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AuthorizationAttestationRequest {
     pub authorization_content: ContentReference,
@@ -749,20 +1036,26 @@ pub struct AuthorizationAttestationRequest {
     pub audit_context: AuditContext,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct IdentitySubscription {
     pub subscriber: Identity,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SignReceipt {
     pub attestation: Attestation,
     pub issued_at: TimestampNanos,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct VerificationResult {
     pub decision: VerificationDecision,
@@ -770,26 +1063,34 @@ pub struct VerificationResult {
     pub expires_at: Option<TimestampNanos>,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct IdentityReceipt {
     pub identity: Identity,
     pub status: PrincipalStatus,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct IdentitySnapshot {
     pub identities: Vec<IdentityReceipt>,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct AttestationReceipt {
     pub attestation: Attestation,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct IdentityUpdate {
     pub receipt: IdentityReceipt,
@@ -799,20 +1100,26 @@ pub struct IdentityUpdate {
 ///
 /// Returned in reply to `IdentitySubscriptionRetraction`. Carries the
 /// retracted token so callers can match the ack to the request they sent.
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct SubscriptionRetracted {
     pub token: IdentitySubscriptionToken,
 }
 
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct Rejection {
     pub reason: RejectionReason,
 }
 
 /// Per-subscription identity for the identity-updates stream.
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, NotaRecord, Debug, Clone, PartialEq, Eq)]
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
 #[rkyv(compare(PartialEq), derive(Debug))]
 pub struct IdentitySubscriptionToken {
     pub subscriber: Identity,

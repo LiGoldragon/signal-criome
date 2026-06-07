@@ -1,4 +1,4 @@
-use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode};
+use nota_next::{NotaDecode, NotaEncode, NotaSource};
 use signal_criome::{
     ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext, AuthorizationDenial,
     AuthorizationDenialReason, AuthorizationDenialSource, AuthorizationDenied,
@@ -210,13 +210,10 @@ fn round_trip_nota<T>(value: T, expected: &str)
 where
     T: NotaEncode + NotaDecode + PartialEq + std::fmt::Debug,
 {
-    let mut encoder = Encoder::new();
-    value.encode(&mut encoder).expect("encode nota");
-    let encoded = encoder.into_string();
+    let encoded = value.to_nota();
     assert_eq!(encoded, expected);
 
-    let mut decoder = Decoder::new(&encoded);
-    let recovered = T::decode(&mut decoder).expect("decode nota");
+    let recovered = NotaSource::new(&encoded).parse::<T>().expect("decode nota");
     assert_eq!(recovered, value);
 }
 
@@ -475,7 +472,7 @@ fn root_request_round_trips_through_nota_text() {
         CriomeRequest::LookupIdentity(IdentityLookup {
             identity: Identity::persona("designer"),
         }),
-        "(LookupIdentity ((Persona designer)))",
+        "(LookupIdentity ((Persona [designer])))",
     );
 }
 

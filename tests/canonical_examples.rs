@@ -6,7 +6,7 @@
 //! and one example per request/reply family. Exhaustive per-variant
 //! round-trip witnesses already live in `tests/round_trip.rs`.
 
-use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode};
+use nota_next::{NotaDecode, NotaEncode, NotaSource};
 use signal_criome::{
     ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext,
     AuthorizationAttestationRequest, AuthorizationDenial, AuthorizationDenialReason,
@@ -141,82 +141,61 @@ fn signature_solicitation() -> SignatureSolicitation {
     }
 }
 
-fn round_trip<T>(value: T, canonical_text: &str)
+fn round_trip<T>(value: T)
 where
     T: NotaEncode + NotaDecode + PartialEq + std::fmt::Debug,
 {
-    let mut encoder = Encoder::new();
-    value.encode(&mut encoder).expect("encode");
-    let text = encoder.into_string();
-    assert_eq!(text, canonical_text, "encode for {value:?}");
-
-    let mut decoder = Decoder::new(canonical_text);
-    let decoded = T::decode(&mut decoder).expect("decode");
-    assert_eq!(decoded, value, "decode for {canonical_text}");
+    let text = value.to_nota();
+    let decoded = NotaSource::new(&text).parse::<T>().expect("decode");
+    assert_eq!(decoded, value, "decode for {text}");
 
     assert!(
-        CANONICAL.contains(canonical_text),
-        "examples/canonical.nota missing line: {canonical_text}",
+        CANONICAL.contains(&text),
+        "examples/canonical.nota missing line: {text}",
     );
 }
 
 #[test]
 fn canonical_request_examples_round_trip() {
-    round_trip(
-        CriomeRequest::Sign(SignRequest {
-            content: content_reference(),
-            signer: alice(),
-            audit_context: audit_context(),
-            expires_at: None,
-        }),
-        "(Sign ((digest-abc SignedObject schema-1) (Persona alice) (SignedObject audience-bob policy-1 nonce-7) None))",
-    );
-    round_trip(
-        CriomeRequest::VerifyAttestation(VerifyRequest {
-            attestation: attestation(),
-            content: content_reference(),
-        }),
-        "(VerifyAttestation (((digest-abc SignedObject schema-1) (Persona alice) (Bls12_381MinPk public-key-1 signature-1) 100 None (SignedObject audience-bob policy-1 nonce-7)) (digest-abc SignedObject schema-1)))",
-    );
-    round_trip(
-        CriomeRequest::RegisterIdentity(IdentityRegistration {
-            identity: alice(),
-            public_key: BlsPublicKey::new("public-key-1"),
-            fingerprint: PublicKeyFingerprint::new("fingerprint-1"),
-            purpose: KeyPurpose::PersonaRequest,
-        }),
-        "(RegisterIdentity ((Persona alice) public-key-1 fingerprint-1 PersonaRequest))",
-    );
-    round_trip(
-        CriomeRequest::RevokeIdentity(IdentityRevocation {
-            identity: alice(),
-            fingerprint: PublicKeyFingerprint::new("fingerprint-1"),
-            reason: PrincipalName::new("revoked-by-owner"),
-        }),
-        "(RevokeIdentity ((Persona alice) fingerprint-1 revoked-by-owner))",
-    );
-    round_trip(
-        CriomeRequest::LookupIdentity(IdentityLookup { identity: alice() }),
-        "(LookupIdentity ((Persona alice)))",
-    );
-    round_trip(
-        CriomeRequest::AttestArchive(ArchiveAttestationRequest {
-            release: ComponentRelease {
-                component: PrincipalName::new("persona-router"),
-                artifact: ObjectDigest::new("artifact-1"),
-                authorized_by: alice(),
-            },
-            audit_context: AuditContext {
-                purpose: ContentPurpose::Archive,
-                audience: PrincipalName::new("audience-archive"),
-                policy_version: PrincipalName::new("policy-1"),
-                nonce: ReplayNonce::new("nonce-8"),
-            },
-        }),
-        "(AttestArchive ((persona-router artifact-1 (Persona alice)) (Archive audience-archive policy-1 nonce-8)))",
-    );
-    round_trip(
-        CriomeRequest::AttestChannelGrant(ChannelGrantAttestationRequest {
+    round_trip(CriomeRequest::Sign(SignRequest {
+        content: content_reference(),
+        signer: alice(),
+        audit_context: audit_context(),
+        expires_at: None,
+    }));
+    round_trip(CriomeRequest::VerifyAttestation(VerifyRequest {
+        attestation: attestation(),
+        content: content_reference(),
+    }));
+    round_trip(CriomeRequest::RegisterIdentity(IdentityRegistration {
+        identity: alice(),
+        public_key: BlsPublicKey::new("public-key-1"),
+        fingerprint: PublicKeyFingerprint::new("fingerprint-1"),
+        purpose: KeyPurpose::PersonaRequest,
+    }));
+    round_trip(CriomeRequest::RevokeIdentity(IdentityRevocation {
+        identity: alice(),
+        fingerprint: PublicKeyFingerprint::new("fingerprint-1"),
+        reason: PrincipalName::new("revoked-by-owner"),
+    }));
+    round_trip(CriomeRequest::LookupIdentity(IdentityLookup {
+        identity: alice(),
+    }));
+    round_trip(CriomeRequest::AttestArchive(ArchiveAttestationRequest {
+        release: ComponentRelease {
+            component: PrincipalName::new("persona-router"),
+            artifact: ObjectDigest::new("artifact-1"),
+            authorized_by: alice(),
+        },
+        audit_context: AuditContext {
+            purpose: ContentPurpose::Archive,
+            audience: PrincipalName::new("audience-archive"),
+            policy_version: PrincipalName::new("policy-1"),
+            nonce: ReplayNonce::new("nonce-8"),
+        },
+    }));
+    round_trip(CriomeRequest::AttestChannelGrant(
+        ChannelGrantAttestationRequest {
             grant_content: ContentReference {
                 digest: ObjectDigest::new("digest-grant"),
                 purpose: ContentPurpose::ChannelGrant,
@@ -229,11 +208,10 @@ fn canonical_request_examples_round_trip() {
                 policy_version: PrincipalName::new("policy-1"),
                 nonce: ReplayNonce::new("nonce-9"),
             },
-        }),
-        "(AttestChannelGrant ((digest-grant ChannelGrant schema-1) (Persona alice) (ChannelGrant audience-bob policy-1 nonce-9)))",
-    );
-    round_trip(
-        CriomeRequest::AttestAuthorization(AuthorizationAttestationRequest {
+        },
+    ));
+    round_trip(CriomeRequest::AttestAuthorization(
+        AuthorizationAttestationRequest {
             authorization_content: ContentReference {
                 digest: ObjectDigest::new("digest-auth"),
                 purpose: ContentPurpose::Authorization,
@@ -246,11 +224,10 @@ fn canonical_request_examples_round_trip() {
                 policy_version: PrincipalName::new("policy-1"),
                 nonce: ReplayNonce::new("nonce-10"),
             },
-        }),
-        "(AttestAuthorization ((digest-auth Authorization schema-1) (Persona alice) (Authorization audience-bob policy-1 nonce-10)))",
-    );
-    round_trip(
-        CriomeRequest::AuthorizeSignalCall(SignalCallAuthorization {
+        },
+    ));
+    round_trip(CriomeRequest::AuthorizeSignalCall(
+        SignalCallAuthorization {
             request_digest: ObjectDigest::new("digest-lojix-request"),
             contract: contract_name(),
             operation: contract_operation_head(),
@@ -258,190 +235,131 @@ fn canonical_request_examples_round_trip() {
             requester: alice(),
             nonce: ReplayNonce::new("authorization-nonce-1"),
             expires_at: None,
-        }),
-        "(AuthorizeSignalCall (digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (Persona alice) authorization-nonce-1 None))",
-    );
-    round_trip(
-        CriomeRequest::ObserveAuthorization(AuthorizationObservation {
+        },
+    ));
+    round_trip(CriomeRequest::ObserveAuthorization(
+        AuthorizationObservation {
             request_slot: authorization_request_slot(),
-        }),
-        "(ObserveAuthorization (authorization-request-1))",
-    );
-    round_trip(
-        CriomeRequest::VerifyAuthorization(AuthorizationVerification {
+        },
+    ));
+    round_trip(CriomeRequest::VerifyAuthorization(
+        AuthorizationVerification {
             request_digest: ObjectDigest::new("digest-lojix-request"),
             authorization: authorization_grant(),
-        }),
-        "(VerifyAuthorization (digest-lojix-request (authorization-request-1 digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)))",
-    );
-    round_trip(
-        CriomeRequest::RouteSignatureRequest(SignatureSolicitationRoute {
+        },
+    ));
+    round_trip(CriomeRequest::RouteSignatureRequest(
+        SignatureSolicitationRoute {
             solicitation: signature_solicitation(),
             routed_to: Identity::Host(PrincipalName::new("balboa")),
-        }),
-        "(RouteSignatureRequest ((authorization-request-1 digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa)))",
-    );
-    round_trip(
-        CriomeRequest::SubmitSignature(SignatureSubmission {
-            request_slot: authorization_request_slot(),
-            signer: Identity::Developer(PrincipalName::new("reviewer")),
-            envelope: envelope(),
-        }),
-        "(SubmitSignature (authorization-request-1 (Developer reviewer) (Bls12_381MinPk public-key-1 signature-1)))",
-    );
-    round_trip(
-        CriomeRequest::RejectAuthorization(AuthorizationRejection {
-            request_slot: authorization_request_slot(),
-            rejector: Identity::Developer(PrincipalName::new("reviewer")),
-            reason: AuthorizationDenialReason::SignatureRejected,
-        }),
-        "(RejectAuthorization (authorization-request-1 (Developer reviewer) SignatureRejected))",
-    );
-    round_trip(
-        CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription {
+        },
+    ));
+    round_trip(CriomeRequest::SubmitSignature(SignatureSubmission {
+        request_slot: authorization_request_slot(),
+        signer: Identity::Developer(PrincipalName::new("reviewer")),
+        envelope: envelope(),
+    }));
+    round_trip(CriomeRequest::RejectAuthorization(AuthorizationRejection {
+        request_slot: authorization_request_slot(),
+        rejector: Identity::Developer(PrincipalName::new("reviewer")),
+        reason: AuthorizationDenialReason::SignatureRejected,
+    }));
+    round_trip(CriomeRequest::SubscribeIdentityUpdates(
+        IdentitySubscription {
             subscriber: alice(),
-        }),
-        "(SubscribeIdentityUpdates ((Persona alice)))",
-    );
-    round_trip(
-        CriomeRequest::IdentitySubscriptionRetraction(token()),
-        "(IdentitySubscriptionRetraction ((Persona alice)))",
-    );
-    round_trip(
-        CriomeRequest::AuthorizationObservationRetraction(authorization_observation_token()),
-        "(AuthorizationObservationRetraction (authorization-request-1))",
-    );
+        },
+    ));
+    round_trip(CriomeRequest::IdentitySubscriptionRetraction(token()));
+    round_trip(CriomeRequest::AuthorizationObservationRetraction(
+        authorization_observation_token(),
+    ));
 }
 
 #[test]
 fn canonical_reply_examples_round_trip() {
-    round_trip(
-        CriomeReply::SignReceipt(SignReceipt {
-            attestation: attestation(),
-            issued_at: TimestampNanos::new(100),
-        }),
-        "(SignReceipt (((digest-abc SignedObject schema-1) (Persona alice) (Bls12_381MinPk public-key-1 signature-1) 100 None (SignedObject audience-bob policy-1 nonce-7)) 100))",
-    );
-    round_trip(
-        CriomeReply::VerificationResult(VerificationResult {
-            decision: VerificationDecision::Valid,
-            identity: Some(alice()),
-            expires_at: None,
-        }),
-        "(VerificationResult (Valid (Some (Persona alice)) None))",
-    );
-    round_trip(
-        CriomeReply::IdentityReceipt(IdentityReceipt {
+    round_trip(CriomeReply::SignReceipt(SignReceipt {
+        attestation: attestation(),
+        issued_at: TimestampNanos::new(100),
+    }));
+    round_trip(CriomeReply::VerificationResult(VerificationResult {
+        decision: VerificationDecision::Valid,
+        identity: Some(alice()),
+        expires_at: None,
+    }));
+    round_trip(CriomeReply::IdentityReceipt(IdentityReceipt {
+        identity: alice(),
+        status: PrincipalStatus::Active,
+    }));
+    round_trip(CriomeReply::IdentitySnapshot(IdentitySnapshot {
+        identities: vec![IdentityReceipt {
             identity: alice(),
             status: PrincipalStatus::Active,
-        }),
-        "(IdentityReceipt ((Persona alice) Active))",
-    );
-    round_trip(
-        CriomeReply::IdentitySnapshot(IdentitySnapshot {
-            identities: vec![IdentityReceipt {
-                identity: alice(),
-                status: PrincipalStatus::Active,
-            }],
-        }),
-        "(IdentitySnapshot ([((Persona alice) Active)]))",
-    );
-    round_trip(
-        CriomeReply::AttestationReceipt(AttestationReceipt {
-            attestation: attestation(),
-        }),
-        "(AttestationReceipt (((digest-abc SignedObject schema-1) (Persona alice) (Bls12_381MinPk public-key-1 signature-1) 100 None (SignedObject audience-bob policy-1 nonce-7))))",
-    );
-    round_trip(
-        CriomeReply::AuthorizationPending(AuthorizationPending {
-            request_slot: authorization_request_slot(),
-            request_digest: ObjectDigest::new("digest-lojix-request"),
-            missing_authorities: vec![Identity::Developer(PrincipalName::new("reviewer"))],
-            observation_token: authorization_observation_token(),
-        }),
-        "(AuthorizationPending (authorization-request-1 digest-lojix-request [(Developer reviewer)] (authorization-request-1)))",
-    );
-    round_trip(
-        CriomeReply::AuthorizationGranted(authorization_grant()),
-        "(AuthorizationGranted (authorization-request-1 digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))",
-    );
-    round_trip(
-        CriomeReply::AuthorizationDenied(AuthorizationDenied {
-            request_slot: authorization_request_slot(),
-            denial: AuthorizationDenial {
-                source: AuthorizationDenialSource::Policy,
-                reason: AuthorizationDenialReason::SignatureScopeMismatch,
-            },
-        }),
-        "(AuthorizationDenied (authorization-request-1 (Policy SignatureScopeMismatch)))",
-    );
-    round_trip(
-        CriomeReply::AuthorizationExpired(AuthorizationExpired {
-            request_slot: authorization_request_slot(),
-            expired_at: TimestampNanos::new(111),
-        }),
-        "(AuthorizationExpired (authorization-request-1 111))",
-    );
-    round_trip(
-        CriomeReply::AuthorizationUnavailable(AuthorizationUnavailable {
+        }],
+    }));
+    round_trip(CriomeReply::AttestationReceipt(AttestationReceipt {
+        attestation: attestation(),
+    }));
+    round_trip(CriomeReply::AuthorizationPending(AuthorizationPending {
+        request_slot: authorization_request_slot(),
+        request_digest: ObjectDigest::new("digest-lojix-request"),
+        missing_authorities: vec![Identity::Developer(PrincipalName::new("reviewer"))],
+        observation_token: authorization_observation_token(),
+    }));
+    round_trip(CriomeReply::AuthorizationGranted(authorization_grant()));
+    round_trip(CriomeReply::AuthorizationDenied(AuthorizationDenied {
+        request_slot: authorization_request_slot(),
+        denial: AuthorizationDenial {
+            source: AuthorizationDenialSource::Policy,
+            reason: AuthorizationDenialReason::SignatureScopeMismatch,
+        },
+    }));
+    round_trip(CriomeReply::AuthorizationExpired(AuthorizationExpired {
+        request_slot: authorization_request_slot(),
+        expired_at: TimestampNanos::new(111),
+    }));
+    round_trip(CriomeReply::AuthorizationUnavailable(
+        AuthorizationUnavailable {
             request_slot: authorization_request_slot(),
             reason: PrincipalName::new("criome-peer-unreachable"),
-        }),
-        "(AuthorizationUnavailable (authorization-request-1 criome-peer-unreachable))",
-    );
-    round_trip(
-        CriomeReply::AuthorizationObservationSnapshot(AuthorizationObservationSnapshot {
+        },
+    ));
+    round_trip(CriomeReply::AuthorizationObservationSnapshot(
+        AuthorizationObservationSnapshot {
             states: vec![authorization_state()],
-        }),
-        "(AuthorizationObservationSnapshot ([(authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None)]))",
-    );
-    round_trip(
-        CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
-            request_slot: authorization_request_slot(),
-            routed_to: Identity::Host(PrincipalName::new("balboa")),
-        }),
-        "(SignatureRouteReceipt (authorization-request-1 (Host balboa)))",
-    );
-    round_trip(
-        CriomeReply::SignatureSubmissionReceipt(SignatureSubmissionReceipt {
+        },
+    ));
+    round_trip(CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
+        request_slot: authorization_request_slot(),
+        routed_to: Identity::Host(PrincipalName::new("balboa")),
+    }));
+    round_trip(CriomeReply::SignatureSubmissionReceipt(
+        SignatureSubmissionReceipt {
             request_slot: authorization_request_slot(),
             signer: Identity::Developer(PrincipalName::new("reviewer")),
-        }),
-        "(SignatureSubmissionReceipt (authorization-request-1 (Developer reviewer)))",
-    );
-    round_trip(
-        CriomeReply::AuthorizationObservationRetracted(AuthorizationObservationRetracted {
+        },
+    ));
+    round_trip(CriomeReply::AuthorizationObservationRetracted(
+        AuthorizationObservationRetracted {
             token: authorization_observation_token(),
-        }),
-        "(AuthorizationObservationRetracted ((authorization-request-1)))",
-    );
-    round_trip(
-        CriomeReply::SubscriptionRetracted(SubscriptionRetracted { token: token() }),
-        "(SubscriptionRetracted (((Persona alice))))",
-    );
-    round_trip(
-        CriomeReply::Rejection(Rejection {
-            reason: RejectionReason::UnknownIdentity,
-        }),
-        "(Rejection (UnknownIdentity))",
-    );
+        },
+    ));
+    round_trip(CriomeReply::SubscriptionRetracted(SubscriptionRetracted {
+        token: token(),
+    }));
+    round_trip(CriomeReply::Rejection(Rejection {
+        reason: RejectionReason::UnknownIdentity,
+    }));
 }
 
 #[test]
 fn canonical_event_examples_round_trip() {
-    round_trip(
-        CriomeEvent::IdentityUpdate(IdentityUpdate {
-            receipt: IdentityReceipt {
-                identity: alice(),
-                status: PrincipalStatus::Active,
-            },
-        }),
-        "(IdentityUpdate (((Persona alice) Active)))",
-    );
-    round_trip(
-        CriomeEvent::AuthorizationUpdate(AuthorizationUpdate {
-            state: authorization_state(),
-        }),
-        "(AuthorizationUpdate ((authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None)))",
-    );
+    round_trip(CriomeEvent::IdentityUpdate(IdentityUpdate {
+        receipt: IdentityReceipt {
+            identity: alice(),
+            status: PrincipalStatus::Active,
+        },
+    }));
+    round_trip(CriomeEvent::AuthorizationUpdate(AuthorizationUpdate {
+        state: authorization_state(),
+    }));
 }
