@@ -37,16 +37,16 @@
 (AttestAuthorization ((digest-auth Authorization schema-1) (Persona alice) (Authorization audience-bob policy-1 nonce-10)))
 
 ;; CriomeRequest::AuthorizeSignalCall
-(AuthorizeSignalCall (digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) authorization-nonce-1 None))
+(AuthorizeSignalCall (digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (Persona alice) authorization-nonce-1 None))
 
 ;; CriomeRequest::ObserveAuthorization
 (ObserveAuthorization (authorization-request-1))
 
 ;; CriomeRequest::VerifyAuthorization
-(VerifyAuthorization (digest-lojix-request (authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)))
+(VerifyAuthorization (digest-lojix-request (authorization-request-1 digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)))
 
 ;; CriomeRequest::RouteSignatureRequest
-(RouteSignatureRequest ((authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa)))
+(RouteSignatureRequest ((authorization-request-1 digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa)))
 
 ;; CriomeRequest::SubmitSignature
 (SubmitSignature (authorization-request-1 (Developer reviewer) (Bls12_381MinPk public-key-1 signature-1)))
@@ -84,7 +84,7 @@
 (AuthorizationPending (authorization-request-1 digest-lojix-request [(Developer reviewer)] (authorization-request-1)))
 
 ;; CriomeReply::AuthorizationGranted
-(AuthorizationGranted (authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))
+(AuthorizationGranted (authorization-request-1 digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))
 
 ;; CriomeReply::AuthorizationDenied
 (AuthorizationDenied (authorization-request-1 (Policy SignatureScopeMismatch)))

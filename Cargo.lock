@@ -217,7 +217,7 @@ dependencies = [
 [[package]]
 name = "nota-codec"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/nota-codec.git?branch=main#538555e895529e2884b7d37d20c66aadc2a49c08"
+source = "git+https://github.com/LiGoldragon/nota-codec.git?branch=main#f761421c383121a04df761a444a3778d1c0b137d"
 dependencies = [
  "camino",
  "nota-derive",
@@ -227,7 +227,7 @@ dependencies = [
 [[package]]
 name = "nota-derive"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/nota-derive.git?branch=main#8323149593b95d6e90c1fdde54e9aba58803337c"
+source = "git+https://github.com/LiGoldragon/nota-derive.git?branch=main#11347da1ff4425ff4e743c15a3e3ec322b54ea9a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -249,6 +249,12 @@ name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
+
+[[package]]
+name = "paste"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "pin-project-lite"
@@ -349,31 +355,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
+name = "schema"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/schema.git?branch=main#bfe4ff40a1dca39cbc55f8cd5785a06ff2497abd"
+dependencies = [
+ "nota-codec",
+]
+
+[[package]]
+name = "schema-rust"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#6f5a77f11115c043b93d005086cda8cbec349cd4"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "schema",
+]
+
+[[package]]
 name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
-
-[[package]]
-name = "signal-core"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-core.git#494da25305183f286b889697617ed6d01b8e4593"
-dependencies = [
- "nota-codec",
- "rkyv",
- "signal-core-macros",
- "thiserror",
-]
-
-[[package]]
-name = "signal-core-macros"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-core.git#494da25305183f286b889697617ed6d01b8e4593"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "signal-criome"
@@ -383,8 +386,33 @@ dependencies = [
  "blst",
  "nota-codec",
  "rkyv",
- "signal-core",
+ "signal-frame",
  "thiserror",
+]
+
+[[package]]
+name = "signal-frame"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#6f5a77f11115c043b93d005086cda8cbec349cd4"
+dependencies = [
+ "nota-codec",
+ "paste",
+ "rkyv",
+ "signal-frame-macros",
+ "thiserror",
+]
+
+[[package]]
+name = "signal-frame-macros"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#6f5a77f11115c043b93d005086cda8cbec349cd4"
+dependencies = [
+ "nota-codec",
+ "proc-macro2",
+ "quote",
+ "schema",
+ "schema-rust",
+ "syn",
 ]
 
 [[package]]

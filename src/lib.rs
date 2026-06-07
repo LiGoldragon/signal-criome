@@ -5,7 +5,7 @@
 
 use nota_codec::{Decoder, Encoder, NotaDecode, NotaEncode, NotaEnum, NotaRecord, NotaTransparent};
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-use signal_core::signal_channel;
+use signal_frame::signal_channel;
 
 #[derive(
     Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
@@ -206,41 +206,18 @@ pub enum SignatureScheme {
 }
 
 #[derive(
-    Archive, RkyvSerialize, RkyvDeserialize, NotaEnum, Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Archive, RkyvSerialize, RkyvDeserialize, NotaTransparent, Debug, Clone, PartialEq, Eq, Hash,
 )]
 #[rkyv(compare(PartialEq), derive(Debug))]
-pub enum AuthorizedSignalVerb {
-    Assert,
-    Mutate,
-    Retract,
-    Match,
-    Subscribe,
-    Validate,
-}
+pub struct ContractOperationHead(String);
 
-impl From<signal_core::SignalVerb> for AuthorizedSignalVerb {
-    fn from(verb: signal_core::SignalVerb) -> Self {
-        match verb {
-            signal_core::SignalVerb::Assert => Self::Assert,
-            signal_core::SignalVerb::Mutate => Self::Mutate,
-            signal_core::SignalVerb::Retract => Self::Retract,
-            signal_core::SignalVerb::Match => Self::Match,
-            signal_core::SignalVerb::Subscribe => Self::Subscribe,
-            signal_core::SignalVerb::Validate => Self::Validate,
-        }
+impl ContractOperationHead {
+    pub fn new(value: impl Into<String>) -> Self {
+        Self(value.into())
     }
-}
 
-impl From<AuthorizedSignalVerb> for signal_core::SignalVerb {
-    fn from(verb: AuthorizedSignalVerb) -> Self {
-        match verb {
-            AuthorizedSignalVerb::Assert => Self::Assert,
-            AuthorizedSignalVerb::Mutate => Self::Mutate,
-            AuthorizedSignalVerb::Retract => Self::Retract,
-            AuthorizedSignalVerb::Match => Self::Match,
-            AuthorizedSignalVerb::Subscribe => Self::Subscribe,
-            AuthorizedSignalVerb::Validate => Self::Validate,
-        }
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
     }
 }
 
@@ -560,7 +537,7 @@ pub struct SignedPersonaRequest {
 pub struct SignalCallAuthorization {
     pub request_digest: ObjectDigest,
     pub contract: ContractName,
-    pub verb: AuthorizedSignalVerb,
+    pub operation: ContractOperationHead,
     pub scope: AuthorizationScope,
     pub requester: Identity,
     pub nonce: ReplayNonce,
@@ -586,7 +563,7 @@ pub struct SignatureSolicitation {
     pub request_slot: AuthorizationRequestSlot,
     pub request_digest: ObjectDigest,
     pub contract: ContractName,
-    pub verb: AuthorizedSignalVerb,
+    pub operation: ContractOperationHead,
     pub scope: AuthorizationScope,
     pub requester: Identity,
     pub required_signer: Identity,
@@ -621,7 +598,7 @@ pub struct AuthorizationGrant {
     pub request_slot: AuthorizationRequestSlot,
     pub authorized_object_digest: ObjectDigest,
     pub authorized_contract: ContractName,
-    pub authorized_verb: AuthorizedSignalVerb,
+    pub authorized_operation: ContractOperationHead,
     pub authorization_scope: AuthorizationScope,
     pub policy_satisfaction: AuthorizationPolicySatisfaction,
     pub signature_result: SignatureAuthorizationResult,
@@ -843,58 +820,74 @@ pub struct IdentitySubscriptionToken {
 
 signal_channel! {
     channel Criome {
-        request CriomeRequest {
-            Assert Sign(SignRequest),
-            Validate VerifyAttestation(VerifyRequest),
-            Assert RegisterIdentity(IdentityRegistration),
-            Retract RevokeIdentity(IdentityRevocation),
-            Match LookupIdentity(IdentityLookup),
-            Assert AttestArchive(ArchiveAttestationRequest),
-            Assert AttestChannelGrant(ChannelGrantAttestationRequest),
-            Assert AttestAuthorization(AuthorizationAttestationRequest),
-            Assert AuthorizeSignalCall(SignalCallAuthorization),
-            Subscribe ObserveAuthorization(AuthorizationObservation) opens AuthorizationObservationStream,
-            Validate VerifyAuthorization(AuthorizationVerification),
-            Assert RouteSignatureRequest(SignatureSolicitationRoute),
-            Assert SubmitSignature(SignatureSubmission),
-            Assert RejectAuthorization(AuthorizationRejection),
-            Subscribe SubscribeIdentityUpdates(IdentitySubscription) opens IdentityUpdateStream,
-            Retract IdentitySubscriptionRetraction(IdentitySubscriptionToken),
-            Retract AuthorizationObservationRetraction(AuthorizationObservationToken),
-        }
-        reply CriomeReply {
-            SignReceipt(SignReceipt),
-            VerificationResult(VerificationResult),
-            IdentityReceipt(IdentityReceipt),
-            IdentitySnapshot(IdentitySnapshot),
-            AttestationReceipt(AttestationReceipt),
-            AuthorizationPending(AuthorizationPending),
-            AuthorizationGranted(AuthorizationGrant),
-            AuthorizationDenied(AuthorizationDenied),
-            AuthorizationExpired(AuthorizationExpired),
-            AuthorizationUnavailable(AuthorizationUnavailable),
-            AuthorizationObservationSnapshot(AuthorizationObservationSnapshot),
-            SignatureRouteReceipt(SignatureRouteReceipt),
-            SignatureSubmissionReceipt(SignatureSubmissionReceipt),
-            AuthorizationObservationRetracted(AuthorizationObservationRetracted),
-            SubscriptionRetracted(SubscriptionRetracted),
-            Rejection(Rejection),
-        }
-        event CriomeEvent {
-            IdentityUpdate(IdentityUpdate) belongs IdentityUpdateStream,
-            AuthorizationUpdate(AuthorizationUpdate) belongs AuthorizationObservationStream,
-        }
-        stream IdentityUpdateStream {
-            token IdentitySubscriptionToken;
-            opened IdentitySnapshot;
-            event IdentityUpdate;
-            close IdentitySubscriptionRetraction;
-        }
-        stream AuthorizationObservationStream {
-            token AuthorizationObservationToken;
-            opened AuthorizationObservationSnapshot;
-            event AuthorizationUpdate;
-            close AuthorizationObservationRetraction;
-        }
+        operation Sign(SignRequest),
+        operation VerifyAttestation(VerifyRequest),
+        operation RegisterIdentity(IdentityRegistration),
+        operation RevokeIdentity(IdentityRevocation),
+        operation LookupIdentity(IdentityLookup),
+        operation AttestArchive(ArchiveAttestationRequest),
+        operation AttestChannelGrant(ChannelGrantAttestationRequest),
+        operation AttestAuthorization(AuthorizationAttestationRequest),
+        operation AuthorizeSignalCall(SignalCallAuthorization),
+        operation ObserveAuthorization(AuthorizationObservation) opens AuthorizationObservationStream,
+        operation VerifyAuthorization(AuthorizationVerification),
+        operation RouteSignatureRequest(SignatureSolicitationRoute),
+        operation SubmitSignature(SignatureSubmission),
+        operation RejectAuthorization(AuthorizationRejection),
+        operation SubscribeIdentityUpdates(IdentitySubscription) opens IdentityUpdateStream,
+        operation IdentitySubscriptionRetraction(IdentitySubscriptionToken),
+        operation AuthorizationObservationRetraction(AuthorizationObservationToken),
+    }
+
+    reply CriomeReply {
+        SignReceipt(SignReceipt),
+        VerificationResult(VerificationResult),
+        IdentityReceipt(IdentityReceipt),
+        IdentitySnapshot(IdentitySnapshot),
+        AttestationReceipt(AttestationReceipt),
+        AuthorizationPending(AuthorizationPending),
+        AuthorizationGranted(AuthorizationGrant),
+        AuthorizationDenied(AuthorizationDenied),
+        AuthorizationExpired(AuthorizationExpired),
+        AuthorizationUnavailable(AuthorizationUnavailable),
+        AuthorizationObservationSnapshot(AuthorizationObservationSnapshot),
+        SignatureRouteReceipt(SignatureRouteReceipt),
+        SignatureSubmissionReceipt(SignatureSubmissionReceipt),
+        AuthorizationObservationRetracted(AuthorizationObservationRetracted),
+        SubscriptionRetracted(SubscriptionRetracted),
+        Rejection(Rejection),
+    }
+
+    event CriomeEvent {
+        IdentityUpdate(IdentityUpdate) belongs IdentityUpdateStream,
+        AuthorizationUpdate(AuthorizationUpdate) belongs AuthorizationObservationStream,
+    }
+
+    stream IdentityUpdateStream {
+        token IdentitySubscriptionToken;
+        opened IdentitySnapshot;
+        event IdentityUpdate;
+        close IdentitySubscriptionRetraction;
+    }
+
+    stream AuthorizationObservationStream {
+        token AuthorizationObservationToken;
+        opened AuthorizationObservationSnapshot;
+        event AuthorizationUpdate;
+        close AuthorizationObservationRetraction;
+    }
+}
+
+pub type CriomeRequest = Operation;
+pub type CriomeFrame = Frame;
+pub type CriomeFrameBody = FrameBody;
+pub type CriomeReplyEnvelope = ReplyEnvelope;
+pub type CriomeRequestBuilder = RequestBuilder;
+pub type CriomeOperationKind = OperationKind;
+pub type CriomeStreamKind = StreamKind;
+
+impl CriomeRequest {
+    pub fn operation_kind(&self) -> CriomeOperationKind {
+        self.kind()
     }
 }

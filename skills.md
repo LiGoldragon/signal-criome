@@ -3,8 +3,6 @@
 *Per-repo agent guide for the Criome trust and attestation Signal
 contract.*
 
----
-
 ## Checkpoint — read before editing
 
 Before changing code in this repo, read:
@@ -16,8 +14,6 @@ Before changing code in this repo, read:
   subscription FSM the identity-updates stream implements)
 - `~/primary/skills/nix-discipline.md`
 - this repo's `ARCHITECTURE.md`.
-
----
 
 ## What this repo is for
 
@@ -35,13 +31,11 @@ by typed digest and purpose; content records do not grow proof
 fields.
 
 The identity-updates subscription follows the canonical lifecycle
-in `~/primary/skills/subscription-lifecycle.md`: open with a typed
-`Subscribe`, push typed `IdentityUpdate` events, close with a typed
-request-side `Retract IdentitySubscriptionRetraction` carrying the
-per-stream token, end with a typed reply-side `SubscriptionRetracted`
-ack echoing the token.
-
----
+in `~/primary/skills/subscription-lifecycle.md`: open with
+`SubscribeIdentityUpdates`, push typed `IdentityUpdate` events, close
+with `IdentitySubscriptionRetraction` carrying the per-stream token,
+end with a typed reply-side `SubscriptionRetracted` ack echoing the
+token.
 
 ## What this repo owns
 
@@ -75,12 +69,10 @@ ack echoing the token.
 - No daemon.
 - No actor runtime.
 - No socket or CLI.
-- No redb or Sema tables.
+- No storage or Sema tables.
 - No private-key storage.
 - No prompt audit or policy engine.
 - No embedded proof fields in Persona content contracts.
-
----
 
 ## Load-bearing invariants
 
@@ -94,15 +86,15 @@ ack echoing the token.
   content by typed `ObjectDigest` and `ContentPurpose`.
 - **Routed authorization names exact request bytes.** Authorization
   records name the canonical Signal request digest, contract name,
-  root Signal verb, scope, signature result, and signature set.
+  target contract operation head, scope, signature result, and
+  signature set.
   Permission comes from signatures over the exact request that
   satisfy criome's policy. This contract carries the request,
   pending/granted/denied states, signature routing, policy
   satisfaction evidence, and observation vocabulary.
-- **Subscription close uses both sides.** The kernel grammar in
-  `signal-frame/macros/src/validate.rs` requires the `stream` block
-  to name a request-side `Retract` variant; the reply-side ack is the
-  final event consumers bind to. This applies to both
+- **Subscription close uses both sides.** The `signal-frame` stream
+  grammar binds each stream to a request-side close operation; the
+  reply-side ack is the final event consumers bind to. This applies to both
   `IdentityUpdateStream` (`SubscriptionRetracted`) and
   `AuthorizationObservationStream`
   (`AuthorizationObservationRetracted`). Do not remove either close
@@ -112,13 +104,13 @@ ack echoing the token.
   `RejectionReason::UnknownIdentity` are **positive** closed
   rejection causes ("the entity you named is not in our
   registry"), not polling-shape placeholders.
-- **Every request variant is a contract-local verb in verb form.**
+- **Every request variant is a contract-local operation in verb form.**
   The `signal_channel!` declaration is the source of truth; the
-  payload's NOTA head names the contract-local verb. Round-trip tests
+  payload's NOTA head names the contract-local operation. Round-trip tests
   assert every variant's head. Under the three-layer model, Sema
   classification labels are observation-only and do not appear on the
   wire.
-- **No runtime code.** No Kameo, Tokio, socket, redb, or daemon
+- **No runtime code.** No Kameo, Tokio, socket, storage, or daemon
   glue in this crate. The `tests/round_trip.rs` source-scan
   witness asserts absence of runtime imports.
 - **Round trips cover every variant.** rkyv length-prefixed frame
@@ -132,8 +124,6 @@ ack echoing the token.
   declare `git = "..."` with a named branch/bookmark, never raw
   `rev = "..."`.
 
----
-
 ## Editing patterns
 
 ### Adding a new attestation kind
@@ -143,9 +133,9 @@ ack echoing the token.
 3. Add the typed reply (if it gets its own receipt shape) or reuse
    `AttestationReceipt`.
 4. Add the variant to the `CriomeRequest` `signal_channel!`
-   declaration as a contract-local verb in verb form (e.g.
+   declaration as a contract-local operation in verb form (e.g.
    `Attest<Whatever>`); the daemon-side Component Command will project
-   to Sema `Assert` for observation.
+   to the appropriate payloadless Sema class for observation.
 5. Add the round-trip witnesses through rkyv and NOTA.
 6. Update `ARCHITECTURE.md`.
 
@@ -163,9 +153,8 @@ ack echoing the token.
 2. Add the typed subscribe payload, token, snapshot, and event
    records.
 3. Add the new `stream` block in `signal_channel!`, with the
-   subscribe request, the request-side retract variant, the
-   reply-side ack, and the typed event variant. The kernel grammar
-   enforces the close-is-Retract shape.
+   subscribe request, the request-side close operation, the reply-side
+   ack, and the typed event variant.
 4. Witness the full subscribe → event → retract → ack → end
    lifecycle.
 
@@ -175,16 +164,13 @@ ack echoing the token.
    values are shaped around the exact request digest, signer identity,
    signature envelope, and requested scope.
 2. Add only the state that crosses the wire: request digest, contract
-   name, contract-local verb, scope, signer identity, signature
+   name, target contract operation head, scope, signer identity, signature
    envelope, or observation token.
-3. Add the variant to `signal_channel!` as a contract-local verb in
+3. Add the variant to `signal_channel!` as a contract-local operation in
    verb form. Authorization submission and signature facts will
-   project to Sema `Assert`; observation opens with `Subscribe`;
-   verification dry-runs project to `Validate`; observation close uses
-   request-side `Retract`.
+   project to the appropriate Sema class inside the daemon; observation
+   and verification remain contract-local operation heads on the wire.
 4. Add rkyv and NOTA round-trip witnesses plus a canonical example.
-
----
 
 ## NOTA codec quirk
 
@@ -195,8 +181,6 @@ encodes as `(IdentitySubscriptionToken (...))`, not
 `(IdentitySubscriptionRetraction ...)`. Canonical examples and
 round-trip tests use the payload heads. `Identity` is the exception
 with a hand-written codec; see "Load-bearing invariants" above.
-
----
 
 ## See also
 

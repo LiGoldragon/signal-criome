@@ -22,7 +22,7 @@ attestation, and Criome-routed authorization of exact Signal request
 digests. Owner-class operations on the daemon itself (passphrase
 submission, master-key operations, policy mutation, peer-routing-table
 mutation, escalation-approval replies) live in `owner-signal-criome`;
-runtime key custody, redb tables, actors, and sockets live in `criome`.
+runtime key custody, storage tables, actors, and sockets live in `criome`.
 
 ## Criome verifies; Persona decides
 
@@ -41,21 +41,21 @@ The `Criome` channel serves two classes of client — *consumers* (anyone
 asking "is this allowed?" and trusting the answer) and *peer criome
 daemons* (cross-criome signature solicitation for quorum policies) — plus
 identity-update and authorization-observation subscribers. Requests carry
-verb-form domain roots (`Sign`, `Verify`, `Register`, `Revoke`,
-`Lookup`, `Authorize`, `Observe`, `Route`, `Submit`, `Reject`); replies
-carry receipts, results, and snapshots. Subscriptions follow the
-canonical Retract-closes-the-stream lifecycle.
+contract-local operation roots (`Sign`, `VerifyAttestation`,
+`RegisterIdentity`, `AuthorizeSignalCall`, `ObserveAuthorization`, and
+the rest of this contract's domain verbs); replies carry receipts,
+results, and snapshots. Subscriptions close through typed domain close
+operations such as `IdentitySubscriptionRetraction`.
 
 ## Wire vocabulary discipline — three-layer direction
 
 Per `primary/skills/contract-repo.md` §"Public contracts use
 contract-local operation verbs" and `primary/skills/component-triad.md`
-§"Verbs come in three layers", the intended shape is:
+§"Verbs come in three layers", the contract shape is:
 
 - **Layer 1 (this crate):** contract-local operation roots in verb form.
-  The `SignalVerb` wrappers retire; payloads become domain-named roots
-  (`Verify` carries the target it verifies; `Register` carries a
-  `Registration`).
+  The old `SignalVerb` wrappers are gone; payload enum variants are the
+  operation heads.
 - **Layer 2 (daemon):** `criome`'s own typed Command enum, lowered from
   contract operations inside the daemon — never in this contract crate.
 - **Layer 3 (observation):** payloadless Sema class labels via
@@ -63,18 +63,17 @@ contract-local operation verbs" and `primary/skills/component-triad.md`
 
 Criome is *not* a Persona component, so the mandatory `Tap`/`Untap`
 observable block does not apply; identity-update and
-authorization-observation subscriptions stay as domain-specific
-Subscribe/Retract pairs. The migration to this shape is in progress; the
-target above is the intent.
+authorization-observation subscriptions stay as domain-specific open and
+close operations.
 
 ## Constraints
 
 - This crate carries only typed wire vocabulary, NOTA codecs, and
-  round-trip witnesses. No daemon, no key custody, no redb tables, no
-  actors, no sockets.
+  round-trip witnesses. No daemon, no key custody, no storage tables,
+  no actors, no sockets.
 - Wire enums are closed; no `Unknown` escape hatch.
-- The frame-layer dependency moves from `signal-core` to `signal-frame`
-  as the migration lands.
+- The frame-layer dependency is `signal-frame`, not deprecated
+  `signal-core`.
 - Contract types derive NOTA in this crate; clients do not carry shadow
   types.
 

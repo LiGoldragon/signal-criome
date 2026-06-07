@@ -15,9 +15,9 @@ use signal_criome::{
     AuthorizationObservationToken, AuthorizationPending, AuthorizationPolicyClass,
     AuthorizationPolicySatisfaction, AuthorizationRejection, AuthorizationRequestSlot,
     AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus, AuthorizationUnavailable,
-    AuthorizationUpdate, AuthorizationVerification, AuthorizedSignalVerb, BlsPublicKey,
-    BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
-    ContentReference, ContractName, CriomeEvent, CriomeReply, CriomeRequest, Identity,
+    AuthorizationUpdate, AuthorizationVerification, BlsPublicKey, BlsSignature,
+    ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose, ContentReference,
+    ContractName, ContractOperationHead, CriomeEvent, CriomeReply, CriomeRequest, Identity,
     IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
     IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
     PrincipalName, PrincipalStatus, PublicKeyFingerprint, Rejection, RejectionReason, ReplayNonce,
@@ -90,6 +90,10 @@ fn contract_name() -> ContractName {
     ContractName::new("signal-lojix")
 }
 
+fn contract_operation_head() -> ContractOperationHead {
+    ContractOperationHead::new("Deploy")
+}
+
 fn authorization_scope() -> AuthorizationScope {
     AuthorizationScope::new("deploy-zeus-full-os")
 }
@@ -99,7 +103,7 @@ fn authorization_grant() -> AuthorizationGrant {
         request_slot: authorization_request_slot(),
         authorized_object_digest: ObjectDigest::new("digest-lojix-request"),
         authorized_contract: contract_name(),
-        authorized_verb: AuthorizedSignalVerb::Assert,
+        authorized_operation: contract_operation_head(),
         authorization_scope: authorization_scope(),
         policy_satisfaction: AuthorizationPolicySatisfaction {
             policy_class: AuthorizationPolicyClass::ComplexQuorum,
@@ -130,7 +134,7 @@ fn signature_solicitation() -> SignatureSolicitation {
         request_slot: authorization_request_slot(),
         request_digest: ObjectDigest::new("digest-lojix-request"),
         contract: contract_name(),
-        verb: AuthorizedSignalVerb::Assert,
+        operation: contract_operation_head(),
         scope: authorization_scope(),
         requester: alice(),
         required_signer: Identity::Developer(PrincipalName::new("reviewer")),
@@ -249,13 +253,13 @@ fn canonical_request_examples_round_trip() {
         CriomeRequest::AuthorizeSignalCall(SignalCallAuthorization {
             request_digest: ObjectDigest::new("digest-lojix-request"),
             contract: contract_name(),
-            verb: AuthorizedSignalVerb::Assert,
+            operation: contract_operation_head(),
             scope: authorization_scope(),
             requester: alice(),
             nonce: ReplayNonce::new("authorization-nonce-1"),
             expires_at: None,
         }),
-        "(AuthorizeSignalCall (digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) authorization-nonce-1 None))",
+        "(AuthorizeSignalCall (digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (Persona alice) authorization-nonce-1 None))",
     );
     round_trip(
         CriomeRequest::ObserveAuthorization(AuthorizationObservation {
@@ -268,14 +272,14 @@ fn canonical_request_examples_round_trip() {
             request_digest: ObjectDigest::new("digest-lojix-request"),
             authorization: authorization_grant(),
         }),
-        "(VerifyAuthorization (digest-lojix-request (authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)))",
+        "(VerifyAuthorization (digest-lojix-request (authorization-request-1 digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)))",
     );
     round_trip(
         CriomeRequest::RouteSignatureRequest(SignatureSolicitationRoute {
             solicitation: signature_solicitation(),
             routed_to: Identity::Host(PrincipalName::new("balboa")),
         }),
-        "(RouteSignatureRequest ((authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa)))",
+        "(RouteSignatureRequest ((authorization-request-1 digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa)))",
     );
     round_trip(
         CriomeRequest::SubmitSignature(SignatureSubmission {
@@ -359,7 +363,7 @@ fn canonical_reply_examples_round_trip() {
     );
     round_trip(
         CriomeReply::AuthorizationGranted(authorization_grant()),
-        "(AuthorizationGranted (authorization-request-1 digest-lojix-request signal-lojix Assert deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))",
+        "(AuthorizationGranted (authorization-request-1 digest-lojix-request signal-lojix [Deploy] deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))",
     );
     round_trip(
         CriomeReply::AuthorizationDenied(AuthorizationDenied {
