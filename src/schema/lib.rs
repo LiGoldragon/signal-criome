@@ -760,8 +760,8 @@ pub enum Output {
 
 #[rustfmt::skip]
 impl DaemonPath {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -779,8 +779,8 @@ impl From<String> for DaemonPath {
 
 #[rustfmt::skip]
 impl PrincipalName {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -798,8 +798,8 @@ impl From<String> for PrincipalName {
 
 #[rustfmt::skip]
 impl PrincipalId {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -817,8 +817,8 @@ impl From<String> for PrincipalId {
 
 #[rustfmt::skip]
 impl PublicKeyFingerprint {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -836,8 +836,8 @@ impl From<String> for PublicKeyFingerprint {
 
 #[rustfmt::skip]
 impl BlsPublicKey {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -855,8 +855,8 @@ impl From<String> for BlsPublicKey {
 
 #[rustfmt::skip]
 impl BlsSignature {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -874,8 +874,8 @@ impl From<String> for BlsSignature {
 
 #[rustfmt::skip]
 impl ObjectDigest {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -893,8 +893,8 @@ impl From<String> for ObjectDigest {
 
 #[rustfmt::skip]
 impl ReplayNonce {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -912,8 +912,8 @@ impl From<String> for ReplayNonce {
 
 #[rustfmt::skip]
 impl ContractName {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -931,8 +931,8 @@ impl From<String> for ContractName {
 
 #[rustfmt::skip]
 impl AuthorizationRequestSlot {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -950,8 +950,8 @@ impl From<String> for AuthorizationRequestSlot {
 
 #[rustfmt::skip]
 impl AuthorizationScope {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
@@ -969,8 +969,8 @@ impl From<String> for AuthorizationScope {
 
 #[rustfmt::skip]
 impl ContractOperationHead {
-    pub fn new(payload: String) -> Self {
-        Self(payload)
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
     pub fn payload(&self) -> &String {
         &self.0
