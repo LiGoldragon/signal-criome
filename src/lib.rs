@@ -7,6 +7,66 @@ use nota_next::{Block, Delimiter, NotaBlock, NotaDecode, NotaDecodeError, NotaEn
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use signal_frame::signal_channel;
 
+/// A filesystem path the criome daemon binds or opens. Typed so daemon
+/// configuration carries no bare `String` paths.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq, Hash,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct DaemonPath(String);
+
+impl DaemonPath {
+    pub fn new(value: impl Into<String>) -> Self {
+        Self(value.into())
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+/// Binary startup and meta `Configure` payload for the criome daemon: where it
+/// binds its socket and where its `criome.sema` store lives. Defined in the
+/// contract (not the daemon) so the daemon's startup decode and
+/// `meta-signal-criome`'s `Configure` operation share one record.
+#[derive(
+    Archive, RkyvSerialize, RkyvDeserialize, NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq,
+)]
+#[rkyv(compare(PartialEq), derive(Debug))]
+pub struct CriomeDaemonConfiguration {
+    pub socket_path: DaemonPath,
+    pub store_path: DaemonPath,
+}
+
+impl CriomeDaemonConfiguration {
+    pub fn new(socket_path: impl Into<String>, store_path: impl Into<String>) -> Self {
+        Self {
+            socket_path: DaemonPath::new(socket_path),
+            store_path: DaemonPath::new(store_path),
+        }
+    }
+
+    pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, CriomeDaemonConfigurationArchiveError> {
+        rkyv::from_bytes::<Self, rkyv::rancor::Error>(bytes)
+            .map_err(|_| CriomeDaemonConfigurationArchiveError::Decode)
+    }
+
+    pub fn to_rkyv_bytes(&self) -> Result<Vec<u8>, CriomeDaemonConfigurationArchiveError> {
+        rkyv::to_bytes::<rkyv::rancor::Error>(self)
+            .map(|bytes| bytes.to_vec())
+            .map_err(|_| CriomeDaemonConfigurationArchiveError::Encode)
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum CriomeDaemonConfigurationArchiveError {
+    #[error("failed to encode criome daemon configuration archive")]
+    Encode,
+
+    #[error("failed to decode criome daemon configuration archive")]
+    Decode,
+}
+
 #[derive(
     Archive,
     RkyvSerialize,
