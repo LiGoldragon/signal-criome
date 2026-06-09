@@ -1,0 +1,360 @@
+;; signal-criome — ordinary working wire contract for Criome trust and
+;; attestation. Wire-only: schema-emitted rkyv + optional NOTA codec on the
+;; signal-frame request/reply/stream envelope. No daemon, actor runtime,
+;; transport, database, or signing implementation — those live in the criome
+;; daemon. SELF-CONTAINED VOCABULARY.
+
+[(Sign SignRequest)
+ (VerifyAttestation VerifyRequest)
+ (RegisterIdentity IdentityRegistration)
+ (RevokeIdentity IdentityRevocation)
+ (LookupIdentity IdentityLookup)
+ (AttestArchive ArchiveAttestationRequest)
+ (AttestChannelGrant ChannelGrantAttestationRequest)
+ (AttestAuthorization AuthorizationAttestationRequest)
+ (AuthorizeSignalCall SignalCallAuthorization)
+ (ObserveAuthorization AuthorizationObservation opens AuthorizationObservationStream)
+ (VerifyAuthorization AuthorizationVerification)
+ (RouteSignatureRequest SignatureSolicitationRoute)
+ (SubmitSignature SignatureSubmission)
+ (RejectAuthorization AuthorizationRejection)
+ (SubscribeIdentityUpdates IdentitySubscription opens IdentityUpdateStream)
+ (IdentitySubscriptionRetraction IdentitySubscriptionToken)
+ (AuthorizationObservationRetraction AuthorizationObservationToken)]
+[(SignReceipt SignReceipt)
+ (VerificationResult VerificationResult)
+ (IdentityReceipt IdentityReceipt)
+ (IdentitySnapshot IdentitySnapshot)
+ (AttestationReceipt AttestationReceipt)
+ (AuthorizationPending AuthorizationPending)
+ (AuthorizationGranted AuthorizationGrant)
+ (AuthorizationDenied AuthorizationDenied)
+ (AuthorizationExpired AuthorizationExpired)
+ (AuthorizationUnavailable AuthorizationUnavailable)
+ (AuthorizationObservationSnapshot AuthorizationObservationSnapshot)
+ (SignatureRouteReceipt SignatureRouteReceipt)
+ (SignatureSubmissionReceipt SignatureSubmissionReceipt)
+ (AuthorizationObservationRetracted AuthorizationObservationRetracted)
+ (SubscriptionRetracted SubscriptionRetracted)
+ (Rejection Rejection)]
+{
+  DaemonPath { value String }
+  PrincipalName { value String }
+  PrincipalId { value String }
+  PublicKeyFingerprint { value String }
+  BlsPublicKey { value String }
+  BlsSignature { value String }
+  ObjectDigest { value String }
+  ReplayNonce { value String }
+  ContractName { value String }
+  AuthorizationRequestSlot { value String }
+  AuthorizationScope { value String }
+  ContractOperationHead { value String }
+  TimestampNanos { value Integer }
+  RequiredSignatureThreshold { value Integer }
+
+  SignatureScheme [Bls12_381MinPk Bls12_381MinSig]
+  PrincipalStatus [Active Revoked]
+  KeyPurpose [CriomeRoot PersonaRequest AgentRequest ReleaseAuthorization HostPublication]
+  ContentPurpose [SignedObject ComponentRelease ChannelGrant ChannelRetract Authorization Archive PrivilegeElevation]
+  VerificationDecision [Valid InvalidSignature UnknownSigner Expired Revoked ReplayAttempted]
+  SignatureAuthorizationResult [SingleSignature RequiredSignaturesSatisfied PendingSignatures Rejected Expired]
+  AuthorizationPolicyClass [SimpleSelfSigned ComplexQuorum]
+  AuthorizationStatus [Pending Signing Granted Denied Expired Unavailable]
+  AuthorizationDenialReason [PolicyRefused RequiredSignatureMissing SignatureRejected SignerThresholdRejected SignatureExpired RequestDigestMismatch SignatureScopeMismatch SignerUnavailable]
+  AuthorizationDenialSource [Policy Signers]
+  RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted]
+
+  Identity [
+    (Persona PrincipalName)
+    (Agent PrincipalName)
+    (Host PrincipalName)
+    (Developer PrincipalName)
+    (Cluster PrincipalName)
+  ]
+
+  CriomeDaemonConfiguration {
+    socket_path DaemonPath
+    store_path DaemonPath
+  }
+
+  AuthorizationPolicySatisfaction {
+    policy_class AuthorizationPolicyClass
+    required_signature_threshold RequiredSignatureThreshold
+    satisfied_signers (Vec Identity)
+  }
+
+  AuthorizationDenial {
+    source AuthorizationDenialSource
+    reason AuthorizationDenialReason
+  }
+
+  ContentReference {
+    digest ObjectDigest
+    purpose ContentPurpose
+    schema_version PrincipalName
+  }
+
+  AuditContext {
+    purpose ContentPurpose
+    audience PrincipalName
+    policy_version PrincipalName
+    nonce ReplayNonce
+  }
+
+  SignatureEnvelope {
+    scheme SignatureScheme
+    public_key BlsPublicKey
+    signature BlsSignature
+  }
+
+  Attestation {
+    content ContentReference
+    signer Identity
+    envelope SignatureEnvelope
+    issued_at TimestampNanos
+    expires_at (Optional TimestampNanos)
+    audit_context AuditContext
+  }
+
+  SignedObject {
+    content ContentReference
+    signer Identity
+    envelope SignatureEnvelope
+  }
+
+  DelegationGrant {
+    issuer Identity
+    subject Identity
+    scope ContentPurpose
+    expires_at (Optional TimestampNanos)
+  }
+
+  ComponentRelease {
+    component PrincipalName
+    artifact ObjectDigest
+    authorized_by Identity
+  }
+
+  SignedPersonaRequest {
+    audience Identity
+    content ContentReference
+    delegation (Optional DelegationGrant)
+    envelope SignatureEnvelope
+  }
+
+  SignalCallAuthorization {
+    request_digest ObjectDigest
+    contract ContractName
+    operation ContractOperationHead
+    scope AuthorizationScope
+    requester Identity
+    nonce ReplayNonce
+    expires_at (Optional TimestampNanos)
+  }
+
+  AuthorizationObservation {
+    request_slot AuthorizationRequestSlot
+  }
+
+  AuthorizationVerification {
+    request_digest ObjectDigest
+    authorization AuthorizationGrant
+  }
+
+  SignatureSolicitation {
+    request_slot AuthorizationRequestSlot
+    request_digest ObjectDigest
+    contract ContractName
+    operation ContractOperationHead
+    scope AuthorizationScope
+    requester Identity
+    required_signer Identity
+  }
+
+  SignatureSolicitationRoute {
+    solicitation SignatureSolicitation
+    routed_to Identity
+  }
+
+  SignatureSubmission {
+    request_slot AuthorizationRequestSlot
+    signer Identity
+    envelope SignatureEnvelope
+  }
+
+  AuthorizationRejection {
+    request_slot AuthorizationRequestSlot
+    rejector Identity
+    reason AuthorizationDenialReason
+  }
+
+  AuthorizationGrant {
+    request_slot AuthorizationRequestSlot
+    authorized_object_digest ObjectDigest
+    authorized_contract ContractName
+    authorized_operation ContractOperationHead
+    authorization_scope AuthorizationScope
+    policy_satisfaction AuthorizationPolicySatisfaction
+    signature_result SignatureAuthorizationResult
+    signatures (Vec SignatureEnvelope)
+    issued_by Identity
+    issued_at TimestampNanos
+    expires_at (Optional TimestampNanos)
+  }
+
+  AuthorizationObservationToken {
+    request_slot AuthorizationRequestSlot
+  }
+
+  AuthorizationPending {
+    request_slot AuthorizationRequestSlot
+    request_digest ObjectDigest
+    missing_authorities (Vec Identity)
+    observation_token AuthorizationObservationToken
+  }
+
+  AuthorizationDenied {
+    request_slot AuthorizationRequestSlot
+    denial AuthorizationDenial
+  }
+
+  AuthorizationExpired {
+    request_slot AuthorizationRequestSlot
+    expired_at TimestampNanos
+  }
+
+  AuthorizationUnavailable {
+    request_slot AuthorizationRequestSlot
+    reason PrincipalName
+  }
+
+  AuthorizationStateRecord {
+    request_slot AuthorizationRequestSlot
+    request_digest ObjectDigest
+    status AuthorizationStatus
+    missing_authorities (Vec Identity)
+    grant (Optional AuthorizationGrant)
+    denial (Optional AuthorizationDenial)
+  }
+
+  AuthorizationObservationSnapshot {
+    states (Vec AuthorizationStateRecord)
+  }
+
+  SignatureRouteReceipt {
+    request_slot AuthorizationRequestSlot
+    routed_to Identity
+  }
+
+  SignatureSubmissionReceipt {
+    request_slot AuthorizationRequestSlot
+    signer Identity
+  }
+
+  AuthorizationObservationRetracted {
+    token AuthorizationObservationToken
+  }
+
+  AuthorizationUpdate {
+    state AuthorizationStateRecord
+  }
+
+  SignRequest {
+    content ContentReference
+    signer Identity
+    audit_context AuditContext
+    expires_at (Optional TimestampNanos)
+  }
+
+  VerifyRequest {
+    attestation Attestation
+    content ContentReference
+  }
+
+  IdentityRegistration {
+    identity Identity
+    public_key BlsPublicKey
+    fingerprint PublicKeyFingerprint
+    purpose KeyPurpose
+  }
+
+  IdentityRevocation {
+    identity Identity
+    fingerprint PublicKeyFingerprint
+    reason PrincipalName
+  }
+
+  IdentityLookup {
+    identity Identity
+  }
+
+  ArchiveAttestationRequest {
+    release ComponentRelease
+    audit_context AuditContext
+  }
+
+  ChannelGrantAttestationRequest {
+    grant_content ContentReference
+    source Identity
+    audit_context AuditContext
+  }
+
+  AuthorizationAttestationRequest {
+    authorization_content ContentReference
+    source Identity
+    audit_context AuditContext
+  }
+
+  IdentitySubscription {
+    subscriber Identity
+  }
+
+  IdentitySubscriptionToken {
+    subscriber Identity
+  }
+
+  SignReceipt {
+    attestation Attestation
+    issued_at TimestampNanos
+  }
+
+  VerificationResult {
+    decision VerificationDecision
+    identity (Optional Identity)
+    expires_at (Optional TimestampNanos)
+  }
+
+  IdentityReceipt {
+    identity Identity
+    status PrincipalStatus
+  }
+
+  IdentitySnapshot {
+    identities (Vec IdentityReceipt)
+  }
+
+  AttestationReceipt {
+    attestation Attestation
+  }
+
+  IdentityUpdate {
+    receipt IdentityReceipt
+  }
+
+  SubscriptionRetracted {
+    token IdentitySubscriptionToken
+  }
+
+  Rejection {
+    reason RejectionReason
+  }
+
+  CriomeEvent [
+    (IdentityUpdate IdentityUpdate belongs IdentityUpdateStream)
+    (AuthorizationUpdate AuthorizationUpdate belongs AuthorizationObservationStream)
+  ]
+
+  IdentityUpdateStream (Stream { token IdentitySubscriptionToken opened IdentitySnapshot event CriomeEvent close IdentitySubscriptionToken })
+  AuthorizationObservationStream (Stream { token AuthorizationObservationToken opened AuthorizationObservationSnapshot event CriomeEvent close AuthorizationObservationToken })
+}
