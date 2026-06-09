@@ -12,6 +12,9 @@ publish      = false
 name = "signal_criome"
 path = "src/lib.rs"
 
+[features]
+nota-text = ["signal-frame/nota-text"]
+
 [dependencies]
 blake3      = "1"
 blst        = "0.3"
