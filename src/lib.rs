@@ -58,6 +58,9 @@ impl ObjectDigest {
     }
 }
 
+impl Copy for TimestampNanos {}
+impl Copy for RequiredSignatureThreshold {}
+
 impl TimestampNanos {
     pub fn into_u64(self) -> u64 {
         self.into_payload()
