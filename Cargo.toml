@@ -14,6 +14,16 @@ build        = "build.rs"
 name = "signal_criome"
 path = "src/lib.rs"
 
+[[test]]
+name = "canonical_examples"
+path = "tests/canonical_examples.rs"
+required-features = ["nota-text"]
+
+[[test]]
+name = "round_trip"
+path = "tests/round_trip.rs"
+required-features = ["nota-text"]
+
 [features]
 default = []
 nota-text = ["dep:nota-next", "signal-frame/nota-text"]

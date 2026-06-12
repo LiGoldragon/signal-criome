@@ -11,77 +11,77 @@ pub type Path = std::string::String;
 
 #[rustfmt::skip]
 #[cfg(feature = "nota-text")]
-pub use nota_next::{NotaDecode, NotaDecodeError, NotaEncode, NotaSource};
+pub use nota_next::{NotaDecodeError, NotaEncode, NotaSource};
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct DaemonPath(pub String);
+pub struct DaemonPath(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct PrincipalName(pub String);
+pub struct PrincipalName(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct PrincipalId(pub String);
+pub struct PrincipalId(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct PublicKeyFingerprint(pub String);
+pub struct PublicKeyFingerprint(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct BlsPublicKey(pub String);
+pub struct BlsPublicKey(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct BlsSignature(pub String);
+pub struct BlsSignature(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ObjectDigest(pub String);
+pub struct ObjectDigest(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ReplayNonce(pub String);
+pub struct ReplayNonce(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ContractName(pub String);
+pub struct ContractName(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizationRequestSlot(pub String);
+pub struct AuthorizationRequestSlot(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizationScope(pub String);
+pub struct AuthorizationScope(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ContractOperationHead(pub String);
+pub struct ContractOperationHead(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct TimestampNanos(pub Integer);
+pub struct TimestampNanos(Integer);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct RequiredSignatureThreshold(pub Integer);
+pub struct RequiredSignatureThreshold(Integer);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -429,7 +429,7 @@ pub struct SignalCallAuthorization {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizationObservation(pub AuthorizationRequestSlot);
+pub struct AuthorizationObservation(AuthorizationRequestSlot);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -498,7 +498,7 @@ pub struct AuthorizationGrant {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizationObservationToken(pub AuthorizationRequestSlot);
+pub struct AuthorizationObservationToken(AuthorizationRequestSlot);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -549,7 +549,7 @@ pub struct AuthorizationStateRecord {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizationObservationSnapshot(pub Vec<AuthorizationStateRecord>);
+pub struct AuthorizationObservationSnapshot(Vec<AuthorizationStateRecord>);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -570,12 +570,12 @@ pub struct SignatureSubmissionReceipt {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizationObservationRetracted(pub AuthorizationObservationToken);
+pub struct AuthorizationObservationRetracted(AuthorizationObservationToken);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizationUpdate(pub AuthorizationStateRecord);
+pub struct AuthorizationUpdate(AuthorizationStateRecord);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -617,7 +617,7 @@ pub struct IdentityRevocation {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct IdentityLookup(pub Identity);
+pub struct IdentityLookup(Identity);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -648,12 +648,12 @@ pub struct AuthorizationAttestationRequest {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct IdentitySubscription(pub Identity);
+pub struct IdentitySubscription(Identity);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct IdentitySubscriptionToken(pub Identity);
+pub struct IdentitySubscriptionToken(Identity);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -683,27 +683,27 @@ pub struct IdentityReceipt {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct IdentitySnapshot(pub Vec<IdentityReceipt>);
+pub struct IdentitySnapshot(Vec<IdentityReceipt>);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AttestationReceipt(pub Attestation);
+pub struct AttestationReceipt(Attestation);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct IdentityUpdate(pub IdentityReceipt);
+pub struct IdentityUpdate(IdentityReceipt);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct SubscriptionRetracted(pub IdentitySubscriptionToken);
+pub struct SubscriptionRetracted(IdentitySubscriptionToken);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct Rejection(pub RejectionReason);
+pub struct Rejection(RejectionReason);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -1666,842 +1666,6 @@ impl From<Rejection> for Output {
 
 #[rustfmt::skip]
 #[cfg(feature = "nota-text")]
-impl DaemonPath {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl PrincipalName {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl PrincipalId {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl PublicKeyFingerprint {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl BlsPublicKey {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl BlsSignature {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl ObjectDigest {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl ReplayNonce {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl ContractName {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationRequestSlot {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationScope {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl ContractOperationHead {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl TimestampNanos {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl RequiredSignatureThreshold {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignatureScheme {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl PrincipalStatus {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl KeyPurpose {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl ContentPurpose {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl VerificationDecision {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignatureAuthorizationResult {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationPolicyClass {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationStatus {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationDenialReason {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationDenialSource {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl RejectionReason {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(self) -> String {
-        <Self as NotaEncode>::to_nota(&self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl Identity {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl CriomeDaemonConfiguration {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationPolicySatisfaction {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationDenial {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl ContentReference {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuditContext {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignatureEnvelope {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl Attestation {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignedObject {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl DelegationGrant {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl ComponentRelease {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignedPersonaRequest {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignalCallAuthorization {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationObservation {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationVerification {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignatureSolicitation {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignatureSolicitationRoute {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignatureSubmission {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationRejection {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationGrant {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationObservationToken {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationPending {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationDenied {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationExpired {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationUnavailable {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationStateRecord {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationObservationSnapshot {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignatureRouteReceipt {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignatureSubmissionReceipt {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationObservationRetracted {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationUpdate {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignRequest {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl VerifyRequest {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl IdentityRegistration {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl IdentityRevocation {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl IdentityLookup {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl ArchiveAttestationRequest {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl ChannelGrantAttestationRequest {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AuthorizationAttestationRequest {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl IdentitySubscription {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl IdentitySubscriptionToken {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SignReceipt {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl VerificationResult {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl IdentityReceipt {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl IdentitySnapshot {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl AttestationReceipt {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl IdentityUpdate {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl SubscriptionRetracted {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl Rejection {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl CriomeEvent {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl Input {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
 impl std::str::FromStr for Input {
     type Err = NotaDecodeError;
     fn from_str(source: &str) -> Result<Self, Self::Err> {
@@ -2513,17 +1677,6 @@ impl std::str::FromStr for Input {
 impl std::fmt::Display for Input {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter.write_str(&<Self as NotaEncode>::to_nota(self))
-    }
-}
-
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl Output {
-    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
-        <Self as NotaDecode>::from_nota_block(block)
-    }
-    pub fn to_nota(&self) -> String {
-        <Self as NotaEncode>::to_nota(self)
     }
 }
 

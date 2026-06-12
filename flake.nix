@@ -11,43 +11,60 @@
   };
 
   outputs =
-    { self, nixpkgs, fenix, crane }:
+    {
+      self,
+      nixpkgs,
+      fenix,
+      crane,
+    }:
     let
-      systems = [ "x86_64-linux" "aarch64-linux" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
       forSystems = function: nixpkgs.lib.genAttrs systems (system: function system);
 
       mkContext =
         system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        toolchain = fenix.packages.${system}.stable.withComponents [
-          "cargo"
-          "rustc"
-          "rustfmt"
-          "clippy"
-          "rust-src"
-        ];
-        craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
-        # Include `examples/` so canonical NOTA examples files are present
-        # at build time for `include_str!` in `tests/canonical_examples.rs`.
-        examplesFilter = path: _type: builtins.match ".*/examples(/.*)?$" path != null;
-        sourceFilter = path: type:
-          (craneLib.filterCargoSources path type) || (examplesFilter path type);
-        src = pkgs.lib.cleanSourceWith {
-          src = ./.;
-          filter = sourceFilter;
-          name = "source";
+        let
+          pkgs = import nixpkgs { inherit system; };
+          toolchain = fenix.packages.${system}.stable.withComponents [
+            "cargo"
+            "rustc"
+            "rustfmt"
+            "clippy"
+            "rust-src"
+          ];
+          craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
+          # Include `examples/` for canonical NOTA fixtures and `schema/`
+          # for the build-time generated-artifact freshness check.
+          examplesFilter = path: _type: builtins.match ".*/examples(/.*)?$" path != null;
+          schemaFilter = path: _type: builtins.match ".*/schema(/.*)?$" path != null;
+          sourceFilter =
+            path: type:
+            (craneLib.filterCargoSources path type) || (examplesFilter path type) || (schemaFilter path type);
+          src = pkgs.lib.cleanSourceWith {
+            src = ./.;
+            filter = sourceFilter;
+            name = "source";
+          };
+          cargoVendorDir = craneLib.vendorCargoDeps { inherit src; };
+          commonArgs = {
+            inherit src cargoVendorDir;
+            strictDeps = true;
+          };
+          cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+        in
+        {
+          inherit
+            pkgs
+            toolchain
+            craneLib
+            src
+            commonArgs
+            cargoArtifacts
+            ;
         };
-        cargoVendorDir = craneLib.vendorCargoDeps { inherit src; };
-        commonArgs = {
-          inherit src cargoVendorDir;
-          strictDeps = true;
-        };
-        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
-      in
-      {
-        inherit pkgs toolchain craneLib src commonArgs cargoArtifacts;
-      };
     in
     {
       packages = forSystems (
@@ -77,7 +94,14 @@
             context.commonArgs
             // {
               inherit (context) cargoArtifacts;
-              cargoTestExtraArgs = "--test round_trip";
+              cargoTestExtraArgs = "--features nota-text --test round_trip";
+            }
+          );
+          test-nota-text = context.craneLib.cargoTest (
+            context.commonArgs
+            // {
+              inherit (context) cargoArtifacts;
+              cargoTestExtraArgs = "--features nota-text --all-targets";
             }
           );
           test-doc = context.craneLib.cargoTest (
@@ -100,6 +124,13 @@
             // {
               inherit (context) cargoArtifacts;
               cargoClippyExtraArgs = "--all-targets -- -D warnings";
+            }
+          );
+          clippy-nota-text = context.craneLib.cargoClippy (
+            context.commonArgs
+            // {
+              inherit (context) cargoArtifacts;
+              cargoClippyExtraArgs = "--features nota-text --all-targets -- -D warnings";
             }
           );
           rkyv-feature-discipline = context.pkgs.runCommand "signal-criome-rkyv-feature-discipline" { } ''

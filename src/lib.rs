@@ -6,6 +6,7 @@
 //! helpers) plus the criome-named channel type aliases.
 
 #[rustfmt::skip]
+#[allow(clippy::large_enum_variant)]
 pub mod schema;
 
 pub use schema::lib::*;
@@ -13,8 +14,8 @@ pub use schema::lib::*;
 /// Criome-named aliases over the emitted channel roots.
 pub type CriomeRequest = Input;
 pub type CriomeReply = Output;
-pub type CriomeFrame = Frame;
-pub type CriomeFrameBody = FrameBody;
+pub type CriomeFrame = signal_frame::StreamingFrame<Input, Output, CriomeEvent>;
+pub type CriomeFrameBody = signal_frame::StreamingFrameBody<Input, Output, CriomeEvent>;
 pub type CriomeReplyEnvelope = ReplyEnvelope;
 pub type CriomeRequestBuilder = RequestBuilder;
 pub type CriomeOperationKind = InputRoute;

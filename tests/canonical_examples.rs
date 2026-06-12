@@ -71,9 +71,7 @@ fn attestation() -> Attestation {
 }
 
 fn token() -> IdentitySubscriptionToken {
-    IdentitySubscriptionToken {
-        subscriber: alice(),
-    }
+    IdentitySubscriptionToken::new(alice())
 }
 
 fn authorization_request_slot() -> AuthorizationRequestSlot {
@@ -81,9 +79,7 @@ fn authorization_request_slot() -> AuthorizationRequestSlot {
 }
 
 fn authorization_observation_token() -> AuthorizationObservationToken {
-    AuthorizationObservationToken {
-        request_slot: authorization_request_slot(),
-    }
+    AuthorizationObservationToken::new(authorization_request_slot())
 }
 
 fn contract_name() -> ContractName {
@@ -178,9 +174,7 @@ fn canonical_request_examples_round_trip() {
         fingerprint: PublicKeyFingerprint::new("fingerprint-1"),
         reason: PrincipalName::new("revoked-by-owner"),
     }));
-    round_trip(CriomeRequest::LookupIdentity(IdentityLookup {
-        identity: alice(),
-    }));
+    round_trip(CriomeRequest::LookupIdentity(IdentityLookup::new(alice())));
     round_trip(CriomeRequest::AttestArchive(ArchiveAttestationRequest {
         release: ComponentRelease {
             component: PrincipalName::new("persona-router"),
@@ -238,9 +232,7 @@ fn canonical_request_examples_round_trip() {
         },
     ));
     round_trip(CriomeRequest::ObserveAuthorization(
-        AuthorizationObservation {
-            request_slot: authorization_request_slot(),
-        },
+        AuthorizationObservation::new(authorization_request_slot()),
     ));
     round_trip(CriomeRequest::VerifyAuthorization(
         AuthorizationVerification {
@@ -265,9 +257,7 @@ fn canonical_request_examples_round_trip() {
         reason: AuthorizationDenialReason::SignatureRejected,
     }));
     round_trip(CriomeRequest::SubscribeIdentityUpdates(
-        IdentitySubscription {
-            subscriber: alice(),
-        },
+        IdentitySubscription::new(alice()),
     ));
     round_trip(CriomeRequest::IdentitySubscriptionRetraction(token()));
     round_trip(CriomeRequest::AuthorizationObservationRetraction(
@@ -290,15 +280,15 @@ fn canonical_reply_examples_round_trip() {
         identity: alice(),
         status: PrincipalStatus::Active,
     }));
-    round_trip(CriomeReply::IdentitySnapshot(IdentitySnapshot {
-        identities: vec![IdentityReceipt {
+    round_trip(CriomeReply::IdentitySnapshot(IdentitySnapshot::new(vec![
+        IdentityReceipt {
             identity: alice(),
             status: PrincipalStatus::Active,
-        }],
-    }));
-    round_trip(CriomeReply::AttestationReceipt(AttestationReceipt {
-        attestation: attestation(),
-    }));
+        },
+    ])));
+    round_trip(CriomeReply::AttestationReceipt(AttestationReceipt::new(
+        attestation(),
+    )));
     round_trip(CriomeReply::AuthorizationPending(AuthorizationPending {
         request_slot: authorization_request_slot(),
         request_digest: ObjectDigest::new("digest-lojix-request"),
@@ -324,9 +314,7 @@ fn canonical_reply_examples_round_trip() {
         },
     ));
     round_trip(CriomeReply::AuthorizationObservationSnapshot(
-        AuthorizationObservationSnapshot {
-            states: vec![authorization_state()],
-        },
+        AuthorizationObservationSnapshot::new(vec![authorization_state()]),
     ));
     round_trip(CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
         request_slot: authorization_request_slot(),
@@ -339,27 +327,25 @@ fn canonical_reply_examples_round_trip() {
         },
     ));
     round_trip(CriomeReply::AuthorizationObservationRetracted(
-        AuthorizationObservationRetracted {
-            token: authorization_observation_token(),
-        },
+        AuthorizationObservationRetracted::new(authorization_observation_token()),
     ));
-    round_trip(CriomeReply::SubscriptionRetracted(SubscriptionRetracted {
-        token: token(),
-    }));
-    round_trip(CriomeReply::Rejection(Rejection {
-        reason: RejectionReason::UnknownIdentity,
-    }));
+    round_trip(CriomeReply::SubscriptionRetracted(
+        SubscriptionRetracted::new(token()),
+    ));
+    round_trip(CriomeReply::Rejection(Rejection::new(
+        RejectionReason::UnknownIdentity,
+    )));
 }
 
 #[test]
 fn canonical_event_examples_round_trip() {
-    round_trip(CriomeEvent::IdentityUpdate(IdentityUpdate {
-        receipt: IdentityReceipt {
+    round_trip(CriomeEvent::IdentityUpdate(IdentityUpdate::new(
+        IdentityReceipt {
             identity: alice(),
             status: PrincipalStatus::Active,
         },
-    }));
-    round_trip(CriomeEvent::AuthorizationUpdate(AuthorizationUpdate {
-        state: authorization_state(),
-    }));
+    )));
+    round_trip(CriomeEvent::AuthorizationUpdate(AuthorizationUpdate::new(
+        authorization_state(),
+    )));
 }
