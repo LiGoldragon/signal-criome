@@ -168,6 +168,7 @@ fn canonical_request_examples_round_trip() {
         public_key: BlsPublicKey::new("public-key-1"),
         fingerprint: PublicKeyFingerprint::new("fingerprint-1"),
         purpose: KeyPurpose::PersonaRequest,
+        admission: None,
     }));
     round_trip(CriomeRequest::RevokeIdentity(IdentityRevocation {
         identity: alice(),

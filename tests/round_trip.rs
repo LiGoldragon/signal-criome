@@ -253,6 +253,7 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
             public_key: BlsPublicKey::new("designer-public-key"),
             fingerprint: PublicKeyFingerprint::new("fingerprint-designer"),
             purpose: KeyPurpose::PersonaRequest,
+            admission: None,
         }),
         CriomeRequest::RevokeIdentity(IdentityRevocation {
             identity: persona("designer"),

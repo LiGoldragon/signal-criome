@@ -19,7 +19,7 @@
 (VerifyAttestation (((digest-abc SignedObject schema-1) (Persona alice) (Bls12_381MinPk public-key-1 signature-1) 100 None (SignedObject audience-bob policy-1 nonce-7)) (digest-abc SignedObject schema-1)))
 
 ;; CriomeRequest::RegisterIdentity
-(RegisterIdentity ((Persona alice) public-key-1 fingerprint-1 PersonaRequest))
+(RegisterIdentity ((Persona alice) public-key-1 fingerprint-1 PersonaRequest None))
 
 ;; CriomeRequest::RevokeIdentity
 (RevokeIdentity ((Persona alice) fingerprint-1 revoked-by-owner))
