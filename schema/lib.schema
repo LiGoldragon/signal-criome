@@ -81,7 +81,7 @@
   AuthorizationPolicySatisfaction {
     policy_class AuthorizationPolicyClass
     required_signature_threshold RequiredSignatureThreshold
-    satisfied_signers (Vec Identity)
+    satisfied_signers (Vector Identity)
   }
 
   AuthorizationDenial {
@@ -197,7 +197,7 @@
     authorization_scope AuthorizationScope
     policy_satisfaction AuthorizationPolicySatisfaction
     signature_result SignatureAuthorizationResult
-    signatures (Vec SignatureEnvelope)
+    signatures (Vector SignatureEnvelope)
     issued_by Identity
     issued_at TimestampNanos
     expires_at (Optional TimestampNanos)
@@ -210,7 +210,7 @@
   AuthorizationPending {
     request_slot AuthorizationRequestSlot
     request_digest ObjectDigest
-    missing_authorities (Vec Identity)
+    missing_authorities (Vector Identity)
     observation_token AuthorizationObservationToken
   }
 
@@ -233,13 +233,13 @@
     request_slot AuthorizationRequestSlot
     request_digest ObjectDigest
     status AuthorizationStatus
-    missing_authorities (Vec Identity)
+    missing_authorities (Vector Identity)
     grant (Optional AuthorizationGrant)
     denial (Optional AuthorizationDenial)
   }
 
   AuthorizationObservationSnapshot {
-    states (Vec AuthorizationStateRecord)
+    states (Vector AuthorizationStateRecord)
   }
 
   SignatureRouteReceipt {
@@ -331,7 +331,7 @@
   }
 
   IdentitySnapshot {
-    identities (Vec IdentityReceipt)
+    identities (Vector IdentityReceipt)
   }
 
   AttestationReceipt {
