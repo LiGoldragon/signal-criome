@@ -1,9 +1,10 @@
 use nota_next::{NotaDecode, NotaEncode, NotaSource};
 use signal_criome::{
-    ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext, AuthorizationDenial,
-    AuthorizationDenialReason, AuthorizationDenialSource, AuthorizationDenied,
-    AuthorizationEvaluated, AuthorizationEvaluation, AuthorizationExpired, AuthorizationGrant,
-    AuthorizationObservation, AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
+    ArchiveAttestationRequest, Attestation, AttestationReceipt, AttestedMoment,
+    AttestedMomentProposition, AuditContext, AuthorizationDenial, AuthorizationDenialReason,
+    AuthorizationDenialSource, AuthorizationDenied, AuthorizationEvaluated,
+    AuthorizationEvaluation, AuthorizationExpired, AuthorizationGrant, AuthorizationObservation,
+    AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
     AuthorizationObservationToken, AuthorizationPending, AuthorizationPolicyClass,
     AuthorizationPolicySatisfaction, AuthorizationRejection, AuthorizationRequestSlot,
     AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus, AuthorizationUnavailable,
@@ -20,8 +21,8 @@ use signal_criome::{
     SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
     SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
     SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
-    SubscriptionRetracted, Threshold, TimestampNanos, VerificationDecision, VerificationResult,
-    VerifyRequest,
+    SubscriptionRetracted, Threshold, TimeSignature, TimeWindow, TimestampNanos,
+    VerificationDecision, VerificationResult, VerifyRequest,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -170,6 +171,23 @@ fn operation_digest() -> OperationDigest {
     OperationDigest::from_bytes(b"operation fixture")
 }
 
+fn attested_moment() -> AttestedMoment {
+    AttestedMoment {
+        proposition: AttestedMomentProposition {
+            window: TimeWindow {
+                opens_at: TimestampNanos::new(10),
+                closes_at: TimestampNanos::new(20),
+            },
+            required_signatures: RequiredSignatureThreshold::new(1),
+            authorities: vec![developer("timekeeper")],
+        },
+        signatures: vec![TimeSignature {
+            signer: developer("timekeeper"),
+            envelope: envelope(),
+        }],
+    }
+}
+
 fn policy_contract() -> Contract {
     Contract::new(Rule::threshold(Threshold {
         required_signatures: RequiredSignatureThreshold::new(2),
@@ -183,7 +201,7 @@ fn policy_contract() -> Contract {
 fn evidence() -> Evidence {
     Evidence {
         operation: operation_digest(),
-        observed_at: TimestampNanos::new(20),
+        observed_at: attested_moment(),
         signatures: vec![envelope()],
         agreements: Vec::new(),
     }

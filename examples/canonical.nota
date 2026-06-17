@@ -61,7 +61,7 @@
 (LookupContract contract-digest-1)
 
 ;; CriomeRequest::EvaluateAuthorization
-(EvaluateAuthorization (contract-digest-1 (operation-digest-1 20 [(Bls12_381MinPk public-key-1 signature-1)] [])))
+(EvaluateAuthorization (contract-digest-1 (operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [(Bls12_381MinPk public-key-1 signature-1)] [])))
 
 ;; CriomeRequest::SubscribeIdentityUpdates
 (SubscribeIdentityUpdates (Persona alice))

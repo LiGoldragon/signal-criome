@@ -85,11 +85,35 @@ impl OperationDigest {
     }
 }
 
+impl AttestedMomentDigest {
+    pub fn from_proposition(
+        proposition: &AttestedMomentProposition,
+    ) -> Result<Self, AttestedMomentDigestError> {
+        proposition.digest()
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        Self::new(ObjectDigest::from_bytes(bytes))
+    }
+
+    pub fn object_digest(&self) -> &ObjectDigest {
+        self.payload()
+    }
+}
+
 impl Contract {
     pub fn digest(&self) -> Result<ContractDigest, ContractDigestError> {
         rkyv::to_bytes::<rkyv::rancor::Error>(self)
             .map(|bytes| ContractDigest::from_bytes(bytes.as_ref()))
             .map_err(|_| ContractDigestError::Encode)
+    }
+}
+
+impl AttestedMomentProposition {
+    pub fn digest(&self) -> Result<AttestedMomentDigest, AttestedMomentDigestError> {
+        rkyv::to_bytes::<rkyv::rancor::Error>(self)
+            .map(|bytes| AttestedMomentDigest::from_bytes(bytes.as_ref()))
+            .map_err(|_| AttestedMomentDigestError::Encode)
     }
 }
 
@@ -148,5 +172,11 @@ pub enum CriomeDaemonConfigurationArchiveError {
 #[derive(Debug, thiserror::Error)]
 pub enum ContractDigestError {
     #[error("failed to encode criome contract before digesting it")]
+    Encode,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum AttestedMomentDigestError {
+    #[error("failed to encode criome attested moment proposition before digesting it")]
     Encode,
 }

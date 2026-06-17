@@ -61,6 +61,11 @@ pub struct OperationDigest(ObjectDigest);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AttestedMomentDigest(ObjectDigest);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ReplayNonce(String);
 
 #[rustfmt::skip]
@@ -426,9 +431,42 @@ pub struct AgreementFact {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct TimeWindow {
+    pub opens_at: TimestampNanos,
+    pub closes_at: TimestampNanos,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AttestedMomentProposition {
+    pub window: TimeWindow,
+    pub required_signatures: RequiredSignatureThreshold,
+    pub authorities: Vec<Identity>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct TimeSignature {
+    pub signer: Identity,
+    pub envelope: SignatureEnvelope,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AttestedMoment {
+    pub proposition: AttestedMomentProposition,
+    pub signatures: Vec<TimeSignature>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Evidence {
     pub operation: OperationDigest,
-    pub observed_at: TimestampNanos,
+    pub observed_at: AttestedMoment,
     pub signatures: Vec<SignatureEnvelope>,
     pub agreements: Vec<AgreementFact>,
 }
@@ -456,7 +494,9 @@ pub enum EvaluationDecision {
 pub enum EvaluationRejectionReason {
     SignatureMissing(Identity),
     QuorumShort(QuorumShortfall),
+    TimeQuorumShort(QuorumShortfall),
     OutsideTimeWindow,
+    InvalidTimeAttestation,
     AgreementMissing,
 }
 
@@ -1237,6 +1277,25 @@ impl From<ObjectDigest> for OperationDigest {
 }
 
 #[rustfmt::skip]
+impl AttestedMomentDigest {
+    pub fn new(payload: ObjectDigest) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ObjectDigest {
+        &self.0
+    }
+    pub fn into_payload(self) -> ObjectDigest {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ObjectDigest> for AttestedMomentDigest {
+    fn from(payload: ObjectDigest) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl ReplayNonce {
     pub fn new(payload: impl Into<String>) -> Self {
         Self(payload.into())
@@ -1897,6 +1956,9 @@ impl EvaluationRejectionReason {
     pub fn quorum_short(payload: QuorumShortfall) -> Self {
         Self::QuorumShort(payload)
     }
+    pub fn time_quorum_short(payload: QuorumShortfall) -> Self {
+        Self::TimeQuorumShort(payload)
+    }
 }
 
 #[rustfmt::skip]
@@ -2114,13 +2176,6 @@ impl From<EvaluationRejectionReason> for EvaluationDecision {
 impl From<Identity> for EvaluationRejectionReason {
     fn from(payload: Identity) -> Self {
         Self::SignatureMissing(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl From<QuorumShortfall> for EvaluationRejectionReason {
-    fn from(payload: QuorumShortfall) -> Self {
-        Self::QuorumShort(payload)
     }
 }
 

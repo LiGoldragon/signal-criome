@@ -55,6 +55,7 @@
   ObjectDigest { value String }
   ContractDigest { value ObjectDigest }
   OperationDigest { value ObjectDigest }
+  AttestedMomentDigest { value ObjectDigest }
   ReplayNonce { value String }
   ContractName { value String }
   AuthorizationRequestSlot { value String }
@@ -153,9 +154,30 @@
     envelope SignatureEnvelope
   }
 
+  TimeWindow {
+    opens_at TimestampNanos
+    closes_at TimestampNanos
+  }
+
+  AttestedMomentProposition {
+    window TimeWindow
+    required_signatures RequiredSignatureThreshold
+    authorities (Vector Identity)
+  }
+
+  TimeSignature {
+    signer Identity
+    envelope SignatureEnvelope
+  }
+
+  AttestedMoment {
+    proposition AttestedMomentProposition
+    signatures (Vector TimeSignature)
+  }
+
   Evidence {
     operation OperationDigest
-    observed_at TimestampNanos
+    observed_at AttestedMoment
     signatures (Vector SignatureEnvelope)
     agreements (Vector AgreementFact)
   }
@@ -174,7 +196,9 @@
   EvaluationRejectionReason [
     (SignatureMissing Identity)
     (QuorumShort QuorumShortfall)
+    (TimeQuorumShort QuorumShortfall)
     OutsideTimeWindow
+    InvalidTimeAttestation
     AgreementMissing
   ]
 
