@@ -18,11 +18,12 @@ daemon. It defines the typed records that Persona components, Lojix,
 Forge, ClaviFaber feeds, and peer criome daemons send across the Criome
 boundary: identity registration, signature envelopes, attestations,
 verification replies, archive / channel-grant / authorization
-attestation, and Criome-routed authorization of exact Signal request
-digests. Meta-class operations on the daemon itself (passphrase
-submission, master-key operations, policy mutation, peer-routing-table
-mutation, escalation-approval replies) live in `meta-signal-criome`;
-runtime key custody, storage tables, actors, and sockets live in `criome`.
+attestation, Spirit log-object attestation, and Criome-routed
+authorization of exact Signal request digests. Meta-class operations on
+the daemon itself (passphrase submission, master-key operations, policy
+mutation, peer-routing-table mutation, escalation-approval replies) live
+in `meta-signal-criome`; runtime key custody, storage tables, actors,
+and sockets live in `criome`.
 
 ## Criome verifies; Persona decides
 

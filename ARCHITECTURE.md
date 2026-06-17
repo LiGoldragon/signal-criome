@@ -10,7 +10,8 @@ custody, no storage tables, no actors, no sockets.*
 ClaviFaber feeds, and other Criome clients send to the `criome`
 daemon. Identity registration, signature envelopes, attestations,
 verification replies, archive attestation, channel-grant
-attestation, authorization attestation, and Criome-routed
+attestation, authorization attestation, Spirit log-object attestation,
+and Criome-routed
 authorization of exact Signal request digests. One bidirectional
 channel declared with `signal_channel!` in `src/lib.rs`.
 
@@ -249,6 +250,7 @@ ContentPurpose
   | Authorization
   | Archive
   | PrivilegeElevation
+  | SpiritLogObject
 
 Identity
   | Persona(PrincipalName)

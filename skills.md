@@ -42,6 +42,8 @@ token.
 - `CriomeRequest` / `CriomeReply` (closed enums).
 - `SignatureEnvelope`, `SignedObject`, `VerificationReceipt`,
   `DelegationGrant`, `ComponentRelease`, `SignedPersonaRequest`.
+- `ContentPurpose::SpiritLogObject`, the typed purpose Spirit uses when
+  asking Criome to authenticate a newly accepted log object for mirroring.
 - `SignalCallAuthorization`, `AuthorizationGrant`,
   `AuthorizationPending`, `AuthorizationDenied`,
   `AuthorizationExpired`, `AuthorizationUnavailable`,
