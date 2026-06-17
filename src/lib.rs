@@ -46,6 +46,8 @@ string_accessor!(
     BlsPublicKey,
     BlsSignature,
     ObjectDigest,
+    ContractDigest,
+    OperationDigest,
     ReplayNonce,
     ContractName,
     AuthorizationRequestSlot,
@@ -56,6 +58,38 @@ string_accessor!(
 impl ObjectDigest {
     pub fn from_bytes(bytes: &[u8]) -> Self {
         Self::new(blake3::hash(bytes).to_hex().to_string())
+    }
+}
+
+impl ContractDigest {
+    pub fn from_contract(contract: &Contract) -> Result<Self, ContractDigestError> {
+        contract.digest()
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        Self::new(ObjectDigest::from_bytes(bytes))
+    }
+
+    pub fn object_digest(&self) -> &ObjectDigest {
+        self.payload()
+    }
+}
+
+impl OperationDigest {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        Self::new(ObjectDigest::from_bytes(bytes))
+    }
+
+    pub fn object_digest(&self) -> &ObjectDigest {
+        self.payload()
+    }
+}
+
+impl Contract {
+    pub fn digest(&self) -> Result<ContractDigest, ContractDigestError> {
+        rkyv::to_bytes::<rkyv::rancor::Error>(self)
+            .map(|bytes| ContractDigest::from_bytes(bytes.as_ref()))
+            .map_err(|_| ContractDigestError::Encode)
     }
 }
 
@@ -109,4 +143,10 @@ pub enum CriomeDaemonConfigurationArchiveError {
 
     #[error("failed to decode criome daemon configuration archive")]
     Decode,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ContractDigestError {
+    #[error("failed to encode criome contract before digesting it")]
+    Encode,
 }

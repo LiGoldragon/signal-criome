@@ -54,6 +54,15 @@
 ;; CriomeRequest::RejectAuthorization
 (RejectAuthorization (authorization-request-1 (Developer reviewer) SignatureRejected))
 
+;; CriomeRequest::AdmitContract
+(AdmitContract (Threshold (2 [(KeyMember (Developer operator)) (KeyMember (Developer reviewer))])))
+
+;; CriomeRequest::LookupContract
+(LookupContract contract-digest-1)
+
+;; CriomeRequest::EvaluateAuthorization
+(EvaluateAuthorization (contract-digest-1 (operation-digest-1 20 [(Bls12_381MinPk public-key-1 signature-1)] [])))
+
 ;; CriomeRequest::SubscribeIdentityUpdates
 (SubscribeIdentityUpdates (Persona alice))
 
@@ -103,6 +112,21 @@
 
 ;; CriomeReply::SignatureSubmissionReceipt
 (SignatureSubmissionReceipt (authorization-request-1 (Developer reviewer)))
+
+;; CriomeReply::ContractAdmitted
+(ContractAdmitted contract-digest-1)
+
+;; CriomeReply::ContractFound
+(ContractFound (contract-digest-1 (Threshold (2 [(KeyMember (Developer operator)) (KeyMember (Developer reviewer))]))))
+
+;; CriomeReply::ContractMissing
+(ContractMissing contract-digest-1)
+
+;; CriomeReply::ContractAdmissionRejected
+(ContractAdmissionRejected DuplicatePolicyMember)
+
+;; CriomeReply::AuthorizationEvaluated
+(AuthorizationEvaluated (contract-digest-1 (Rejected (QuorumShort (2 1)))))
 
 ;; CriomeReply::AuthorizationObservationRetracted
 (AuthorizationObservationRetracted authorization-request-1)

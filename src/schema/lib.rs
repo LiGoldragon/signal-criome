@@ -51,6 +51,16 @@ pub struct ObjectDigest(String);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ContractDigest(ObjectDigest);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct OperationDigest(ObjectDigest);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ReplayNonce(String);
 
 #[rustfmt::skip]
@@ -303,6 +313,18 @@ pub enum RejectionReason {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum ContractAdmissionRejectionReason {
+    DanglingReference(ContractDigest),
+    DuplicatePolicyMember,
+    EmptyDisjunction,
+    EmptyConjunction,
+    EmptyThreshold,
+    ThresholdUnsatisfiable,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Identity {
     Persona(PrincipalName),
     Agent(PrincipalName),
@@ -327,6 +349,154 @@ pub struct AuthorizationPolicySatisfaction {
     pub policy_class: AuthorizationPolicyClass,
     pub required_signature_threshold: RequiredSignatureThreshold,
     pub satisfied_signers: Vec<Identity>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct Contract(Rule);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum Rule {
+    SignedBy(Identity),
+    All(Vec<ContractDigest>),
+    Any(Vec<ContractDigest>),
+    Threshold(Threshold),
+    ActiveAfter(TimedRule),
+    ActiveUntil(TimedRule),
+    TimeSwitch(TimeSwitch),
+    Agreement(AgreementRule),
+    EscalateToPsyche,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum PolicyMember {
+    KeyMember(Identity),
+    ObjectMember(ContractDigest),
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct Threshold {
+    pub required_signatures: RequiredSignatureThreshold,
+    pub members: Vec<PolicyMember>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct TimedRule {
+    pub boundary: TimestampNanos,
+    pub signed_by: Identity,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct TimeSwitch {
+    pub boundary: TimestampNanos,
+    pub before: Threshold,
+    pub after: Threshold,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AgreementRule {
+    pub divergence: ObjectDigest,
+    pub resolution: ObjectDigest,
+    pub resolver: Identity,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AgreementFact {
+    pub divergence: ObjectDigest,
+    pub resolution: ObjectDigest,
+    pub resolver: Identity,
+    pub envelope: SignatureEnvelope,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct Evidence {
+    pub operation: OperationDigest,
+    pub observed_at: TimestampNanos,
+    pub signatures: Vec<SignatureEnvelope>,
+    pub agreements: Vec<AgreementFact>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizationEvaluation {
+    pub contract: ContractDigest,
+    pub evidence: Evidence,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum EvaluationDecision {
+    Authorized,
+    Rejected(EvaluationRejectionReason),
+    EscalateToPsyche,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum EvaluationRejectionReason {
+    SignatureMissing(Identity),
+    QuorumShort(QuorumShortfall),
+    OutsideTimeWindow,
+    AgreementMissing,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct QuorumShortfall {
+    pub required: RequiredSignatureThreshold,
+    pub satisfied: RequiredSignatureThreshold,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ContractAdmitted(ContractDigest);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ContractFound {
+    pub digest: ContractDigest,
+    pub contract: Contract,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ContractMissing(ContractDigest);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ContractAdmissionRejected(ContractAdmissionRejectionReason);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizationEvaluated {
+    pub contract: ContractDigest,
+    pub decision: EvaluationDecision,
 }
 
 #[rustfmt::skip]
@@ -734,6 +904,9 @@ pub enum Input {
     RouteSignatureRequest(SignatureSolicitationRoute),
     SubmitSignature(SignatureSubmission),
     RejectAuthorization(AuthorizationRejection),
+    AdmitContract(Contract),
+    LookupContract(ContractDigest),
+    EvaluateAuthorization(AuthorizationEvaluation),
     SubscribeIdentityUpdates(IdentitySubscription),
     IdentitySubscriptionRetraction(IdentitySubscriptionToken),
     AuthorizationObservationRetraction(AuthorizationObservationToken),
@@ -756,6 +929,11 @@ pub enum Output {
     AuthorizationObservationSnapshot(AuthorizationObservationSnapshot),
     SignatureRouteReceipt(SignatureRouteReceipt),
     SignatureSubmissionReceipt(SignatureSubmissionReceipt),
+    ContractAdmitted(ContractAdmitted),
+    ContractFound(ContractFound),
+    ContractMissing(ContractMissing),
+    ContractAdmissionRejected(ContractAdmissionRejected),
+    AuthorizationEvaluated(AuthorizationEvaluated),
     AuthorizationObservationRetracted(AuthorizationObservationRetracted),
     SubscriptionRetracted(SubscriptionRetracted),
     Rejection(Rejection),
@@ -1021,6 +1199,44 @@ impl PartialEq<&str> for ObjectDigest {
 }
 
 #[rustfmt::skip]
+impl ContractDigest {
+    pub fn new(payload: ObjectDigest) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ObjectDigest {
+        &self.0
+    }
+    pub fn into_payload(self) -> ObjectDigest {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ObjectDigest> for ContractDigest {
+    fn from(payload: ObjectDigest) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl OperationDigest {
+    pub fn new(payload: ObjectDigest) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ObjectDigest {
+        &self.0
+    }
+    pub fn into_payload(self) -> ObjectDigest {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ObjectDigest> for OperationDigest {
+    fn from(payload: ObjectDigest) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl ReplayNonce {
     pub fn new(payload: impl Into<String>) -> Self {
         Self(payload.into())
@@ -1280,6 +1496,82 @@ impl PartialOrd<u64> for RequiredSignatureThreshold {
 }
 
 #[rustfmt::skip]
+impl Contract {
+    pub fn new(payload: Rule) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Rule {
+        &self.0
+    }
+    pub fn into_payload(self) -> Rule {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Rule> for Contract {
+    fn from(payload: Rule) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ContractAdmitted {
+    pub fn new(payload: ContractDigest) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ContractDigest {
+        &self.0
+    }
+    pub fn into_payload(self) -> ContractDigest {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ContractDigest> for ContractAdmitted {
+    fn from(payload: ContractDigest) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ContractMissing {
+    pub fn new(payload: ContractDigest) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ContractDigest {
+        &self.0
+    }
+    pub fn into_payload(self) -> ContractDigest {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ContractDigest> for ContractMissing {
+    fn from(payload: ContractDigest) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ContractAdmissionRejected {
+    pub fn new(payload: ContractAdmissionRejectionReason) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ContractAdmissionRejectionReason {
+        &self.0
+    }
+    pub fn into_payload(self) -> ContractAdmissionRejectionReason {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ContractAdmissionRejectionReason> for ContractAdmissionRejected {
+    fn from(payload: ContractAdmissionRejectionReason) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl AuthorizationObservation {
     pub fn new(payload: AuthorizationRequestSlot) -> Self {
         Self(payload)
@@ -1527,6 +1819,13 @@ impl From<RejectionReason> for Rejection {
 }
 
 #[rustfmt::skip]
+impl ContractAdmissionRejectionReason {
+    pub fn dangling_reference(payload: ObjectDigest) -> Self {
+        Self::DanglingReference(ContractDigest::new(payload))
+    }
+}
+
+#[rustfmt::skip]
 impl Identity {
     pub fn persona(payload: String) -> Self {
         Self::Persona(PrincipalName::new(payload))
@@ -1542,6 +1841,61 @@ impl Identity {
     }
     pub fn cluster(payload: String) -> Self {
         Self::Cluster(PrincipalName::new(payload))
+    }
+}
+
+#[rustfmt::skip]
+impl Rule {
+    pub fn signed_by(payload: Identity) -> Self {
+        Self::SignedBy(payload)
+    }
+    pub fn all(payload: Vec<ContractDigest>) -> Self {
+        Self::All(payload)
+    }
+    pub fn any(payload: Vec<ContractDigest>) -> Self {
+        Self::Any(payload)
+    }
+    pub fn threshold(payload: Threshold) -> Self {
+        Self::Threshold(payload)
+    }
+    pub fn active_after(payload: TimedRule) -> Self {
+        Self::ActiveAfter(payload)
+    }
+    pub fn active_until(payload: TimedRule) -> Self {
+        Self::ActiveUntil(payload)
+    }
+    pub fn time_switch(payload: TimeSwitch) -> Self {
+        Self::TimeSwitch(payload)
+    }
+    pub fn agreement(payload: AgreementRule) -> Self {
+        Self::Agreement(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl PolicyMember {
+    pub fn key_member(payload: Identity) -> Self {
+        Self::KeyMember(payload)
+    }
+    pub fn object_member(payload: ObjectDigest) -> Self {
+        Self::ObjectMember(ContractDigest::new(payload))
+    }
+}
+
+#[rustfmt::skip]
+impl EvaluationDecision {
+    pub fn rejected(payload: EvaluationRejectionReason) -> Self {
+        Self::Rejected(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl EvaluationRejectionReason {
+    pub fn signature_missing(payload: Identity) -> Self {
+        Self::SignatureMissing(payload)
+    }
+    pub fn quorum_short(payload: QuorumShortfall) -> Self {
+        Self::QuorumShort(payload)
     }
 }
 
@@ -1598,6 +1952,15 @@ impl Input {
     }
     pub fn reject_authorization(payload: AuthorizationRejection) -> Self {
         Self::RejectAuthorization(payload)
+    }
+    pub fn admit_contract(payload: Rule) -> Self {
+        Self::AdmitContract(Contract::new(payload))
+    }
+    pub fn lookup_contract(payload: ObjectDigest) -> Self {
+        Self::LookupContract(ContractDigest::new(payload))
+    }
+    pub fn evaluate_authorization(payload: AuthorizationEvaluation) -> Self {
+        Self::EvaluateAuthorization(payload)
     }
     pub fn subscribe_identity_updates(payload: Identity) -> Self {
         Self::SubscribeIdentityUpdates(IdentitySubscription::new(payload))
@@ -1659,6 +2022,23 @@ impl Output {
     pub fn signature_submission_receipt(payload: SignatureSubmissionReceipt) -> Self {
         Self::SignatureSubmissionReceipt(payload)
     }
+    pub fn contract_admitted(payload: ContractDigest) -> Self {
+        Self::ContractAdmitted(ContractAdmitted::new(payload))
+    }
+    pub fn contract_found(payload: ContractFound) -> Self {
+        Self::ContractFound(payload)
+    }
+    pub fn contract_missing(payload: ContractDigest) -> Self {
+        Self::ContractMissing(ContractMissing::new(payload))
+    }
+    pub fn contract_admission_rejected(
+        payload: ContractAdmissionRejectionReason,
+    ) -> Self {
+        Self::ContractAdmissionRejected(ContractAdmissionRejected::new(payload))
+    }
+    pub fn authorization_evaluated(payload: AuthorizationEvaluated) -> Self {
+        Self::AuthorizationEvaluated(payload)
+    }
     pub fn authorization_observation_retracted(
         payload: AuthorizationObservationToken,
     ) -> Self {
@@ -1671,6 +2051,76 @@ impl Output {
     }
     pub fn rejection(payload: RejectionReason) -> Self {
         Self::Rejection(Rejection::new(payload))
+    }
+}
+
+#[rustfmt::skip]
+impl From<ContractDigest> for ContractAdmissionRejectionReason {
+    fn from(payload: ContractDigest) -> Self {
+        Self::DanglingReference(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<Identity> for Rule {
+    fn from(payload: Identity) -> Self {
+        Self::SignedBy(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<Threshold> for Rule {
+    fn from(payload: Threshold) -> Self {
+        Self::Threshold(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<TimeSwitch> for Rule {
+    fn from(payload: TimeSwitch) -> Self {
+        Self::TimeSwitch(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<AgreementRule> for Rule {
+    fn from(payload: AgreementRule) -> Self {
+        Self::Agreement(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<Identity> for PolicyMember {
+    fn from(payload: Identity) -> Self {
+        Self::KeyMember(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ContractDigest> for PolicyMember {
+    fn from(payload: ContractDigest) -> Self {
+        Self::ObjectMember(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<EvaluationRejectionReason> for EvaluationDecision {
+    fn from(payload: EvaluationRejectionReason) -> Self {
+        Self::Rejected(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<Identity> for EvaluationRejectionReason {
+    fn from(payload: Identity) -> Self {
+        Self::SignatureMissing(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<QuorumShortfall> for EvaluationRejectionReason {
+    fn from(payload: QuorumShortfall) -> Self {
+        Self::QuorumShort(payload)
     }
 }
 
@@ -1787,6 +2237,27 @@ impl From<AuthorizationRejection> for Input {
 }
 
 #[rustfmt::skip]
+impl From<Contract> for Input {
+    fn from(payload: Contract) -> Self {
+        Self::AdmitContract(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ContractDigest> for Input {
+    fn from(payload: ContractDigest) -> Self {
+        Self::LookupContract(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<AuthorizationEvaluation> for Input {
+    fn from(payload: AuthorizationEvaluation) -> Self {
+        Self::EvaluateAuthorization(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<IdentitySubscription> for Input {
     fn from(payload: IdentitySubscription) -> Self {
         Self::SubscribeIdentityUpdates(payload)
@@ -1899,6 +2370,41 @@ impl From<SignatureSubmissionReceipt> for Output {
 }
 
 #[rustfmt::skip]
+impl From<ContractAdmitted> for Output {
+    fn from(payload: ContractAdmitted) -> Self {
+        Self::ContractAdmitted(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ContractFound> for Output {
+    fn from(payload: ContractFound) -> Self {
+        Self::ContractFound(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ContractMissing> for Output {
+    fn from(payload: ContractMissing) -> Self {
+        Self::ContractMissing(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ContractAdmissionRejected> for Output {
+    fn from(payload: ContractAdmissionRejected) -> Self {
+        Self::ContractAdmissionRejected(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<AuthorizationEvaluated> for Output {
+    fn from(payload: AuthorizationEvaluated) -> Self {
+        Self::AuthorizationEvaluated(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<AuthorizationObservationRetracted> for Output {
     fn from(payload: AuthorizationObservationRetracted) -> Self {
         Self::AuthorizationObservationRetracted(payload)
@@ -1967,9 +2473,12 @@ pub mod short_header {
     pub const INPUT_ROUTE_SIGNATURE_REQUEST: u64 = 0x000B000000000000;
     pub const INPUT_SUBMIT_SIGNATURE: u64 = 0x000C000000000000;
     pub const INPUT_REJECT_AUTHORIZATION: u64 = 0x000D000000000000;
-    pub const INPUT_SUBSCRIBE_IDENTITY_UPDATES: u64 = 0x000E000000000000;
-    pub const INPUT_IDENTITY_SUBSCRIPTION_RETRACTION: u64 = 0x000F000000000000;
-    pub const INPUT_AUTHORIZATION_OBSERVATION_RETRACTION: u64 = 0x0010000000000000;
+    pub const INPUT_ADMIT_CONTRACT: u64 = 0x000E000000000000;
+    pub const INPUT_LOOKUP_CONTRACT: u64 = 0x000F000000000000;
+    pub const INPUT_EVALUATE_AUTHORIZATION: u64 = 0x0010000000000000;
+    pub const INPUT_SUBSCRIBE_IDENTITY_UPDATES: u64 = 0x0011000000000000;
+    pub const INPUT_IDENTITY_SUBSCRIPTION_RETRACTION: u64 = 0x0012000000000000;
+    pub const INPUT_AUTHORIZATION_OBSERVATION_RETRACTION: u64 = 0x0013000000000000;
     pub const OUTPUT_SIGN_RECEIPT: u64 = 0x0100000000000000;
     pub const OUTPUT_VERIFICATION_RESULT: u64 = 0x0101000000000000;
     pub const OUTPUT_IDENTITY_RECEIPT: u64 = 0x0102000000000000;
@@ -1983,9 +2492,14 @@ pub mod short_header {
     pub const OUTPUT_AUTHORIZATION_OBSERVATION_SNAPSHOT: u64 = 0x010A000000000000;
     pub const OUTPUT_SIGNATURE_ROUTE_RECEIPT: u64 = 0x010B000000000000;
     pub const OUTPUT_SIGNATURE_SUBMISSION_RECEIPT: u64 = 0x010C000000000000;
-    pub const OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED: u64 = 0x010D000000000000;
-    pub const OUTPUT_SUBSCRIPTION_RETRACTED: u64 = 0x010E000000000000;
-    pub const OUTPUT_REJECTION: u64 = 0x010F000000000000;
+    pub const OUTPUT_CONTRACT_ADMITTED: u64 = 0x010D000000000000;
+    pub const OUTPUT_CONTRACT_FOUND: u64 = 0x010E000000000000;
+    pub const OUTPUT_CONTRACT_MISSING: u64 = 0x010F000000000000;
+    pub const OUTPUT_CONTRACT_ADMISSION_REJECTED: u64 = 0x0110000000000000;
+    pub const OUTPUT_AUTHORIZATION_EVALUATED: u64 = 0x0111000000000000;
+    pub const OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED: u64 = 0x0112000000000000;
+    pub const OUTPUT_SUBSCRIPTION_RETRACTED: u64 = 0x0113000000000000;
+    pub const OUTPUT_REJECTION: u64 = 0x0114000000000000;
 }
 
 #[rustfmt::skip]
@@ -2050,6 +2564,9 @@ pub enum InputRoute {
     RouteSignatureRequest,
     SubmitSignature,
     RejectAuthorization,
+    AdmitContract,
+    LookupContract,
+    EvaluateAuthorization,
     SubscribeIdentityUpdates,
     IdentitySubscriptionRetraction,
     AuthorizationObservationRetraction,
@@ -2081,6 +2598,11 @@ pub enum OutputRoute {
     AuthorizationObservationSnapshot,
     SignatureRouteReceipt,
     SignatureSubmissionReceipt,
+    ContractAdmitted,
+    ContractFound,
+    ContractMissing,
+    ContractAdmissionRejected,
+    AuthorizationEvaluated,
     AuthorizationObservationRetracted,
     SubscriptionRetracted,
     Rejection,
@@ -2104,6 +2626,9 @@ impl Input {
             Self::RouteSignatureRequest(_) => InputRoute::RouteSignatureRequest,
             Self::SubmitSignature(_) => InputRoute::SubmitSignature,
             Self::RejectAuthorization(_) => InputRoute::RejectAuthorization,
+            Self::AdmitContract(_) => InputRoute::AdmitContract,
+            Self::LookupContract(_) => InputRoute::LookupContract,
+            Self::EvaluateAuthorization(_) => InputRoute::EvaluateAuthorization,
             Self::SubscribeIdentityUpdates(_) => InputRoute::SubscribeIdentityUpdates,
             Self::IdentitySubscriptionRetraction(_) => {
                 InputRoute::IdentitySubscriptionRetraction
@@ -2129,6 +2654,9 @@ impl Input {
             Self::RouteSignatureRequest(_) => short_header::INPUT_ROUTE_SIGNATURE_REQUEST,
             Self::SubmitSignature(_) => short_header::INPUT_SUBMIT_SIGNATURE,
             Self::RejectAuthorization(_) => short_header::INPUT_REJECT_AUTHORIZATION,
+            Self::AdmitContract(_) => short_header::INPUT_ADMIT_CONTRACT,
+            Self::LookupContract(_) => short_header::INPUT_LOOKUP_CONTRACT,
+            Self::EvaluateAuthorization(_) => short_header::INPUT_EVALUATE_AUTHORIZATION,
             Self::SubscribeIdentityUpdates(_) => {
                 short_header::INPUT_SUBSCRIBE_IDENTITY_UPDATES
             }
@@ -2169,6 +2697,11 @@ impl Input {
             short_header::INPUT_SUBMIT_SIGNATURE => Ok(InputRoute::SubmitSignature),
             short_header::INPUT_REJECT_AUTHORIZATION => {
                 Ok(InputRoute::RejectAuthorization)
+            }
+            short_header::INPUT_ADMIT_CONTRACT => Ok(InputRoute::AdmitContract),
+            short_header::INPUT_LOOKUP_CONTRACT => Ok(InputRoute::LookupContract),
+            short_header::INPUT_EVALUATE_AUTHORIZATION => {
+                Ok(InputRoute::EvaluateAuthorization)
             }
             short_header::INPUT_SUBSCRIBE_IDENTITY_UPDATES => {
                 Ok(InputRoute::SubscribeIdentityUpdates)
@@ -2246,6 +2779,11 @@ impl Output {
             Self::SignatureSubmissionReceipt(_) => {
                 OutputRoute::SignatureSubmissionReceipt
             }
+            Self::ContractAdmitted(_) => OutputRoute::ContractAdmitted,
+            Self::ContractFound(_) => OutputRoute::ContractFound,
+            Self::ContractMissing(_) => OutputRoute::ContractMissing,
+            Self::ContractAdmissionRejected(_) => OutputRoute::ContractAdmissionRejected,
+            Self::AuthorizationEvaluated(_) => OutputRoute::AuthorizationEvaluated,
             Self::AuthorizationObservationRetracted(_) => {
                 OutputRoute::AuthorizationObservationRetracted
             }
@@ -2275,6 +2813,15 @@ impl Output {
             }
             Self::SignatureSubmissionReceipt(_) => {
                 short_header::OUTPUT_SIGNATURE_SUBMISSION_RECEIPT
+            }
+            Self::ContractAdmitted(_) => short_header::OUTPUT_CONTRACT_ADMITTED,
+            Self::ContractFound(_) => short_header::OUTPUT_CONTRACT_FOUND,
+            Self::ContractMissing(_) => short_header::OUTPUT_CONTRACT_MISSING,
+            Self::ContractAdmissionRejected(_) => {
+                short_header::OUTPUT_CONTRACT_ADMISSION_REJECTED
+            }
+            Self::AuthorizationEvaluated(_) => {
+                short_header::OUTPUT_AUTHORIZATION_EVALUATED
             }
             Self::AuthorizationObservationRetracted(_) => {
                 short_header::OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED
@@ -2319,6 +2866,15 @@ impl Output {
             }
             short_header::OUTPUT_SIGNATURE_SUBMISSION_RECEIPT => {
                 Ok(OutputRoute::SignatureSubmissionReceipt)
+            }
+            short_header::OUTPUT_CONTRACT_ADMITTED => Ok(OutputRoute::ContractAdmitted),
+            short_header::OUTPUT_CONTRACT_FOUND => Ok(OutputRoute::ContractFound),
+            short_header::OUTPUT_CONTRACT_MISSING => Ok(OutputRoute::ContractMissing),
+            short_header::OUTPUT_CONTRACT_ADMISSION_REJECTED => {
+                Ok(OutputRoute::ContractAdmissionRejected)
+            }
+            short_header::OUTPUT_AUTHORIZATION_EVALUATED => {
+                Ok(OutputRoute::AuthorizationEvaluated)
             }
             short_header::OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED => {
                 Ok(OutputRoute::AuthorizationObservationRetracted)
@@ -2392,6 +2948,9 @@ impl signal_frame::SignalOperationHeads for Input {
         "RouteSignatureRequest",
         "SubmitSignature",
         "RejectAuthorization",
+        "AdmitContract",
+        "LookupContract",
+        "EvaluateAuthorization",
         "SubscribeIdentityUpdates",
         "IdentitySubscriptionRetraction",
         "AuthorizationObservationRetraction",

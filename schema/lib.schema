@@ -18,6 +18,9 @@
  (RouteSignatureRequest SignatureSolicitationRoute)
  (SubmitSignature SignatureSubmission)
  (RejectAuthorization AuthorizationRejection)
+ (AdmitContract Contract)
+ (LookupContract ContractDigest)
+ (EvaluateAuthorization AuthorizationEvaluation)
  (SubscribeIdentityUpdates IdentitySubscription opens IdentityUpdateStream)
  (IdentitySubscriptionRetraction IdentitySubscriptionToken)
  (AuthorizationObservationRetraction AuthorizationObservationToken)]
@@ -34,6 +37,11 @@
  (AuthorizationObservationSnapshot AuthorizationObservationSnapshot)
  (SignatureRouteReceipt SignatureRouteReceipt)
  (SignatureSubmissionReceipt SignatureSubmissionReceipt)
+ (ContractAdmitted ContractAdmitted)
+ (ContractFound ContractFound)
+ (ContractMissing ContractMissing)
+ (ContractAdmissionRejected ContractAdmissionRejected)
+ (AuthorizationEvaluated AuthorizationEvaluated)
  (AuthorizationObservationRetracted AuthorizationObservationRetracted)
  (SubscriptionRetracted SubscriptionRetracted)
  (Rejection Rejection)]
@@ -45,6 +53,8 @@
   BlsPublicKey { value String }
   BlsSignature { value String }
   ObjectDigest { value String }
+  ContractDigest { value ObjectDigest }
+  OperationDigest { value ObjectDigest }
   ReplayNonce { value String }
   ContractName { value String }
   AuthorizationRequestSlot { value String }
@@ -64,6 +74,14 @@
   AuthorizationDenialReason [PolicyRefused RequiredSignatureMissing SignatureRejected SignerThresholdRejected SignatureExpired RequestDigestMismatch SignatureScopeMismatch SignerUnavailable]
   AuthorizationDenialSource [Policy Signers]
   RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration]
+  ContractAdmissionRejectionReason [
+    (DanglingReference ContractDigest)
+    DuplicatePolicyMember
+    EmptyDisjunction
+    EmptyConjunction
+    EmptyThreshold
+    ThresholdUnsatisfiable
+  ]
 
   Identity [
     (Persona PrincipalName)
@@ -83,6 +101,108 @@
     policy_class AuthorizationPolicyClass
     required_signature_threshold RequiredSignatureThreshold
     satisfied_signers (Vec Identity)
+  }
+
+  Contract {
+    rule Rule
+  }
+
+  Rule [
+    (SignedBy Identity)
+    (All (Vector ContractDigest))
+    (Any (Vector ContractDigest))
+    (Threshold Threshold)
+    (ActiveAfter TimedRule)
+    (ActiveUntil TimedRule)
+    (TimeSwitch TimeSwitch)
+    (Agreement AgreementRule)
+    EscalateToPsyche
+  ]
+
+  PolicyMember [
+    (KeyMember Identity)
+    (ObjectMember ContractDigest)
+  ]
+
+  Threshold {
+    required_signatures RequiredSignatureThreshold
+    members (Vector PolicyMember)
+  }
+
+  TimedRule {
+    boundary TimestampNanos
+    signed_by Identity
+  }
+
+  TimeSwitch {
+    boundary TimestampNanos
+    before Threshold
+    after Threshold
+  }
+
+  AgreementRule {
+    divergence ObjectDigest
+    resolution ObjectDigest
+    resolver Identity
+  }
+
+  AgreementFact {
+    divergence ObjectDigest
+    resolution ObjectDigest
+    resolver Identity
+    envelope SignatureEnvelope
+  }
+
+  Evidence {
+    operation OperationDigest
+    observed_at TimestampNanos
+    signatures (Vector SignatureEnvelope)
+    agreements (Vector AgreementFact)
+  }
+
+  AuthorizationEvaluation {
+    contract ContractDigest
+    evidence Evidence
+  }
+
+  EvaluationDecision [
+    Authorized
+    (Rejected EvaluationRejectionReason)
+    EscalateToPsyche
+  ]
+
+  EvaluationRejectionReason [
+    (SignatureMissing Identity)
+    (QuorumShort QuorumShortfall)
+    OutsideTimeWindow
+    AgreementMissing
+  ]
+
+  QuorumShortfall {
+    required RequiredSignatureThreshold
+    satisfied RequiredSignatureThreshold
+  }
+
+  ContractAdmitted {
+    digest ContractDigest
+  }
+
+  ContractFound {
+    digest ContractDigest
+    contract Contract
+  }
+
+  ContractMissing {
+    digest ContractDigest
+  }
+
+  ContractAdmissionRejected {
+    reason ContractAdmissionRejectionReason
+  }
+
+  AuthorizationEvaluated {
+    contract ContractDigest
+    decision EvaluationDecision
   }
 
   AuthorizationDenial {

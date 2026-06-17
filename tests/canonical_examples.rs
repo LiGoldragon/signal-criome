@@ -10,22 +10,26 @@ use nota_next::{NotaDecode, NotaEncode, NotaSource};
 use signal_criome::{
     ArchiveAttestationRequest, Attestation, AttestationReceipt, AuditContext,
     AuthorizationAttestationRequest, AuthorizationDenial, AuthorizationDenialReason,
-    AuthorizationDenialSource, AuthorizationDenied, AuthorizationExpired, AuthorizationGrant,
-    AuthorizationObservation, AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
+    AuthorizationDenialSource, AuthorizationDenied, AuthorizationEvaluated,
+    AuthorizationEvaluation, AuthorizationExpired, AuthorizationGrant, AuthorizationObservation,
+    AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
     AuthorizationObservationToken, AuthorizationPending, AuthorizationPolicyClass,
     AuthorizationPolicySatisfaction, AuthorizationRejection, AuthorizationRequestSlot,
     AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus, AuthorizationUnavailable,
     AuthorizationUpdate, AuthorizationVerification, BlsPublicKey, BlsSignature,
-    ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose, ContentReference,
-    ContractName, ContractOperationHead, CriomeEvent, CriomeReply, CriomeRequest, Identity,
+    ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose, ContentReference, Contract,
+    ContractAdmissionRejected, ContractAdmissionRejectionReason, ContractAdmitted, ContractDigest,
+    ContractFound, ContractMissing, ContractName, ContractOperationHead, CriomeEvent, CriomeReply,
+    CriomeRequest, EvaluationDecision, EvaluationRejectionReason, Evidence, Identity,
     IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
     IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
-    PrincipalName, PrincipalStatus, PublicKeyFingerprint, Rejection, RejectionReason, ReplayNonce,
-    RequiredSignatureThreshold, SignReceipt, SignRequest, SignalCallAuthorization,
-    SignatureAuthorizationResult, SignatureEnvelope, SignatureRouteReceipt, SignatureScheme,
-    SignatureSolicitation, SignatureSolicitationRoute, SignatureSubmission,
-    SignatureSubmissionReceipt, SubscriptionRetracted, TimestampNanos, VerificationDecision,
-    VerificationResult, VerifyRequest,
+    OperationDigest, PolicyMember, PrincipalName, PrincipalStatus, PublicKeyFingerprint,
+    QuorumShortfall, Rejection, RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule,
+    SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
+    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
+    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
+    SubscriptionRetracted, Threshold, TimestampNanos, VerificationDecision, VerificationResult,
+    VerifyRequest,
 };
 
 const CANONICAL: &str = include_str!("../examples/canonical.nota");
@@ -134,6 +138,33 @@ fn signature_solicitation() -> SignatureSolicitation {
         scope: authorization_scope(),
         requester: alice(),
         required_signer: Identity::Developer(PrincipalName::new("reviewer")),
+    }
+}
+
+fn contract_digest() -> ContractDigest {
+    ContractDigest::new(ObjectDigest::new("contract-digest-1"))
+}
+
+fn operation_digest() -> OperationDigest {
+    OperationDigest::new(ObjectDigest::new("operation-digest-1"))
+}
+
+fn policy_contract() -> Contract {
+    Contract::new(Rule::threshold(Threshold {
+        required_signatures: RequiredSignatureThreshold::new(2),
+        members: vec![
+            PolicyMember::key_member(Identity::Developer(PrincipalName::new("operator"))),
+            PolicyMember::key_member(Identity::Developer(PrincipalName::new("reviewer"))),
+        ],
+    }))
+}
+
+fn evidence() -> Evidence {
+    Evidence {
+        operation: operation_digest(),
+        observed_at: TimestampNanos::new(20),
+        signatures: vec![envelope()],
+        agreements: Vec::new(),
     }
 }
 
@@ -257,6 +288,14 @@ fn canonical_request_examples_round_trip() {
         rejector: Identity::Developer(PrincipalName::new("reviewer")),
         reason: AuthorizationDenialReason::SignatureRejected,
     }));
+    round_trip(CriomeRequest::AdmitContract(policy_contract()));
+    round_trip(CriomeRequest::LookupContract(contract_digest()));
+    round_trip(CriomeRequest::EvaluateAuthorization(
+        AuthorizationEvaluation {
+            contract: contract_digest(),
+            evidence: evidence(),
+        },
+    ));
     round_trip(CriomeRequest::SubscribeIdentityUpdates(
         IdentitySubscription::new(alice()),
     ));
@@ -325,6 +364,30 @@ fn canonical_reply_examples_round_trip() {
         SignatureSubmissionReceipt {
             request_slot: authorization_request_slot(),
             signer: Identity::Developer(PrincipalName::new("reviewer")),
+        },
+    ));
+    round_trip(CriomeReply::ContractAdmitted(ContractAdmitted::new(
+        contract_digest(),
+    )));
+    round_trip(CriomeReply::ContractFound(ContractFound {
+        digest: contract_digest(),
+        contract: policy_contract(),
+    }));
+    round_trip(CriomeReply::ContractMissing(ContractMissing::new(
+        contract_digest(),
+    )));
+    round_trip(CriomeReply::ContractAdmissionRejected(
+        ContractAdmissionRejected::new(ContractAdmissionRejectionReason::DuplicatePolicyMember),
+    ));
+    round_trip(CriomeReply::AuthorizationEvaluated(
+        AuthorizationEvaluated {
+            contract: contract_digest(),
+            decision: EvaluationDecision::Rejected(EvaluationRejectionReason::QuorumShort(
+                QuorumShortfall {
+                    required: RequiredSignatureThreshold::new(2),
+                    satisfied: RequiredSignatureThreshold::new(1),
+                },
+            )),
         },
     ));
     round_trip(CriomeReply::AuthorizationObservationRetracted(
