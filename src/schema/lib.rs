@@ -157,6 +157,7 @@ pub enum ContentPurpose {
     Authorization,
     Archive,
     PrivilegeElevation,
+    SpiritLogObject,
 }
 
 #[rustfmt::skip]

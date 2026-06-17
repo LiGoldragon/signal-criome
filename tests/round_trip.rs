@@ -314,6 +314,18 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
 }
 
 #[test]
+fn spirit_log_object_sign_request_round_trips() {
+    let request = CriomeRequest::Sign(SignRequest {
+        content: content(ContentPurpose::SpiritLogObject),
+        signer: developer("spirit"),
+        audit_context: audit(ContentPurpose::SpiritLogObject),
+        expires_at: None,
+    });
+
+    assert_eq!(round_trip_request(request.clone()), request);
+}
+
+#[test]
 fn request_variants_declare_contract_local_operation_heads() {
     assert_eq!(
         <CriomeRequest as SignalOperationHeads>::HEADS,

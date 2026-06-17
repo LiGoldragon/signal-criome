@@ -56,7 +56,7 @@
   SignatureScheme [Bls12_381MinPk Bls12_381MinSig]
   PrincipalStatus [Active Revoked]
   KeyPurpose [CriomeRoot PersonaRequest AgentRequest ReleaseAuthorization HostPublication]
-  ContentPurpose [SignedObject ComponentRelease ChannelGrant ChannelRetract Authorization Archive PrivilegeElevation]
+  ContentPurpose [SignedObject ComponentRelease ChannelGrant ChannelRetract Authorization Archive PrivilegeElevation SpiritLogObject]
   VerificationDecision [Valid InvalidSignature UnknownSigner Expired Revoked ReplayAttempted]
   SignatureAuthorizationResult [SingleSignature RequiredSignaturesSatisfied PendingSignatures Rejected Expired]
   AuthorizationPolicyClass [SimpleSelfSigned ComplexQuorum]
