@@ -63,7 +63,7 @@
   AuthorizationStatus [Pending Signing Granted Denied Expired Unavailable]
   AuthorizationDenialReason [PolicyRefused RequiredSignatureMissing SignatureRejected SignerThresholdRejected SignatureExpired RequestDigestMismatch SignatureScopeMismatch SignerUnavailable]
   AuthorizationDenialSource [Policy Signers]
-  RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted]
+  RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration]
 
   Identity [
     (Persona PrincipalName)
@@ -76,12 +76,13 @@
   CriomeDaemonConfiguration {
     socket_path DaemonPath
     store_path DaemonPath
+    cluster_root (Optional BlsPublicKey)
   }
 
   AuthorizationPolicySatisfaction {
     policy_class AuthorizationPolicyClass
     required_signature_threshold RequiredSignatureThreshold
-    satisfied_signers (Vector Identity)
+    satisfied_signers (Vec Identity)
   }
 
   AuthorizationDenial {
@@ -197,7 +198,7 @@
     authorization_scope AuthorizationScope
     policy_satisfaction AuthorizationPolicySatisfaction
     signature_result SignatureAuthorizationResult
-    signatures (Vector SignatureEnvelope)
+    signatures (Vec SignatureEnvelope)
     issued_by Identity
     issued_at TimestampNanos
     expires_at (Optional TimestampNanos)
@@ -210,7 +211,7 @@
   AuthorizationPending {
     request_slot AuthorizationRequestSlot
     request_digest ObjectDigest
-    missing_authorities (Vector Identity)
+    missing_authorities (Vec Identity)
     observation_token AuthorizationObservationToken
   }
 
@@ -233,13 +234,13 @@
     request_slot AuthorizationRequestSlot
     request_digest ObjectDigest
     status AuthorizationStatus
-    missing_authorities (Vector Identity)
+    missing_authorities (Vec Identity)
     grant (Optional AuthorizationGrant)
     denial (Optional AuthorizationDenial)
   }
 
   AuthorizationObservationSnapshot {
-    states (Vector AuthorizationStateRecord)
+    states (Vec AuthorizationStateRecord)
   }
 
   SignatureRouteReceipt {
@@ -277,6 +278,7 @@
     public_key BlsPublicKey
     fingerprint PublicKeyFingerprint
     purpose KeyPurpose
+    admission (Optional SignatureEnvelope)
   }
 
   IdentityRevocation {
@@ -331,7 +333,7 @@
   }
 
   IdentitySnapshot {
-    identities (Vector IdentityReceipt)
+    identities (Vec IdentityReceipt)
   }
 
   AttestationReceipt {
