@@ -297,6 +297,7 @@ pub enum RejectionReason {
     RevokedIdentity,
     DuplicateIdentity,
     ReplayAttempted,
+    UnauthorizedRegistration,
 }
 
 #[rustfmt::skip]
@@ -316,6 +317,7 @@ pub enum Identity {
 pub struct CriomeDaemonConfiguration {
     pub socket_path: DaemonPath,
     pub store_path: DaemonPath,
+    pub cluster_root: Option<BlsPublicKey>,
 }
 
 #[rustfmt::skip]
@@ -603,6 +605,7 @@ pub struct IdentityRegistration {
     pub public_key: BlsPublicKey,
     pub fingerprint: PublicKeyFingerprint,
     pub purpose: KeyPurpose,
+    pub admission: Option<SignatureEnvelope>,
 }
 
 #[rustfmt::skip]

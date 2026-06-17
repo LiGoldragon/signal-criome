@@ -63,7 +63,7 @@
   AuthorizationStatus [Pending Signing Granted Denied Expired Unavailable]
   AuthorizationDenialReason [PolicyRefused RequiredSignatureMissing SignatureRejected SignerThresholdRejected SignatureExpired RequestDigestMismatch SignatureScopeMismatch SignerUnavailable]
   AuthorizationDenialSource [Policy Signers]
-  RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted]
+  RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration]
 
   Identity [
     (Persona PrincipalName)
@@ -76,6 +76,7 @@
   CriomeDaemonConfiguration {
     socket_path DaemonPath
     store_path DaemonPath
+    cluster_root (Optional BlsPublicKey)
   }
 
   AuthorizationPolicySatisfaction {
@@ -277,6 +278,7 @@
     public_key BlsPublicKey
     fingerprint PublicKeyFingerprint
     purpose KeyPurpose
+    admission (Optional SignatureEnvelope)
   }
 
   IdentityRevocation {

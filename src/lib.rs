@@ -79,7 +79,13 @@ impl CriomeDaemonConfiguration {
         Self {
             socket_path: DaemonPath::new(socket_path.into()),
             store_path: DaemonPath::new(store_path.into()),
+            cluster_root: None,
         }
+    }
+
+    pub fn with_cluster_root(mut self, cluster_root: BlsPublicKey) -> Self {
+        self.cluster_root = Some(cluster_root);
+        self
     }
 
     pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, CriomeDaemonConfigurationArchiveError> {
