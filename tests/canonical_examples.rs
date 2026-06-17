@@ -179,7 +179,7 @@ fn policy_contract() -> Contract {
 fn evidence() -> Evidence {
     Evidence {
         operation: operation_digest(),
-        observed_at: attested_moment(),
+        stamp: attested_moment(),
         signatures: vec![envelope()],
         agreements: Vec::new(),
     }

@@ -466,7 +466,7 @@ pub struct AttestedMoment {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Evidence {
     pub operation: OperationDigest,
-    pub observed_at: AttestedMoment,
+    pub stamp: AttestedMoment,
     pub signatures: Vec<SignatureEnvelope>,
     pub agreements: Vec<AgreementFact>,
 }
@@ -494,9 +494,8 @@ pub enum EvaluationDecision {
 pub enum EvaluationRejectionReason {
     SignatureMissing(Identity),
     QuorumShort(QuorumShortfall),
-    TimeQuorumShort(QuorumShortfall),
     OutsideTimeWindow,
-    InvalidTimeAttestation,
+    TimeNotProven,
     AgreementMissing,
 }
 
@@ -1956,9 +1955,6 @@ impl EvaluationRejectionReason {
     pub fn quorum_short(payload: QuorumShortfall) -> Self {
         Self::QuorumShort(payload)
     }
-    pub fn time_quorum_short(payload: QuorumShortfall) -> Self {
-        Self::TimeQuorumShort(payload)
-    }
 }
 
 #[rustfmt::skip]
@@ -2176,6 +2172,13 @@ impl From<EvaluationRejectionReason> for EvaluationDecision {
 impl From<Identity> for EvaluationRejectionReason {
     fn from(payload: Identity) -> Self {
         Self::SignatureMissing(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<QuorumShortfall> for EvaluationRejectionReason {
+    fn from(payload: QuorumShortfall) -> Self {
+        Self::QuorumShort(payload)
     }
 }
 

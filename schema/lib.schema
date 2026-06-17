@@ -177,7 +177,7 @@
 
   Evidence {
     operation OperationDigest
-    observed_at AttestedMoment
+    stamp AttestedMoment
     signatures (Vector SignatureEnvelope)
     agreements (Vector AgreementFact)
   }
@@ -196,9 +196,8 @@
   EvaluationRejectionReason [
     (SignatureMissing Identity)
     (QuorumShort QuorumShortfall)
-    (TimeQuorumShort QuorumShortfall)
     OutsideTimeWindow
-    InvalidTimeAttestation
+    TimeNotProven
     AgreementMissing
   ]
 
