@@ -148,6 +148,10 @@ impl CriomeDaemonConfiguration {
         self
     }
 
+    pub fn cluster_root(&self) -> Option<&BlsPublicKey> {
+        self.cluster_root.payload().as_ref()
+    }
+
     pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, CriomeDaemonConfigurationArchiveError> {
         rkyv::from_bytes::<Self, rkyv::rancor::Error>(bytes)
             .map_err(|_| CriomeDaemonConfigurationArchiveError::Decode)
@@ -188,6 +192,10 @@ impl Threshold {
             members: Members::new(members),
         }
     }
+
+    pub fn members(&self) -> &[PolicyMember] {
+        self.members.payload().as_slice()
+    }
 }
 
 impl AttestedMomentProposition {
@@ -202,6 +210,10 @@ impl AttestedMomentProposition {
             authorities: Authorities::new(authorities),
         }
     }
+
+    pub fn authorities(&self) -> &[Identity] {
+        self.authorities.payload().as_slice()
+    }
 }
 
 impl AttestedMoment {
@@ -213,6 +225,10 @@ impl AttestedMoment {
             proposition,
             time_signatures: TimeSignatures::new(time_signatures),
         }
+    }
+
+    pub fn signatures(&self) -> &[TimeSignature] {
+        self.time_signatures.payload().as_slice()
     }
 }
 
@@ -231,6 +247,14 @@ impl Evidence {
             evidence_signatures: EvidenceSignatures::new(evidence_signatures),
             agreements: Agreements::new(agreements),
         }
+    }
+
+    pub fn signatures(&self) -> &[StampedSignatureEnvelope] {
+        self.evidence_signatures.payload().as_slice()
+    }
+
+    pub fn agreements(&self) -> &[AgreementFact] {
+        self.agreements.payload().as_slice()
     }
 }
 
@@ -251,6 +275,10 @@ impl Attestation {
             attestation_expires_at: AttestationExpiresAt::new(expires_at),
             audit_context,
         }
+    }
+
+    pub fn expires_at(&self) -> Option<TimestampNanos> {
+        *self.attestation_expires_at.payload()
     }
 }
 
@@ -273,6 +301,10 @@ impl SignalCallAuthorization {
             nonce,
             signal_call_expires_at: SignalCallExpiresAt::new(expires_at),
         }
+    }
+
+    pub fn expires_at(&self) -> Option<TimestampNanos> {
+        *self.signal_call_expires_at.payload()
     }
 }
 
@@ -321,6 +353,10 @@ impl AuthorizationPending {
             observation_token,
         }
     }
+
+    pub fn missing_authorities(&self) -> &[Identity] {
+        self.pending_missing_authorities.payload().as_slice()
+    }
 }
 
 impl AuthorizationStateRecord {
@@ -341,6 +377,18 @@ impl AuthorizationStateRecord {
             denial: Denial::new(denial),
         }
     }
+
+    pub fn missing_authorities(&self) -> &[Identity] {
+        self.state_missing_authorities.payload().as_slice()
+    }
+
+    pub fn grant(&self) -> Option<&AuthorizationGrant> {
+        self.grant.payload().as_ref()
+    }
+
+    pub fn denial(&self) -> Option<&AuthorizationDenial> {
+        self.denial.payload().as_ref()
+    }
 }
 
 impl SignRequest {
@@ -356,6 +404,10 @@ impl SignRequest {
             audit_context,
             sign_request_expires_at: SignRequestExpiresAt::new(expires_at),
         }
+    }
+
+    pub fn expires_at(&self) -> Option<TimestampNanos> {
+        *self.sign_request_expires_at.payload()
     }
 }
 
@@ -374,6 +426,10 @@ impl IdentityRegistration {
             purpose,
             admission: Admission::new(admission),
         }
+    }
+
+    pub fn admission(&self) -> Option<&SignatureEnvelope> {
+        self.admission.payload().as_ref()
     }
 }
 
@@ -395,6 +451,14 @@ impl IdentitySnapshot {
     pub fn from_identities(identities: Vec<IdentityReceipt>) -> Self {
         Self::new(Identities::new(identities))
     }
+
+    pub fn identities(&self) -> &[IdentityReceipt] {
+        self.payload().payload().as_slice()
+    }
+
+    pub fn into_identities(self) -> Vec<IdentityReceipt> {
+        self.into_payload().into_payload()
+    }
 }
 
 impl AuthorizationObservationSnapshot {
@@ -406,6 +470,12 @@ impl AuthorizationObservationSnapshot {
 impl AuthorizedObjectUpdateSnapshot {
     pub fn from_updates(updates: Vec<AuthorizedObjectUpdate>) -> Self {
         Self::new(Updates::new(updates))
+    }
+}
+
+impl DueContractChecksEvaluated {
+    pub fn from_triggered(triggered: Vec<AuthorizedObjectUpdate>) -> Self {
+        Self::new(Triggered::new(triggered))
     }
 }
 
