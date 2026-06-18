@@ -43,13 +43,13 @@
 (ObserveAuthorization authorization-request-1)
 
 ;; CriomeRequest::VerifyAuthorization
-(VerifyAuthorization (digest-lojix-request (authorization-request-1 digest-lojix-request signal-lojix Deploy deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None)))
+(VerifyAuthorization (digest-lojix-request (authorization-request-1 digest-lojix-request signal-lojix Deploy deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] (Cluster uranus) 110 None)))
 
 ;; CriomeRequest::RouteSignatureRequest
 (RouteSignatureRequest ((authorization-request-1 digest-lojix-request signal-lojix Deploy deploy-zeus-full-os (Persona alice) (Developer reviewer)) (Host balboa)))
 
 ;; CriomeRequest::SubmitSignature
-(SubmitSignature (authorization-request-1 (Developer reviewer) (Bls12_381MinPk public-key-1 signature-1)))
+(SubmitSignature (authorization-request-1 (Developer reviewer) ((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))))
 
 ;; CriomeRequest::RejectAuthorization
 (RejectAuthorization (authorization-request-1 (Developer reviewer) SignatureRejected))
@@ -61,7 +61,7 @@
 (LookupContract contract-digest-1)
 
 ;; CriomeRequest::EvaluateAuthorization
-(EvaluateAuthorization (contract-digest-1 (operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [(Bls12_381MinPk public-key-1 signature-1)] [])))
+(EvaluateAuthorization (contract-digest-1 (operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [])))
 
 ;; CriomeRequest::SubscribeIdentityUpdates
 (SubscribeIdentityUpdates (Persona alice))
@@ -93,7 +93,7 @@
 (AuthorizationPending (authorization-request-1 digest-lojix-request [(Developer reviewer)] authorization-request-1))
 
 ;; CriomeReply::AuthorizationGranted
-(AuthorizationGranted (authorization-request-1 digest-lojix-request signal-lojix Deploy deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [(Bls12_381MinPk public-key-1 signature-1)] (Cluster uranus) 110 None))
+(AuthorizationGranted (authorization-request-1 digest-lojix-request signal-lojix Deploy deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] (Cluster uranus) 110 None))
 
 ;; CriomeReply::AuthorizationDenied
 (AuthorizationDenied (authorization-request-1 (Policy SignatureScopeMismatch)))

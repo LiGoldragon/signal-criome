@@ -35,6 +35,13 @@ avoids the name `AuthProof` — it uses specific records:
 `DelegationGrant`, `ComponentRelease`, `SignedPersonaRequest`,
 `SignalCallAuthorization`, and `AuthorizationGrant`.
 
+Quorum-bearing signed surfaces carry crystallized time. Policy evidence,
+adjudicator agreement facts, routed signature submissions, and authorization
+grants use `StampedSignatureEnvelope`: a bare cryptographic envelope paired
+with the `AttestedMoment` that places the signature in time. The root exception
+is `TimeSignature` inside `AttestedMoment` itself; those bare envelopes create
+the crystallized moment and therefore cannot recursively contain one.
+
 ## The channel shape
 
 The `Criome` channel serves two classes of client — *consumers* (anyone

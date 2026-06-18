@@ -425,7 +425,7 @@ pub struct AgreementFact {
     pub divergence: ObjectDigest,
     pub resolution: ObjectDigest,
     pub resolver: Identity,
-    pub envelope: SignatureEnvelope,
+    pub signature: StampedSignatureEnvelope,
 }
 
 #[rustfmt::skip]
@@ -467,7 +467,7 @@ pub struct AttestedMoment {
 pub struct Evidence {
     pub operation: OperationDigest,
     pub stamp: AttestedMoment,
-    pub signatures: Vec<SignatureEnvelope>,
+    pub signatures: Vec<StampedSignatureEnvelope>,
     pub agreements: Vec<AgreementFact>,
 }
 
@@ -577,6 +577,14 @@ pub struct SignatureEnvelope {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct StampedSignatureEnvelope {
+    pub stamp: AttestedMoment,
+    pub envelope: SignatureEnvelope,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Attestation {
     pub content: ContentReference,
     pub signer: Identity,
@@ -677,7 +685,7 @@ pub struct SignatureSolicitationRoute {
 pub struct SignatureSubmission {
     pub request_slot: AuthorizationRequestSlot,
     pub signer: Identity,
-    pub envelope: SignatureEnvelope,
+    pub signature: StampedSignatureEnvelope,
 }
 
 #[rustfmt::skip]
@@ -700,7 +708,7 @@ pub struct AuthorizationGrant {
     pub authorization_scope: AuthorizationScope,
     pub policy_satisfaction: AuthorizationPolicySatisfaction,
     pub signature_result: SignatureAuthorizationResult,
-    pub signatures: Vec<SignatureEnvelope>,
+    pub signatures: Vec<StampedSignatureEnvelope>,
     pub issued_by: Identity,
     pub issued_at: TimestampNanos,
     pub expires_at: Option<TimestampNanos>,

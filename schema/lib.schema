@@ -151,7 +151,7 @@
     divergence ObjectDigest
     resolution ObjectDigest
     resolver Identity
-    envelope SignatureEnvelope
+    signature StampedSignatureEnvelope
   }
 
   TimeWindow {
@@ -178,7 +178,7 @@
   Evidence {
     operation OperationDigest
     stamp AttestedMoment
-    signatures (Vector SignatureEnvelope)
+    signatures (Vector StampedSignatureEnvelope)
     agreements (Vector AgreementFact)
   }
 
@@ -250,6 +250,11 @@
     scheme SignatureScheme
     public_key BlsPublicKey
     signature BlsSignature
+  }
+
+  StampedSignatureEnvelope {
+    stamp AttestedMoment
+    envelope SignatureEnvelope
   }
 
   Attestation {
@@ -324,7 +329,7 @@
   SignatureSubmission {
     request_slot AuthorizationRequestSlot
     signer Identity
-    envelope SignatureEnvelope
+    signature StampedSignatureEnvelope
   }
 
   AuthorizationRejection {
@@ -341,7 +346,7 @@
     authorization_scope AuthorizationScope
     policy_satisfaction AuthorizationPolicySatisfaction
     signature_result SignatureAuthorizationResult
-    signatures (Vec SignatureEnvelope)
+    signatures (Vec StampedSignatureEnvelope)
     issued_by Identity
     issued_at TimestampNanos
     expires_at (Optional TimestampNanos)

@@ -143,6 +143,16 @@ about to execute. The policy that says *which signatures count* is
 held in criome's owned state (see `criome/ARCHITECTURE.md`
 §"Authorization model").
 
+Quorum-bearing signatures are time-stamped by construction. The contract uses
+`StampedSignatureEnvelope` anywhere a policy/adjudication/authorization quorum
+signature crosses the public wire: `Evidence.signatures`,
+`AgreementFact.signature`, `SignatureSubmission.signature`, and
+`AuthorizationGrant.signatures`. The wrapper pairs a bare `SignatureEnvelope`
+with an `AttestedMoment` so the daemon verifies both the signature and the
+crystallized-past moment it claims. `TimeSignature.envelope` remains bare on
+purpose: it is the recursive root that creates an `AttestedMoment`; requiring a
+stamp there would make the type infinite.
+
 The `RouteSignatureRequest` / `SubmitSignature` /
 `RejectAuthorization` operations travel on this contract between criome
 daemons (peer routing for quorum policies). The route from criome to

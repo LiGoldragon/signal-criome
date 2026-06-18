@@ -28,8 +28,8 @@ use signal_criome::{
     SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
     SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
     SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
-    SubscriptionRetracted, Threshold, TimeSignature, TimeWindow, TimestampNanos,
-    VerificationDecision, VerificationResult, VerifyRequest,
+    StampedSignatureEnvelope, SubscriptionRetracted, Threshold, TimeSignature, TimeWindow,
+    TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
 };
 
 const CANONICAL: &str = include_str!("../examples/canonical.nota");
@@ -60,6 +60,13 @@ fn envelope() -> SignatureEnvelope {
         scheme: SignatureScheme::Bls12_381MinPk,
         public_key: BlsPublicKey::new("public-key-1"),
         signature: BlsSignature::new("signature-1"),
+    }
+}
+
+fn stamped_envelope() -> StampedSignatureEnvelope {
+    StampedSignatureEnvelope {
+        stamp: attested_moment(),
+        envelope: envelope(),
     }
 }
 
@@ -111,7 +118,7 @@ fn authorization_grant() -> AuthorizationGrant {
             satisfied_signers: vec![Identity::Cluster(PrincipalName::new("uranus"))],
         },
         signature_result: SignatureAuthorizationResult::RequiredSignaturesSatisfied,
-        signatures: vec![envelope()],
+        signatures: vec![stamped_envelope()],
         issued_by: Identity::Cluster(PrincipalName::new("uranus")),
         issued_at: TimestampNanos::new(110),
         expires_at: None,
@@ -180,7 +187,7 @@ fn evidence() -> Evidence {
     Evidence {
         operation: operation_digest(),
         stamp: attested_moment(),
-        signatures: vec![envelope()],
+        signatures: vec![stamped_envelope()],
         agreements: Vec::new(),
     }
 }
@@ -298,7 +305,7 @@ fn canonical_request_examples_round_trip() {
     round_trip(CriomeRequest::SubmitSignature(SignatureSubmission {
         request_slot: authorization_request_slot(),
         signer: Identity::Developer(PrincipalName::new("reviewer")),
-        envelope: envelope(),
+        signature: stamped_envelope(),
     }));
     round_trip(CriomeRequest::RejectAuthorization(AuthorizationRejection {
         request_slot: authorization_request_slot(),

@@ -21,8 +21,8 @@ use signal_criome::{
     SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
     SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
     SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
-    SubscriptionRetracted, Threshold, TimeSignature, TimeWindow, TimestampNanos,
-    VerificationDecision, VerificationResult, VerifyRequest,
+    StampedSignatureEnvelope, SubscriptionRetracted, Threshold, TimeSignature, TimeWindow,
+    TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -71,6 +71,13 @@ fn envelope() -> SignatureEnvelope {
         scheme: SignatureScheme::Bls12_381MinPk,
         public_key: BlsPublicKey::new("bls-pubkey-fixture"),
         signature: BlsSignature::new("bls-signature-fixture"),
+    }
+}
+
+fn stamped_envelope() -> StampedSignatureEnvelope {
+    StampedSignatureEnvelope {
+        stamp: attested_moment(),
+        envelope: envelope(),
     }
 }
 
@@ -130,7 +137,7 @@ fn authorization_grant() -> AuthorizationGrant {
             satisfied_signers: vec![cluster("uranus")],
         },
         signature_result: SignatureAuthorizationResult::RequiredSignaturesSatisfied,
-        signatures: vec![envelope()],
+        signatures: vec![stamped_envelope()],
         issued_by: cluster("uranus"),
         issued_at: TimestampNanos::new(11),
         expires_at: Some(TimestampNanos::new(12)),
@@ -202,7 +209,7 @@ fn evidence() -> Evidence {
     Evidence {
         operation: operation_digest(),
         stamp: attested_moment(),
-        signatures: vec![envelope()],
+        signatures: vec![stamped_envelope()],
         agreements: Vec::new(),
     }
 }
@@ -342,7 +349,7 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
         CriomeRequest::SubmitSignature(SignatureSubmission {
             request_slot: authorization_request_slot(),
             signer: developer("reviewer"),
-            envelope: envelope(),
+            signature: stamped_envelope(),
         }),
         CriomeRequest::RejectAuthorization(AuthorizationRejection {
             request_slot: authorization_request_slot(),
@@ -519,6 +526,27 @@ fn authorization_grant_carries_satisfied_policy_threshold() {
     assert_eq!(
         grant.policy_satisfaction.satisfied_signers,
         vec![cluster("uranus")],
+    );
+}
+
+#[test]
+fn quorum_signed_surfaces_carry_attested_moment_stamps() {
+    let source = std::fs::read_to_string("schema/lib.schema").expect("read schema");
+
+    for required in [
+        "signature StampedSignatureEnvelope",
+        "signatures (Vector StampedSignatureEnvelope)",
+        "signatures (Vec StampedSignatureEnvelope)",
+    ] {
+        assert!(
+            source.contains(required),
+            "schema missing stamped signature surface: {required}"
+        );
+    }
+    assert!(
+        source
+            .contains("TimeSignature {\n    signer Identity\n    envelope SignatureEnvelope\n  }"),
+        "time signatures must stay bare because they create AttestedMoment"
     );
 }
 
