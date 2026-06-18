@@ -200,10 +200,22 @@ reply-side `AuthorizationObservationRetracted` echoes the token.
 
 Authorized object observation is the reference-only pulse surface:
 `ObserveAuthorizedObjects` opens `AuthorizedObjectUpdateStream`, and each
-`AuthorizedObjectUpdate` carries the authorized object's digest/kind, the
-policy contract digest, the evaluation decision, and the attested moment.
-It never carries inline object payload bytes; components fetch objects by
-digest through the routing/object-distribution layer.
+`AuthorizedObjectUpdate` carries the authorized object's component
+differentiator, digest/kind, the policy contract digest, the evaluation
+decision, and the attested moment. It never carries inline object payload
+bytes; components fetch objects by digest through the routing/object-
+distribution layer. Subscribers declare `AuthorizedObjectInterest` when
+opening the stream, so fan-out is subscriber-owned: components receive the
+event classes related to their function instead of requiring criome to infer
+one universal affected-component set.
+
+The POC shape deliberately exposes both forms of the classifier in this
+contract: `ComponentKind` is the small embeddable unit enum, while
+`AuthorizedObjectReference`, `ComponentObjectInterest`, and
+`AuthorizedObjectUpdate` are wrapper records that carry the enum inside the
+relation that needs it. If router later needs the same classifier, extract the
+enum/wrappers into a shared vocabulary crate; do not turn `signal-frame` into a
+workspace-wide payload wrapper.
 
 Closed enums only. No `Unknown` variant on the wire; positive
 rejection causes (`UnknownSigner`, `UnknownIdentity`) name specific

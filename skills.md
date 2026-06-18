@@ -57,8 +57,11 @@ token.
 - `AuthorizationDenial` and `AuthorizationDenialSource`, so policy
   refusal and signer refusal remain distinct on the wire.
 - `AuthorizedObjectUpdateStream`, so criome can push reference-only
-  authorized object pulses: digest/kind, policy contract digest,
-  decision, and attested moment, never inline payload bytes.
+  authorized object pulses: component differentiator, digest/kind,
+  policy contract digest, decision, and attested moment, never inline
+  payload bytes. `AuthorizedObjectInterest` filters the stream at open
+  time; `ComponentKind` is the embeddable classifier and the update /
+  interest records are the wrapper forms.
 - `Identity` (closed enum: `Persona`, `Agent`, `Host`, `Developer`,
   `Cluster`).
 - `IdentitySubscriptionToken` and `SubscriptionRetracted`
