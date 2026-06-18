@@ -8,23 +8,24 @@ use signal_criome::{
     AuthorizationObservationToken, AuthorizationPending, AuthorizationPolicyClass,
     AuthorizationPolicySatisfaction, AuthorizationRejection, AuthorizationRequestSlot,
     AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus, AuthorizationUnavailable,
-    AuthorizationUpdate, AuthorizationVerification, AuthorizedObjectKind,
+    AuthorizationUpdate, AuthorizationVerification, AuthorizedObjectInterest, AuthorizedObjectKind,
     AuthorizedObjectObservation, AuthorizedObjectReference, AuthorizedObjectUpdate,
     AuthorizedObjectUpdateRetracted, AuthorizedObjectUpdateSnapshot, AuthorizedObjectUpdateToken,
-    BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
-    ContentReference, Contract, ContractAdmissionRejected, ContractAdmissionRejectionReason,
-    ContractAdmitted, ContractDigest, ContractFound, ContractMissing, ContractName,
-    ContractOperationHead, CriomeEvent, CriomeFrame as Frame, CriomeFrameBody as FrameBody,
-    CriomeReply, CriomeRequest, EvaluationDecision, EvaluationRejectionReason, Evidence, Identity,
-    IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
-    IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
-    OperationDigest, PolicyMember, PrincipalName, PrincipalStatus, PublicKeyFingerprint,
-    QuorumShortfall, Rejection, RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule,
-    SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
-    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
-    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
-    StampedSignatureEnvelope, SubscriptionRetracted, Threshold, TimeSignature, TimeWindow,
-    TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
+    BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, ComponentKind, ComponentRelease,
+    ContentPurpose, ContentReference, Contract, ContractAdmissionRejected,
+    ContractAdmissionRejectionReason, ContractAdmitted, ContractDigest, ContractFound,
+    ContractMissing, ContractName, ContractOperationHead, CriomeEvent, CriomeFrame as Frame,
+    CriomeFrameBody as FrameBody, CriomeReply, CriomeRequest, EvaluationDecision,
+    EvaluationRejectionReason, Evidence, Identity, IdentityLookup, IdentityReceipt,
+    IdentityRegistration, IdentityRevocation, IdentitySnapshot, IdentitySubscription,
+    IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest, OperationDigest,
+    PolicyMember, PrincipalName, PrincipalStatus, PublicKeyFingerprint, QuorumShortfall, Rejection,
+    RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule, SignReceipt, SignRequest,
+    SignalCallAuthorization, SignatureAuthorizationResult, SignatureEnvelope,
+    SignatureRouteReceipt, SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute,
+    SignatureSubmission, SignatureSubmissionReceipt, StampedSignatureEnvelope,
+    SubscriptionRetracted, Threshold, TimeSignature, TimeWindow, TimestampNanos,
+    VerificationDecision, VerificationResult, VerifyRequest,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -209,6 +210,7 @@ fn policy_contract() -> Contract {
 
 fn evidence() -> Evidence {
     Evidence {
+        component: ComponentKind::Spirit,
         operation: operation_digest(),
         stamp: attested_moment(),
         signatures: vec![stamped_envelope()],
@@ -223,6 +225,7 @@ fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
 fn authorized_object_update() -> AuthorizedObjectUpdate {
     AuthorizedObjectUpdate {
         object: AuthorizedObjectReference {
+            component: ComponentKind::Spirit,
             digest: ObjectDigest::from_bytes(b"operation fixture"),
             kind: AuthorizedObjectKind::Operation,
         },
@@ -380,9 +383,10 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
             contract: contract_digest(),
             evidence: evidence(),
         }),
-        CriomeRequest::ObserveAuthorizedObjects(AuthorizedObjectObservation::new(agent(
-            "operator",
-        ))),
+        CriomeRequest::ObserveAuthorizedObjects(AuthorizedObjectObservation {
+            subscriber: agent("operator"),
+            interest: AuthorizedObjectInterest::Component(ComponentKind::Spirit),
+        }),
         CriomeRequest::AuthorizedObjectUpdateRetraction(authorized_object_update_token()),
         CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription::new(agent("operator"))),
         CriomeRequest::IdentitySubscriptionRetraction(IdentitySubscriptionToken::new(agent(
@@ -420,6 +424,8 @@ fn request_variants_declare_contract_local_operation_heads() {
             "EvaluateAuthorization",
             "ObserveAuthorizedObjects",
             "AuthorizedObjectUpdateRetraction",
+            "ScheduleContractTimeCheck",
+            "RunDueContractChecks",
             "SubscribeIdentityUpdates",
             "IdentitySubscriptionRetraction",
             "AuthorizationObservationRetraction",
@@ -590,7 +596,8 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
 fn authorized_object_update_carries_references_not_payloads() {
     let source = std::fs::read_to_string("schema/lib.schema").expect("read schema");
 
-    assert!(source.contains("AuthorizedObjectReference {\n    digest ObjectDigest"));
+    assert!(source.contains("AuthorizedObjectReference {\n    component ComponentKind"));
+    assert!(source.contains("    digest ObjectDigest"));
     assert!(source.contains("AuthorizedObjectUpdate {\n    object AuthorizedObjectReference"));
     assert!(source.contains("    contract ContractDigest"));
     assert!(source.contains("    stamp AttestedMoment"));

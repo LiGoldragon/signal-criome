@@ -23,6 +23,8 @@
  (EvaluateAuthorization AuthorizationEvaluation)
  (ObserveAuthorizedObjects AuthorizedObjectObservation opens AuthorizedObjectUpdateStream)
  (AuthorizedObjectUpdateRetraction AuthorizedObjectUpdateToken)
+ (ScheduleContractTimeCheck ContractTimeCheck)
+ (RunDueContractChecks AttestedMoment)
  (SubscribeIdentityUpdates IdentitySubscription opens IdentityUpdateStream)
  (IdentitySubscriptionRetraction IdentitySubscriptionToken)
  (AuthorizationObservationRetraction AuthorizationObservationToken)]
@@ -46,6 +48,8 @@
  (AuthorizationEvaluated AuthorizationEvaluated)
  (AuthorizedObjectUpdateSnapshot AuthorizedObjectUpdateSnapshot)
  (AuthorizedObjectUpdateRetracted AuthorizedObjectUpdateRetracted)
+ (ContractTimeCheckScheduled ContractTimeCheckScheduled)
+ (DueContractChecksEvaluated DueContractChecksEvaluated)
  (AuthorizationObservationRetracted AuthorizationObservationRetracted)
  (SubscriptionRetracted SubscriptionRetracted)
  (Rejection Rejection)]
@@ -79,6 +83,7 @@
   AuthorizationDenialReason [PolicyRefused RequiredSignatureMissing SignatureRejected SignerThresholdRejected SignatureExpired RequestDigestMismatch SignatureScopeMismatch SignerUnavailable]
   AuthorizationDenialSource [Policy Signers]
   RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration]
+  ComponentKind [Spirit Criome Router Mirror Lojix Persona Agent]
   ContractAdmissionRejectionReason [
     (DanglingReference ContractDigest)
     DuplicatePolicyMember
@@ -180,6 +185,7 @@
   }
 
   Evidence {
+    component ComponentKind
     operation OperationDigest
     stamp AttestedMoment
     signatures (Vector StampedSignatureEnvelope)
@@ -207,7 +213,20 @@
 
   AuthorizedObjectKind [Operation Contract Agreement Time]
 
+  ComponentObjectInterest {
+    component ComponentKind
+    kind AuthorizedObjectKind
+  }
+
+  AuthorizedObjectInterest [
+    AnyAuthorizedObject
+    (Component ComponentKind)
+    (ObjectKind AuthorizedObjectKind)
+    (ComponentObject ComponentObjectInterest)
+  ]
+
   AuthorizedObjectReference {
+    component ComponentKind
     digest ObjectDigest
     kind AuthorizedObjectKind
   }
@@ -241,6 +260,7 @@
 
   AuthorizedObjectObservation {
     subscriber Identity
+    interest AuthorizedObjectInterest
   }
 
   AuthorizedObjectUpdateToken {
@@ -260,6 +280,21 @@
 
   AuthorizedObjectUpdateRetracted {
     token AuthorizedObjectUpdateToken
+  }
+
+  ContractTimeCheck {
+    contract ContractDigest
+    due_at TimestampNanos
+    result AuthorizedObjectReference
+    absent AuthorizedObjectInterest
+  }
+
+  ContractTimeCheckScheduled {
+    check ContractTimeCheck
+  }
+
+  DueContractChecksEvaluated {
+    triggered (Vec AuthorizedObjectUpdate)
   }
 
   AuthorizationDenial {

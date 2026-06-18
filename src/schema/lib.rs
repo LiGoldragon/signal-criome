@@ -317,6 +317,28 @@ pub enum RejectionReason {
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum ComponentKind {
+    Spirit,
+    Criome,
+    Router,
+    Mirror,
+    Lojix,
+    Persona,
+    Agent,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum ContractAdmissionRejectionReason {
     DanglingReference(ContractDigest),
@@ -465,6 +487,7 @@ pub struct AttestedMoment {
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Evidence {
+    pub component: ComponentKind,
     pub operation: OperationDigest,
     pub stamp: AttestedMoment,
     pub signatures: Vec<StampedSignatureEnvelope>,
@@ -521,7 +544,26 @@ pub enum AuthorizedObjectKind {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ComponentObjectInterest {
+    pub component: ComponentKind,
+    pub kind: AuthorizedObjectKind,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum AuthorizedObjectInterest {
+    AnyAuthorizedObject,
+    Component(ComponentKind),
+    ObjectKind(AuthorizedObjectKind),
+    ComponentObject(ComponentObjectInterest),
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectReference {
+    pub component: ComponentKind,
     pub digest: ObjectDigest,
     pub kind: AuthorizedObjectKind,
 }
@@ -568,7 +610,10 @@ pub struct AuthorizationEvaluated {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizedObjectObservation(Identity);
+pub struct AuthorizedObjectObservation {
+    pub subscriber: Identity,
+    pub interest: AuthorizedObjectInterest,
+}
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -594,6 +639,26 @@ pub struct AuthorizedObjectUpdateSnapshot(Vec<AuthorizedObjectUpdate>);
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateToken);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ContractTimeCheck {
+    pub contract: ContractDigest,
+    pub due_at: TimestampNanos,
+    pub result: AuthorizedObjectReference,
+    pub absent: AuthorizedObjectInterest,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ContractTimeCheckScheduled(ContractTimeCheck);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct DueContractChecksEvaluated(Vec<AuthorizedObjectUpdate>);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -1014,6 +1079,8 @@ pub enum Input {
     EvaluateAuthorization(AuthorizationEvaluation),
     ObserveAuthorizedObjects(AuthorizedObjectObservation),
     AuthorizedObjectUpdateRetraction(AuthorizedObjectUpdateToken),
+    ScheduleContractTimeCheck(ContractTimeCheck),
+    RunDueContractChecks(AttestedMoment),
     SubscribeIdentityUpdates(IdentitySubscription),
     IdentitySubscriptionRetraction(IdentitySubscriptionToken),
     AuthorizationObservationRetraction(AuthorizationObservationToken),
@@ -1043,6 +1110,8 @@ pub enum Output {
     AuthorizationEvaluated(AuthorizationEvaluated),
     AuthorizedObjectUpdateSnapshot(AuthorizedObjectUpdateSnapshot),
     AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateRetracted),
+    ContractTimeCheckScheduled(ContractTimeCheckScheduled),
+    DueContractChecksEvaluated(DueContractChecksEvaluated),
     AuthorizationObservationRetracted(AuthorizationObservationRetracted),
     SubscriptionRetracted(SubscriptionRetracted),
     Rejection(Rejection),
@@ -1700,25 +1769,6 @@ impl From<ContractAdmissionRejectionReason> for ContractAdmissionRejected {
 }
 
 #[rustfmt::skip]
-impl AuthorizedObjectObservation {
-    pub fn new(payload: Identity) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Identity {
-        &self.0
-    }
-    pub fn into_payload(self) -> Identity {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Identity> for AuthorizedObjectObservation {
-    fn from(payload: Identity) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
 impl AuthorizedObjectUpdateToken {
     pub fn new(payload: Identity) -> Self {
         Self(payload)
@@ -1771,6 +1821,44 @@ impl AuthorizedObjectUpdateRetracted {
 #[rustfmt::skip]
 impl From<AuthorizedObjectUpdateToken> for AuthorizedObjectUpdateRetracted {
     fn from(payload: AuthorizedObjectUpdateToken) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ContractTimeCheckScheduled {
+    pub fn new(payload: ContractTimeCheck) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ContractTimeCheck {
+        &self.0
+    }
+    pub fn into_payload(self) -> ContractTimeCheck {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ContractTimeCheck> for ContractTimeCheckScheduled {
+    fn from(payload: ContractTimeCheck) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl DueContractChecksEvaluated {
+    pub fn new(payload: Vec<AuthorizedObjectUpdate>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<AuthorizedObjectUpdate> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<AuthorizedObjectUpdate> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<AuthorizedObjectUpdate>> for DueContractChecksEvaluated {
+    fn from(payload: Vec<AuthorizedObjectUpdate>) -> Self {
         Self::new(payload)
     }
 }
@@ -2104,6 +2192,19 @@ impl EvaluationRejectionReason {
 }
 
 #[rustfmt::skip]
+impl AuthorizedObjectInterest {
+    pub fn component(payload: ComponentKind) -> Self {
+        Self::Component(payload)
+    }
+    pub fn object_kind(payload: AuthorizedObjectKind) -> Self {
+        Self::ObjectKind(payload)
+    }
+    pub fn component_object(payload: ComponentObjectInterest) -> Self {
+        Self::ComponentObject(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl CriomeEvent {
     pub fn identity_update(payload: IdentityReceipt) -> Self {
         Self::IdentityUpdate(IdentityUpdate::new(payload))
@@ -2169,11 +2270,17 @@ impl Input {
     pub fn evaluate_authorization(payload: AuthorizationEvaluation) -> Self {
         Self::EvaluateAuthorization(payload)
     }
-    pub fn observe_authorized_objects(payload: Identity) -> Self {
-        Self::ObserveAuthorizedObjects(AuthorizedObjectObservation::new(payload))
+    pub fn observe_authorized_objects(payload: AuthorizedObjectObservation) -> Self {
+        Self::ObserveAuthorizedObjects(payload)
     }
     pub fn authorized_object_update_retraction(payload: Identity) -> Self {
         Self::AuthorizedObjectUpdateRetraction(AuthorizedObjectUpdateToken::new(payload))
+    }
+    pub fn schedule_contract_time_check(payload: ContractTimeCheck) -> Self {
+        Self::ScheduleContractTimeCheck(payload)
+    }
+    pub fn run_due_contract_checks(payload: AttestedMoment) -> Self {
+        Self::RunDueContractChecks(payload)
     }
     pub fn subscribe_identity_updates(payload: Identity) -> Self {
         Self::SubscribeIdentityUpdates(IdentitySubscription::new(payload))
@@ -2266,6 +2373,12 @@ impl Output {
             AuthorizedObjectUpdateRetracted::new(payload),
         )
     }
+    pub fn contract_time_check_scheduled(payload: ContractTimeCheck) -> Self {
+        Self::ContractTimeCheckScheduled(ContractTimeCheckScheduled::new(payload))
+    }
+    pub fn due_contract_checks_evaluated(payload: Vec<AuthorizedObjectUpdate>) -> Self {
+        Self::DueContractChecksEvaluated(DueContractChecksEvaluated::new(payload))
+    }
     pub fn authorization_observation_retracted(
         payload: AuthorizationObservationToken,
     ) -> Self {
@@ -2348,6 +2461,27 @@ impl From<Identity> for EvaluationRejectionReason {
 impl From<QuorumShortfall> for EvaluationRejectionReason {
     fn from(payload: QuorumShortfall) -> Self {
         Self::QuorumShort(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ComponentKind> for AuthorizedObjectInterest {
+    fn from(payload: ComponentKind) -> Self {
+        Self::Component(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<AuthorizedObjectKind> for AuthorizedObjectInterest {
+    fn from(payload: AuthorizedObjectKind) -> Self {
+        Self::ObjectKind(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ComponentObjectInterest> for AuthorizedObjectInterest {
+    fn from(payload: ComponentObjectInterest) -> Self {
+        Self::ComponentObject(payload)
     }
 }
 
@@ -2502,6 +2636,20 @@ impl From<AuthorizedObjectObservation> for Input {
 impl From<AuthorizedObjectUpdateToken> for Input {
     fn from(payload: AuthorizedObjectUpdateToken) -> Self {
         Self::AuthorizedObjectUpdateRetraction(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ContractTimeCheck> for Input {
+    fn from(payload: ContractTimeCheck) -> Self {
+        Self::ScheduleContractTimeCheck(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<AttestedMoment> for Input {
+    fn from(payload: AttestedMoment) -> Self {
+        Self::RunDueContractChecks(payload)
     }
 }
 
@@ -2667,6 +2815,20 @@ impl From<AuthorizedObjectUpdateRetracted> for Output {
 }
 
 #[rustfmt::skip]
+impl From<ContractTimeCheckScheduled> for Output {
+    fn from(payload: ContractTimeCheckScheduled) -> Self {
+        Self::ContractTimeCheckScheduled(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<DueContractChecksEvaluated> for Output {
+    fn from(payload: DueContractChecksEvaluated) -> Self {
+        Self::DueContractChecksEvaluated(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<AuthorizationObservationRetracted> for Output {
     fn from(payload: AuthorizationObservationRetracted) -> Self {
         Self::AuthorizationObservationRetracted(payload)
@@ -2740,9 +2902,11 @@ pub mod short_header {
     pub const INPUT_EVALUATE_AUTHORIZATION: u64 = 0x0010000000000000;
     pub const INPUT_OBSERVE_AUTHORIZED_OBJECTS: u64 = 0x0011000000000000;
     pub const INPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTION: u64 = 0x0012000000000000;
-    pub const INPUT_SUBSCRIBE_IDENTITY_UPDATES: u64 = 0x0013000000000000;
-    pub const INPUT_IDENTITY_SUBSCRIPTION_RETRACTION: u64 = 0x0014000000000000;
-    pub const INPUT_AUTHORIZATION_OBSERVATION_RETRACTION: u64 = 0x0015000000000000;
+    pub const INPUT_SCHEDULE_CONTRACT_TIME_CHECK: u64 = 0x0013000000000000;
+    pub const INPUT_RUN_DUE_CONTRACT_CHECKS: u64 = 0x0014000000000000;
+    pub const INPUT_SUBSCRIBE_IDENTITY_UPDATES: u64 = 0x0015000000000000;
+    pub const INPUT_IDENTITY_SUBSCRIPTION_RETRACTION: u64 = 0x0016000000000000;
+    pub const INPUT_AUTHORIZATION_OBSERVATION_RETRACTION: u64 = 0x0017000000000000;
     pub const OUTPUT_SIGN_RECEIPT: u64 = 0x0100000000000000;
     pub const OUTPUT_VERIFICATION_RESULT: u64 = 0x0101000000000000;
     pub const OUTPUT_IDENTITY_RECEIPT: u64 = 0x0102000000000000;
@@ -2763,9 +2927,11 @@ pub mod short_header {
     pub const OUTPUT_AUTHORIZATION_EVALUATED: u64 = 0x0111000000000000;
     pub const OUTPUT_AUTHORIZED_OBJECT_UPDATE_SNAPSHOT: u64 = 0x0112000000000000;
     pub const OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED: u64 = 0x0113000000000000;
-    pub const OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED: u64 = 0x0114000000000000;
-    pub const OUTPUT_SUBSCRIPTION_RETRACTED: u64 = 0x0115000000000000;
-    pub const OUTPUT_REJECTION: u64 = 0x0116000000000000;
+    pub const OUTPUT_CONTRACT_TIME_CHECK_SCHEDULED: u64 = 0x0114000000000000;
+    pub const OUTPUT_DUE_CONTRACT_CHECKS_EVALUATED: u64 = 0x0115000000000000;
+    pub const OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED: u64 = 0x0116000000000000;
+    pub const OUTPUT_SUBSCRIPTION_RETRACTED: u64 = 0x0117000000000000;
+    pub const OUTPUT_REJECTION: u64 = 0x0118000000000000;
 }
 
 #[rustfmt::skip]
@@ -2835,6 +3001,8 @@ pub enum InputRoute {
     EvaluateAuthorization,
     ObserveAuthorizedObjects,
     AuthorizedObjectUpdateRetraction,
+    ScheduleContractTimeCheck,
+    RunDueContractChecks,
     SubscribeIdentityUpdates,
     IdentitySubscriptionRetraction,
     AuthorizationObservationRetraction,
@@ -2873,6 +3041,8 @@ pub enum OutputRoute {
     AuthorizationEvaluated,
     AuthorizedObjectUpdateSnapshot,
     AuthorizedObjectUpdateRetracted,
+    ContractTimeCheckScheduled,
+    DueContractChecksEvaluated,
     AuthorizationObservationRetracted,
     SubscriptionRetracted,
     Rejection,
@@ -2903,6 +3073,8 @@ impl Input {
             Self::AuthorizedObjectUpdateRetraction(_) => {
                 InputRoute::AuthorizedObjectUpdateRetraction
             }
+            Self::ScheduleContractTimeCheck(_) => InputRoute::ScheduleContractTimeCheck,
+            Self::RunDueContractChecks(_) => InputRoute::RunDueContractChecks,
             Self::SubscribeIdentityUpdates(_) => InputRoute::SubscribeIdentityUpdates,
             Self::IdentitySubscriptionRetraction(_) => {
                 InputRoute::IdentitySubscriptionRetraction
@@ -2937,6 +3109,10 @@ impl Input {
             Self::AuthorizedObjectUpdateRetraction(_) => {
                 short_header::INPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTION
             }
+            Self::ScheduleContractTimeCheck(_) => {
+                short_header::INPUT_SCHEDULE_CONTRACT_TIME_CHECK
+            }
+            Self::RunDueContractChecks(_) => short_header::INPUT_RUN_DUE_CONTRACT_CHECKS,
             Self::SubscribeIdentityUpdates(_) => {
                 short_header::INPUT_SUBSCRIBE_IDENTITY_UPDATES
             }
@@ -2988,6 +3164,12 @@ impl Input {
             }
             short_header::INPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTION => {
                 Ok(InputRoute::AuthorizedObjectUpdateRetraction)
+            }
+            short_header::INPUT_SCHEDULE_CONTRACT_TIME_CHECK => {
+                Ok(InputRoute::ScheduleContractTimeCheck)
+            }
+            short_header::INPUT_RUN_DUE_CONTRACT_CHECKS => {
+                Ok(InputRoute::RunDueContractChecks)
             }
             short_header::INPUT_SUBSCRIBE_IDENTITY_UPDATES => {
                 Ok(InputRoute::SubscribeIdentityUpdates)
@@ -3076,6 +3258,12 @@ impl Output {
             Self::AuthorizedObjectUpdateRetracted(_) => {
                 OutputRoute::AuthorizedObjectUpdateRetracted
             }
+            Self::ContractTimeCheckScheduled(_) => {
+                OutputRoute::ContractTimeCheckScheduled
+            }
+            Self::DueContractChecksEvaluated(_) => {
+                OutputRoute::DueContractChecksEvaluated
+            }
             Self::AuthorizationObservationRetracted(_) => {
                 OutputRoute::AuthorizationObservationRetracted
             }
@@ -3120,6 +3308,12 @@ impl Output {
             }
             Self::AuthorizedObjectUpdateRetracted(_) => {
                 short_header::OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED
+            }
+            Self::ContractTimeCheckScheduled(_) => {
+                short_header::OUTPUT_CONTRACT_TIME_CHECK_SCHEDULED
+            }
+            Self::DueContractChecksEvaluated(_) => {
+                short_header::OUTPUT_DUE_CONTRACT_CHECKS_EVALUATED
             }
             Self::AuthorizationObservationRetracted(_) => {
                 short_header::OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED
@@ -3179,6 +3373,12 @@ impl Output {
             }
             short_header::OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED => {
                 Ok(OutputRoute::AuthorizedObjectUpdateRetracted)
+            }
+            short_header::OUTPUT_CONTRACT_TIME_CHECK_SCHEDULED => {
+                Ok(OutputRoute::ContractTimeCheckScheduled)
+            }
+            short_header::OUTPUT_DUE_CONTRACT_CHECKS_EVALUATED => {
+                Ok(OutputRoute::DueContractChecksEvaluated)
             }
             short_header::OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED => {
                 Ok(OutputRoute::AuthorizationObservationRetracted)
@@ -3257,6 +3457,8 @@ impl signal_frame::SignalOperationHeads for Input {
         "EvaluateAuthorization",
         "ObserveAuthorizedObjects",
         "AuthorizedObjectUpdateRetraction",
+        "ScheduleContractTimeCheck",
+        "RunDueContractChecks",
         "SubscribeIdentityUpdates",
         "IdentitySubscriptionRetraction",
         "AuthorizationObservationRetraction",
