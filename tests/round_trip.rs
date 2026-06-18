@@ -587,6 +587,20 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
 }
 
 #[test]
+fn authorized_object_update_carries_references_not_payloads() {
+    let source = std::fs::read_to_string("schema/lib.schema").expect("read schema");
+
+    assert!(source.contains("AuthorizedObjectReference {\n    digest ObjectDigest"));
+    assert!(source.contains("AuthorizedObjectUpdate {\n    object AuthorizedObjectReference"));
+    assert!(source.contains("    contract ContractDigest"));
+    assert!(source.contains("    stamp AttestedMoment"));
+    assert!(
+        !source.contains("AuthorizedObjectUpdate {\n    object Contract"),
+        "authorized object pulse must not carry inline contract payloads"
+    );
+}
+
+#[test]
 fn authorization_denial_distinguishes_policy_from_signer_refusal() {
     let policy_denial = AuthorizationDenied {
         request_slot: authorization_request_slot(),

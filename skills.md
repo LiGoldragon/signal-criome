@@ -56,6 +56,9 @@ token.
   and verification paths must not derive slots from request digests.
 - `AuthorizationDenial` and `AuthorizationDenialSource`, so policy
   refusal and signer refusal remain distinct on the wire.
+- `AuthorizedObjectUpdateStream`, so criome can push reference-only
+  authorized object pulses: digest/kind, policy contract digest,
+  decision, and attested moment, never inline payload bytes.
 - `Identity` (closed enum: `Persona`, `Agent`, `Host`, `Developer`,
   `Cluster`).
 - `IdentitySubscriptionToken` and `SubscriptionRetracted`

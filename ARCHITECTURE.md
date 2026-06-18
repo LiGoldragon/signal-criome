@@ -111,13 +111,16 @@ CriomeRequest                             CriomeReply
 ├─ RouteSignatureRequest                  ├─ SignatureRouteReceipt
 ├─ SubmitSignature                        ├─ SignatureSubmissionReceipt
 ├─ RejectAuthorization                    ├─ AuthorizationObservationRetracted
+├─ ObserveAuthorizedObjects               ├─ AuthorizedObjectUpdateSnapshot
+├─ AuthorizedObjectUpdateRetraction       ├─ AuthorizedObjectUpdateRetracted
 ├─ SubscribeIdentityUpdates               ├─ SubscriptionRetracted
 ├─ IdentitySubscriptionRetraction(token)  └─ Rejection
 └─ AuthorizationObservationRetraction(token)
 
 CriomeEvent
 ├─ IdentityUpdate         (on IdentityUpdateStream)
-└─ AuthorizationUpdate    (on AuthorizationObservationStream)
+├─ AuthorizationUpdate    (on AuthorizationObservationStream)
+└─ AuthorizedObjectUpdate (on AuthorizedObjectUpdateStream)
 ```
 
 ### Routed authorization relation
@@ -194,6 +197,13 @@ identity updates: `ObserveAuthorization` opens
 `AuthorizationObservationStream`; `AuthorizationObservationRetraction`
 is the request-side close carrying the stream token; the
 reply-side `AuthorizationObservationRetracted` echoes the token.
+
+Authorized object observation is the reference-only pulse surface:
+`ObserveAuthorizedObjects` opens `AuthorizedObjectUpdateStream`, and each
+`AuthorizedObjectUpdate` carries the authorized object's digest/kind, the
+policy contract digest, the evaluation decision, and the attested moment.
+It never carries inline object payload bytes; components fetch objects by
+digest through the routing/object-distribution layer.
 
 Closed enums only. No `Unknown` variant on the wire; positive
 rejection causes (`UnknownSigner`, `UnknownIdentity`) name specific
