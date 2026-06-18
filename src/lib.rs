@@ -465,17 +465,41 @@ impl AuthorizationObservationSnapshot {
     pub fn from_states(states: Vec<AuthorizationStateRecord>) -> Self {
         Self::new(States::new(states))
     }
+
+    pub fn states(&self) -> &[AuthorizationStateRecord] {
+        self.payload().payload().as_slice()
+    }
+
+    pub fn into_states(self) -> Vec<AuthorizationStateRecord> {
+        self.into_payload().into_payload()
+    }
 }
 
 impl AuthorizedObjectUpdateSnapshot {
     pub fn from_updates(updates: Vec<AuthorizedObjectUpdate>) -> Self {
         Self::new(Updates::new(updates))
     }
+
+    pub fn updates(&self) -> &[AuthorizedObjectUpdate] {
+        self.payload().payload().as_slice()
+    }
+
+    pub fn into_updates(self) -> Vec<AuthorizedObjectUpdate> {
+        self.into_payload().into_payload()
+    }
 }
 
 impl DueContractChecksEvaluated {
     pub fn from_triggered(triggered: Vec<AuthorizedObjectUpdate>) -> Self {
         Self::new(Triggered::new(triggered))
+    }
+
+    pub fn triggered(&self) -> &[AuthorizedObjectUpdate] {
+        self.payload().payload().as_slice()
+    }
+
+    pub fn into_triggered(self) -> Vec<AuthorizedObjectUpdate> {
+        self.into_payload().into_payload()
     }
 }
 
