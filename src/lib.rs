@@ -6,7 +6,7 @@
 //! helpers) plus the criome-named channel type aliases.
 
 #[rustfmt::skip]
-#[allow(clippy::large_enum_variant)]
+#[allow(clippy::large_enum_variant, dead_code, private_interfaces)]
 pub mod schema;
 
 pub use schema::lib::*;
@@ -137,14 +137,14 @@ impl CriomeDaemonConfiguration {
         Self {
             socket_path: DaemonPath::new(socket_path.into()),
             store_path: DaemonPath::new(store_path.into()),
-            cluster_root: None,
+            cluster_root: ClusterRoot::new(None),
         }
     }
 
     /// Set the cluster-root trust anchor (the public key whose signature admits
     /// keys into the registry). Absent by default for dev/virgin bootstrap.
     pub fn with_cluster_root(mut self, cluster_root: BlsPublicKey) -> Self {
-        self.cluster_root = Some(cluster_root);
+        self.cluster_root = ClusterRoot::new(Some(cluster_root));
         self
     }
 
@@ -157,6 +157,255 @@ impl CriomeDaemonConfiguration {
         rkyv::to_bytes::<rkyv::rancor::Error>(self)
             .map(|bytes| bytes.to_vec())
             .map_err(|_| CriomeDaemonConfigurationArchiveError::Encode)
+    }
+}
+
+impl AuthorizationPolicySatisfaction {
+    pub fn new(
+        policy_class: AuthorizationPolicyClass,
+        required_signature_threshold: RequiredSignatureThreshold,
+        satisfied_signers: Vec<Identity>,
+    ) -> Self {
+        Self {
+            policy_class,
+            required_signature_threshold,
+            satisfied_signers: SatisfiedSigners::new(satisfied_signers),
+        }
+    }
+
+    pub fn satisfied_signers(&self) -> &[Identity] {
+        self.satisfied_signers.payload().as_slice()
+    }
+}
+
+impl Threshold {
+    pub fn new(
+        required_signatures: RequiredSignatureThreshold,
+        members: Vec<PolicyMember>,
+    ) -> Self {
+        Self {
+            required_signatures,
+            members: Members::new(members),
+        }
+    }
+}
+
+impl AttestedMomentProposition {
+    pub fn new(
+        window: TimeWindow,
+        required_signatures: RequiredSignatureThreshold,
+        authorities: Vec<Identity>,
+    ) -> Self {
+        Self {
+            window,
+            required_signatures,
+            authorities: Authorities::new(authorities),
+        }
+    }
+}
+
+impl AttestedMoment {
+    pub fn new(
+        proposition: AttestedMomentProposition,
+        time_signatures: Vec<TimeSignature>,
+    ) -> Self {
+        Self {
+            proposition,
+            time_signatures: TimeSignatures::new(time_signatures),
+        }
+    }
+}
+
+impl Evidence {
+    pub fn new(
+        component: ComponentKind,
+        operation: OperationDigest,
+        stamp: AttestedMoment,
+        evidence_signatures: Vec<StampedSignatureEnvelope>,
+        agreements: Vec<AgreementFact>,
+    ) -> Self {
+        Self {
+            component,
+            operation,
+            stamp,
+            evidence_signatures: EvidenceSignatures::new(evidence_signatures),
+            agreements: Agreements::new(agreements),
+        }
+    }
+}
+
+impl Attestation {
+    pub fn new(
+        content: ContentReference,
+        signer: Identity,
+        envelope: SignatureEnvelope,
+        issued_at: TimestampNanos,
+        expires_at: Option<TimestampNanos>,
+        audit_context: AuditContext,
+    ) -> Self {
+        Self {
+            content,
+            signer,
+            envelope,
+            issued_at,
+            attestation_expires_at: AttestationExpiresAt::new(expires_at),
+            audit_context,
+        }
+    }
+}
+
+impl SignalCallAuthorization {
+    pub fn new(
+        request_digest: ObjectDigest,
+        contract: ContractName,
+        operation: ContractOperationHead,
+        scope: AuthorizationScope,
+        requester: Identity,
+        nonce: ReplayNonce,
+        expires_at: Option<TimestampNanos>,
+    ) -> Self {
+        Self {
+            request_digest,
+            contract,
+            operation,
+            scope,
+            requester,
+            nonce,
+            signal_call_expires_at: SignalCallExpiresAt::new(expires_at),
+        }
+    }
+}
+
+impl AuthorizationGrant {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        request_slot: AuthorizationRequestSlot,
+        authorized_object_digest: ObjectDigest,
+        authorized_contract: ContractName,
+        authorized_operation: ContractOperationHead,
+        authorization_scope: AuthorizationScope,
+        policy_satisfaction: AuthorizationPolicySatisfaction,
+        signature_result: SignatureAuthorizationResult,
+        signatures: Vec<StampedSignatureEnvelope>,
+        issued_by: Identity,
+        issued_at: TimestampNanos,
+        expires_at: Option<TimestampNanos>,
+    ) -> Self {
+        Self {
+            request_slot,
+            authorized_object_digest,
+            authorized_contract,
+            authorized_operation,
+            authorization_scope,
+            policy_satisfaction,
+            signature_result,
+            authorization_grant_signatures: AuthorizationGrantSignatures::new(signatures),
+            issued_by,
+            issued_at,
+            authorization_grant_expires_at: AuthorizationGrantExpiresAt::new(expires_at),
+        }
+    }
+}
+
+impl AuthorizationPending {
+    pub fn new(
+        request_slot: AuthorizationRequestSlot,
+        request_digest: ObjectDigest,
+        missing_authorities: Vec<Identity>,
+        observation_token: AuthorizationObservationToken,
+    ) -> Self {
+        Self {
+            request_slot,
+            request_digest,
+            pending_missing_authorities: PendingMissingAuthorities::new(missing_authorities),
+            observation_token,
+        }
+    }
+}
+
+impl AuthorizationStateRecord {
+    pub fn new(
+        request_slot: AuthorizationRequestSlot,
+        request_digest: ObjectDigest,
+        status: AuthorizationStatus,
+        missing_authorities: Vec<Identity>,
+        grant: Option<AuthorizationGrant>,
+        denial: Option<AuthorizationDenial>,
+    ) -> Self {
+        Self {
+            request_slot,
+            request_digest,
+            status,
+            state_missing_authorities: StateMissingAuthorities::new(missing_authorities),
+            grant: Grant::new(grant),
+            denial: Denial::new(denial),
+        }
+    }
+}
+
+impl SignRequest {
+    pub fn new(
+        content: ContentReference,
+        signer: Identity,
+        audit_context: AuditContext,
+        expires_at: Option<TimestampNanos>,
+    ) -> Self {
+        Self {
+            content,
+            signer,
+            audit_context,
+            sign_request_expires_at: SignRequestExpiresAt::new(expires_at),
+        }
+    }
+}
+
+impl IdentityRegistration {
+    pub fn new(
+        identity: Identity,
+        public_key: BlsPublicKey,
+        fingerprint: PublicKeyFingerprint,
+        purpose: KeyPurpose,
+        admission: Option<SignatureEnvelope>,
+    ) -> Self {
+        Self {
+            identity,
+            public_key,
+            fingerprint,
+            purpose,
+            admission: Admission::new(admission),
+        }
+    }
+}
+
+impl VerificationResult {
+    pub fn new(
+        decision: VerificationDecision,
+        identity: Option<Identity>,
+        expires_at: Option<TimestampNanos>,
+    ) -> Self {
+        Self {
+            decision,
+            verified_identity: VerifiedIdentity::new(identity),
+            verification_expires_at: VerificationExpiresAt::new(expires_at),
+        }
+    }
+}
+
+impl IdentitySnapshot {
+    pub fn from_identities(identities: Vec<IdentityReceipt>) -> Self {
+        Self::new(Identities::new(identities))
+    }
+}
+
+impl AuthorizationObservationSnapshot {
+    pub fn from_states(states: Vec<AuthorizationStateRecord>) -> Self {
+        Self::new(States::new(states))
+    }
+}
+
+impl AuthorizedObjectUpdateSnapshot {
+    pub fn from_updates(updates: Vec<AuthorizedObjectUpdate>) -> Self {
+        Self::new(Updates::new(updates))
     }
 }
 

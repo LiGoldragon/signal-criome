@@ -74,14 +74,14 @@ fn stamped_envelope() -> StampedSignatureEnvelope {
 }
 
 fn attestation() -> Attestation {
-    Attestation {
-        content: content_reference(),
-        signer: alice(),
-        envelope: envelope(),
-        issued_at: TimestampNanos::new(100),
-        expires_at: None,
-        audit_context: audit_context(),
-    }
+    Attestation::new(
+        content_reference(),
+        alice(),
+        envelope(),
+        TimestampNanos::new(100),
+        None,
+        audit_context(),
+    )
 }
 
 fn token() -> IdentitySubscriptionToken {
@@ -109,34 +109,34 @@ fn authorization_scope() -> AuthorizationScope {
 }
 
 fn authorization_grant() -> AuthorizationGrant {
-    AuthorizationGrant {
-        request_slot: authorization_request_slot(),
-        authorized_object_digest: ObjectDigest::new("digest-lojix-request"),
-        authorized_contract: contract_name(),
-        authorized_operation: contract_operation_head(),
-        authorization_scope: authorization_scope(),
-        policy_satisfaction: AuthorizationPolicySatisfaction {
-            policy_class: AuthorizationPolicyClass::ComplexQuorum,
-            required_signature_threshold: RequiredSignatureThreshold::new(1),
-            satisfied_signers: vec![Identity::Cluster(PrincipalName::new("uranus"))],
-        },
-        signature_result: SignatureAuthorizationResult::RequiredSignaturesSatisfied,
-        signatures: vec![stamped_envelope()],
-        issued_by: Identity::Cluster(PrincipalName::new("uranus")),
-        issued_at: TimestampNanos::new(110),
-        expires_at: None,
-    }
+    AuthorizationGrant::new(
+        authorization_request_slot(),
+        ObjectDigest::new("digest-lojix-request"),
+        contract_name(),
+        contract_operation_head(),
+        authorization_scope(),
+        AuthorizationPolicySatisfaction::new(
+            AuthorizationPolicyClass::ComplexQuorum,
+            RequiredSignatureThreshold::new(1),
+            vec![Identity::Cluster(PrincipalName::new("uranus"))],
+        ),
+        SignatureAuthorizationResult::RequiredSignaturesSatisfied,
+        vec![stamped_envelope()],
+        Identity::Cluster(PrincipalName::new("uranus")),
+        TimestampNanos::new(110),
+        None,
+    )
 }
 
 fn authorization_state() -> AuthorizationStateRecord {
-    AuthorizationStateRecord {
-        request_slot: authorization_request_slot(),
-        request_digest: ObjectDigest::new("digest-lojix-request"),
-        status: AuthorizationStatus::Pending,
-        missing_authorities: vec![Identity::Developer(PrincipalName::new("reviewer"))],
-        grant: None,
-        denial: None,
-    }
+    AuthorizationStateRecord::new(
+        authorization_request_slot(),
+        ObjectDigest::new("digest-lojix-request"),
+        AuthorizationStatus::Pending,
+        vec![Identity::Developer(PrincipalName::new("reviewer"))],
+        None,
+        None,
+    )
 }
 
 fn signature_solicitation() -> SignatureSolicitation {
@@ -160,40 +160,40 @@ fn operation_digest() -> OperationDigest {
 }
 
 fn attested_moment() -> AttestedMoment {
-    AttestedMoment {
-        proposition: AttestedMomentProposition {
-            window: TimeWindow {
+    AttestedMoment::new(
+        AttestedMomentProposition::new(
+            TimeWindow {
                 opens_at: TimestampNanos::new(10),
                 closes_at: TimestampNanos::new(20),
             },
-            required_signatures: RequiredSignatureThreshold::new(1),
-            authorities: vec![Identity::Developer(PrincipalName::new("timekeeper"))],
-        },
-        signatures: vec![TimeSignature {
+            RequiredSignatureThreshold::new(1),
+            vec![Identity::Developer(PrincipalName::new("timekeeper"))],
+        ),
+        vec![TimeSignature {
             signer: Identity::Developer(PrincipalName::new("timekeeper")),
             envelope: envelope(),
         }],
-    }
+    )
 }
 
 fn policy_contract() -> Contract {
-    Contract::new(Rule::threshold(Threshold {
-        required_signatures: RequiredSignatureThreshold::new(2),
-        members: vec![
+    Contract::new(Rule::threshold(Threshold::new(
+        RequiredSignatureThreshold::new(2),
+        vec![
             PolicyMember::key_member(Identity::Developer(PrincipalName::new("operator"))),
             PolicyMember::key_member(Identity::Developer(PrincipalName::new("reviewer"))),
         ],
-    }))
+    )))
 }
 
 fn evidence() -> Evidence {
-    Evidence {
-        component: ComponentKind::Spirit,
-        operation: operation_digest(),
-        stamp: attested_moment(),
-        signatures: vec![stamped_envelope()],
-        agreements: Vec::new(),
-    }
+    Evidence::new(
+        ComponentKind::Spirit,
+        operation_digest(),
+        attested_moment(),
+        vec![stamped_envelope()],
+        Vec::new(),
+    )
 }
 
 fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
@@ -232,23 +232,23 @@ where
 
 #[test]
 fn canonical_request_examples_round_trip() {
-    round_trip(CriomeRequest::Sign(SignRequest {
-        content: content_reference(),
-        signer: alice(),
-        audit_context: audit_context(),
-        expires_at: None,
-    }));
+    round_trip(CriomeRequest::Sign(SignRequest::new(
+        content_reference(),
+        alice(),
+        audit_context(),
+        None,
+    )));
     round_trip(CriomeRequest::VerifyAttestation(VerifyRequest {
         attestation: attestation(),
         content: content_reference(),
     }));
-    round_trip(CriomeRequest::RegisterIdentity(IdentityRegistration {
-        identity: alice(),
-        public_key: BlsPublicKey::new("public-key-1"),
-        fingerprint: PublicKeyFingerprint::new("fingerprint-1"),
-        purpose: KeyPurpose::PersonaRequest,
-        admission: None,
-    }));
+    round_trip(CriomeRequest::RegisterIdentity(IdentityRegistration::new(
+        alice(),
+        BlsPublicKey::new("public-key-1"),
+        PublicKeyFingerprint::new("fingerprint-1"),
+        KeyPurpose::PersonaRequest,
+        None,
+    )));
     round_trip(CriomeRequest::RevokeIdentity(IdentityRevocation {
         identity: alice(),
         fingerprint: PublicKeyFingerprint::new("fingerprint-1"),
@@ -301,15 +301,15 @@ fn canonical_request_examples_round_trip() {
         },
     ));
     round_trip(CriomeRequest::AuthorizeSignalCall(
-        SignalCallAuthorization {
-            request_digest: ObjectDigest::new("digest-lojix-request"),
-            contract: contract_name(),
-            operation: contract_operation_head(),
-            scope: authorization_scope(),
-            requester: alice(),
-            nonce: ReplayNonce::new("authorization-nonce-1"),
-            expires_at: None,
-        },
+        SignalCallAuthorization::new(
+            ObjectDigest::new("digest-lojix-request"),
+            contract_name(),
+            contract_operation_head(),
+            authorization_scope(),
+            alice(),
+            ReplayNonce::new("authorization-nonce-1"),
+            None,
+        ),
     ));
     round_trip(CriomeRequest::ObserveAuthorization(
         AuthorizationObservation::new(authorization_request_slot()),
@@ -368,30 +368,32 @@ fn canonical_reply_examples_round_trip() {
         attestation: attestation(),
         issued_at: TimestampNanos::new(100),
     }));
-    round_trip(CriomeReply::VerificationResult(VerificationResult {
-        decision: VerificationDecision::Valid,
-        identity: Some(alice()),
-        expires_at: None,
-    }));
+    round_trip(CriomeReply::VerificationResult(VerificationResult::new(
+        VerificationDecision::Valid,
+        Some(alice()),
+        None,
+    )));
     round_trip(CriomeReply::IdentityReceipt(IdentityReceipt {
         identity: alice(),
         status: PrincipalStatus::Active,
     }));
-    round_trip(CriomeReply::IdentitySnapshot(IdentitySnapshot::new(vec![
-        IdentityReceipt {
+    round_trip(CriomeReply::IdentitySnapshot(
+        IdentitySnapshot::from_identities(vec![IdentityReceipt {
             identity: alice(),
             status: PrincipalStatus::Active,
-        },
-    ])));
+        }]),
+    ));
     round_trip(CriomeReply::AttestationReceipt(AttestationReceipt::new(
         attestation(),
     )));
-    round_trip(CriomeReply::AuthorizationPending(AuthorizationPending {
-        request_slot: authorization_request_slot(),
-        request_digest: ObjectDigest::new("digest-lojix-request"),
-        missing_authorities: vec![Identity::Developer(PrincipalName::new("reviewer"))],
-        observation_token: authorization_observation_token(),
-    }));
+    round_trip(CriomeReply::AuthorizationPending(
+        AuthorizationPending::new(
+            authorization_request_slot(),
+            ObjectDigest::new("digest-lojix-request"),
+            vec![Identity::Developer(PrincipalName::new("reviewer"))],
+            authorization_observation_token(),
+        ),
+    ));
     round_trip(CriomeReply::AuthorizationGranted(authorization_grant()));
     round_trip(CriomeReply::AuthorizationDenied(AuthorizationDenied {
         request_slot: authorization_request_slot(),
@@ -411,7 +413,7 @@ fn canonical_reply_examples_round_trip() {
         },
     ));
     round_trip(CriomeReply::AuthorizationObservationSnapshot(
-        AuthorizationObservationSnapshot::new(vec![authorization_state()]),
+        AuthorizationObservationSnapshot::from_states(vec![authorization_state()]),
     ));
     round_trip(CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
         request_slot: authorization_request_slot(),
@@ -448,7 +450,7 @@ fn canonical_reply_examples_round_trip() {
         },
     ));
     round_trip(CriomeReply::AuthorizedObjectUpdateSnapshot(
-        AuthorizedObjectUpdateSnapshot::new(vec![authorized_object_update()]),
+        AuthorizedObjectUpdateSnapshot::from_updates(vec![authorized_object_update()]),
     ));
     round_trip(CriomeReply::AuthorizedObjectUpdateRetracted(
         AuthorizedObjectUpdateRetracted::new(authorized_object_update_token()),

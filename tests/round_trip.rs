@@ -85,14 +85,14 @@ fn stamped_envelope() -> StampedSignatureEnvelope {
 }
 
 fn attestation(purpose: ContentPurpose) -> Attestation {
-    Attestation {
-        content: content(purpose),
-        signer: developer("operator"),
-        envelope: envelope(),
-        issued_at: TimestampNanos::new(1),
-        expires_at: Some(TimestampNanos::new(2)),
-        audit_context: audit(purpose),
-    }
+    Attestation::new(
+        content(purpose),
+        developer("operator"),
+        envelope(),
+        TimestampNanos::new(1),
+        Some(TimestampNanos::new(2)),
+        audit(purpose),
+    )
 }
 
 fn authorization_request_slot() -> AuthorizationRequestSlot {
@@ -112,15 +112,15 @@ fn contract_operation_head() -> ContractOperationHead {
 }
 
 fn signal_call_authorization() -> SignalCallAuthorization {
-    SignalCallAuthorization {
-        request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
-        contract: contract_name(),
-        operation: contract_operation_head(),
-        scope: authorization_scope(),
-        requester: developer("operator"),
-        nonce: ReplayNonce::new("authorization-nonce-1"),
-        expires_at: Some(TimestampNanos::new(10)),
-    }
+    SignalCallAuthorization::new(
+        ObjectDigest::from_bytes(b"signal-lojix request"),
+        contract_name(),
+        contract_operation_head(),
+        authorization_scope(),
+        developer("operator"),
+        ReplayNonce::new("authorization-nonce-1"),
+        Some(TimestampNanos::new(10)),
+    )
 }
 
 fn authorization_observation_token() -> AuthorizationObservationToken {
@@ -128,37 +128,37 @@ fn authorization_observation_token() -> AuthorizationObservationToken {
 }
 
 fn authorization_grant() -> AuthorizationGrant {
-    AuthorizationGrant {
-        request_slot: authorization_request_slot(),
-        authorized_object_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
-        authorized_contract: contract_name(),
-        authorized_operation: contract_operation_head(),
-        authorization_scope: authorization_scope(),
-        policy_satisfaction: AuthorizationPolicySatisfaction {
-            policy_class: AuthorizationPolicyClass::ComplexQuorum,
-            required_signature_threshold: RequiredSignatureThreshold::new(1),
-            satisfied_signers: vec![cluster("uranus")],
-        },
-        signature_result: SignatureAuthorizationResult::RequiredSignaturesSatisfied,
-        signatures: vec![stamped_envelope()],
-        issued_by: cluster("uranus"),
-        issued_at: TimestampNanos::new(11),
-        expires_at: Some(TimestampNanos::new(12)),
-    }
+    AuthorizationGrant::new(
+        authorization_request_slot(),
+        ObjectDigest::from_bytes(b"signal-lojix request"),
+        contract_name(),
+        contract_operation_head(),
+        authorization_scope(),
+        AuthorizationPolicySatisfaction::new(
+            AuthorizationPolicyClass::ComplexQuorum,
+            RequiredSignatureThreshold::new(1),
+            vec![cluster("uranus")],
+        ),
+        SignatureAuthorizationResult::RequiredSignaturesSatisfied,
+        vec![stamped_envelope()],
+        cluster("uranus"),
+        TimestampNanos::new(11),
+        Some(TimestampNanos::new(12)),
+    )
 }
 
 fn authorization_state(status: AuthorizationStatus) -> AuthorizationStateRecord {
-    AuthorizationStateRecord {
-        request_slot: authorization_request_slot(),
-        request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
+    AuthorizationStateRecord::new(
+        authorization_request_slot(),
+        ObjectDigest::from_bytes(b"signal-lojix request"),
         status,
-        missing_authorities: vec![developer("reviewer")],
-        grant: (status == AuthorizationStatus::Granted).then(authorization_grant),
-        denial: (status == AuthorizationStatus::Denied).then_some(AuthorizationDenial {
+        vec![developer("reviewer")],
+        (status == AuthorizationStatus::Granted).then(authorization_grant),
+        (status == AuthorizationStatus::Denied).then_some(AuthorizationDenial {
             source: AuthorizationDenialSource::Signers,
             reason: AuthorizationDenialReason::SignatureRejected,
         }),
-    }
+    )
 }
 
 fn signature_solicitation() -> SignatureSolicitation {
@@ -182,40 +182,40 @@ fn operation_digest() -> OperationDigest {
 }
 
 fn attested_moment() -> AttestedMoment {
-    AttestedMoment {
-        proposition: AttestedMomentProposition {
-            window: TimeWindow {
+    AttestedMoment::new(
+        AttestedMomentProposition::new(
+            TimeWindow {
                 opens_at: TimestampNanos::new(10),
                 closes_at: TimestampNanos::new(20),
             },
-            required_signatures: RequiredSignatureThreshold::new(1),
-            authorities: vec![developer("timekeeper")],
-        },
-        signatures: vec![TimeSignature {
+            RequiredSignatureThreshold::new(1),
+            vec![developer("timekeeper")],
+        ),
+        vec![TimeSignature {
             signer: developer("timekeeper"),
             envelope: envelope(),
         }],
-    }
+    )
 }
 
 fn policy_contract() -> Contract {
-    Contract::new(Rule::threshold(Threshold {
-        required_signatures: RequiredSignatureThreshold::new(2),
-        members: vec![
+    Contract::new(Rule::threshold(Threshold::new(
+        RequiredSignatureThreshold::new(2),
+        vec![
             PolicyMember::key_member(developer("operator")),
             PolicyMember::key_member(developer("reviewer")),
         ],
-    }))
+    )))
 }
 
 fn evidence() -> Evidence {
-    Evidence {
-        component: ComponentKind::Spirit,
-        operation: operation_digest(),
-        stamp: attested_moment(),
-        signatures: vec![stamped_envelope()],
-        agreements: Vec::new(),
-    }
+    Evidence::new(
+        ComponentKind::Spirit,
+        operation_digest(),
+        attested_moment(),
+        vec![stamped_envelope()],
+        Vec::new(),
+    )
 }
 
 fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
@@ -317,23 +317,23 @@ where
 #[test]
 fn request_variants_round_trip_through_length_prefixed_frame() {
     let requests = vec![
-        CriomeRequest::Sign(SignRequest {
-            content: content(ContentPurpose::SignedObject),
-            signer: developer("operator"),
-            audit_context: audit(ContentPurpose::SignedObject),
-            expires_at: None,
-        }),
+        CriomeRequest::Sign(SignRequest::new(
+            content(ContentPurpose::SignedObject),
+            developer("operator"),
+            audit(ContentPurpose::SignedObject),
+            None,
+        )),
         CriomeRequest::VerifyAttestation(VerifyRequest {
             attestation: attestation(ContentPurpose::SignedObject),
             content: content(ContentPurpose::SignedObject),
         }),
-        CriomeRequest::RegisterIdentity(IdentityRegistration {
-            identity: persona("designer"),
-            public_key: BlsPublicKey::new("designer-public-key"),
-            fingerprint: PublicKeyFingerprint::new("fingerprint-designer"),
-            purpose: KeyPurpose::PersonaRequest,
-            admission: None,
-        }),
+        CriomeRequest::RegisterIdentity(IdentityRegistration::new(
+            persona("designer"),
+            BlsPublicKey::new("designer-public-key"),
+            PublicKeyFingerprint::new("fingerprint-designer"),
+            KeyPurpose::PersonaRequest,
+            None,
+        )),
         CriomeRequest::RevokeIdentity(IdentityRevocation {
             identity: persona("designer"),
             fingerprint: PublicKeyFingerprint::new("fingerprint-designer"),
@@ -447,22 +447,22 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
             attestation: attestation(ContentPurpose::SignedObject),
             issued_at: TimestampNanos::new(1),
         }),
-        CriomeReply::VerificationResult(VerificationResult {
-            decision: VerificationDecision::Valid,
-            identity: Some(developer("operator")),
-            expires_at: Some(TimestampNanos::new(2)),
-        }),
+        CriomeReply::VerificationResult(VerificationResult::new(
+            VerificationDecision::Valid,
+            Some(developer("operator")),
+            Some(TimestampNanos::new(2)),
+        )),
         CriomeReply::IdentityReceipt(receipt.clone()),
-        CriomeReply::IdentitySnapshot(IdentitySnapshot::new(vec![receipt.clone()])),
+        CriomeReply::IdentitySnapshot(IdentitySnapshot::from_identities(vec![receipt.clone()])),
         CriomeReply::AttestationReceipt(AttestationReceipt::new(attestation(
             ContentPurpose::Archive,
         ))),
-        CriomeReply::AuthorizationPending(AuthorizationPending {
-            request_slot: authorization_request_slot(),
-            request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
-            missing_authorities: vec![developer("reviewer")],
-            observation_token: authorization_observation_token(),
-        }),
+        CriomeReply::AuthorizationPending(AuthorizationPending::new(
+            authorization_request_slot(),
+            ObjectDigest::from_bytes(b"signal-lojix request"),
+            vec![developer("reviewer")],
+            authorization_observation_token(),
+        )),
         CriomeReply::AuthorizationGranted(authorization_grant()),
         CriomeReply::AuthorizationDenied(AuthorizationDenied {
             request_slot: authorization_request_slot(),
@@ -479,9 +479,11 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
             request_slot: authorization_request_slot(),
             reason: PrincipalName::new("criome-peer-unreachable"),
         }),
-        CriomeReply::AuthorizationObservationSnapshot(AuthorizationObservationSnapshot::new(vec![
-            authorization_state(AuthorizationStatus::Pending),
-        ])),
+        CriomeReply::AuthorizationObservationSnapshot(
+            AuthorizationObservationSnapshot::from_states(vec![authorization_state(
+                AuthorizationStatus::Pending,
+            )]),
+        ),
         CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
             request_slot: authorization_request_slot(),
             routed_to: host("balboa"),
@@ -508,9 +510,9 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
                 },
             )),
         }),
-        CriomeReply::AuthorizedObjectUpdateSnapshot(AuthorizedObjectUpdateSnapshot::new(vec![
-            authorized_object_update(),
-        ])),
+        CriomeReply::AuthorizedObjectUpdateSnapshot(AuthorizedObjectUpdateSnapshot::from_updates(
+            vec![authorized_object_update()],
+        )),
         CriomeReply::AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateRetracted::new(
             authorized_object_update_token(),
         )),
@@ -569,8 +571,8 @@ fn authorization_grant_carries_satisfied_policy_threshold() {
         1,
     );
     assert_eq!(
-        grant.policy_satisfaction.satisfied_signers,
-        vec![cluster("uranus")],
+        grant.policy_satisfaction.satisfied_signers(),
+        &[cluster("uranus")],
     );
 }
 
@@ -579,9 +581,9 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
     let source = std::fs::read_to_string("schema/lib.schema").expect("read schema");
 
     for required in [
-        "signature StampedSignatureEnvelope",
-        "signatures (Vector StampedSignatureEnvelope)",
-        "signatures (Vec StampedSignatureEnvelope)",
+        "signature.StampedSignatureEnvelope",
+        "(EvidenceSignatures (Vector StampedSignatureEnvelope))",
+        "(AuthorizationGrantSignatures (Vec StampedSignatureEnvelope))",
     ] {
         assert!(
             source.contains(required),
@@ -590,7 +592,7 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
     }
     assert!(
         source
-            .contains("TimeSignature {\n    signer Identity\n    envelope SignatureEnvelope\n  }"),
+            .contains("TimeSignature {\n    signer.Identity\n    envelope.SignatureEnvelope\n  }"),
         "time signatures must stay bare because they create AttestedMoment"
     );
 }
@@ -599,11 +601,11 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
 fn authorized_object_update_carries_references_not_payloads() {
     let source = std::fs::read_to_string("schema/lib.schema").expect("read schema");
 
-    assert!(source.contains("AuthorizedObjectReference {\n    component ComponentKind"));
-    assert!(source.contains("    digest ObjectDigest"));
-    assert!(source.contains("AuthorizedObjectUpdate {\n    object AuthorizedObjectReference"));
-    assert!(source.contains("    contract ContractDigest"));
-    assert!(source.contains("    stamp AttestedMoment"));
+    assert!(source.contains("AuthorizedObjectReference {\n    component.ComponentKind"));
+    assert!(source.contains("    digest.ObjectDigest"));
+    assert!(source.contains("AuthorizedObjectUpdate {\n    object.AuthorizedObjectReference"));
+    assert!(source.contains("    contract.ContractDigest"));
+    assert!(source.contains("    stamp.AttestedMoment"));
     assert!(
         !source.contains("AuthorizedObjectUpdate {\n    object Contract"),
         "authorized object pulse must not carry inline contract payloads"
@@ -649,11 +651,11 @@ fn root_request_round_trips_through_nota_text() {
 #[test]
 fn root_reply_round_trips_through_nota_text() {
     round_trip_nota(
-        CriomeReply::VerificationResult(VerificationResult {
-            decision: VerificationDecision::UnknownSigner,
-            identity: None,
-            expires_at: None,
-        }),
+        CriomeReply::VerificationResult(VerificationResult::new(
+            VerificationDecision::UnknownSigner,
+            None,
+            None,
+        )),
         "(VerificationResult (UnknownSigner None None))",
     );
 }

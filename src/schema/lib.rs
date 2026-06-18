@@ -363,11 +363,21 @@ pub enum Identity {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ClusterRoot(Option<BlsPublicKey>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CriomeDaemonConfiguration {
     pub socket_path: DaemonPath,
     pub store_path: DaemonPath,
-    pub cluster_root: Option<BlsPublicKey>,
+    pub(crate) cluster_root: ClusterRoot,
 }
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct SatisfiedSigners(Vec<Identity>);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -375,7 +385,7 @@ pub struct CriomeDaemonConfiguration {
 pub struct AuthorizationPolicySatisfaction {
     pub policy_class: AuthorizationPolicyClass,
     pub required_signature_threshold: RequiredSignatureThreshold,
-    pub satisfied_signers: Vec<Identity>,
+    pub(crate) satisfied_signers: SatisfiedSigners,
 }
 
 #[rustfmt::skip]
@@ -409,9 +419,14 @@ pub enum PolicyMember {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Members(Vec<PolicyMember>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Threshold {
     pub required_signatures: RequiredSignatureThreshold,
-    pub members: Vec<PolicyMember>,
+    pub(crate) members: Members,
 }
 
 #[rustfmt::skip]
@@ -461,10 +476,15 @@ pub struct TimeWindow {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Authorities(Vec<Identity>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AttestedMomentProposition {
     pub window: TimeWindow,
     pub required_signatures: RequiredSignatureThreshold,
-    pub authorities: Vec<Identity>,
+    pub(crate) authorities: Authorities,
 }
 
 #[rustfmt::skip]
@@ -478,10 +498,25 @@ pub struct TimeSignature {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct TimeSignatures(Vec<TimeSignature>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AttestedMoment {
     pub proposition: AttestedMomentProposition,
-    pub signatures: Vec<TimeSignature>,
+    pub(crate) time_signatures: TimeSignatures,
 }
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct EvidenceSignatures(Vec<StampedSignatureEnvelope>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Agreements(Vec<AgreementFact>);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -490,8 +525,8 @@ pub struct Evidence {
     pub component: ComponentKind,
     pub operation: OperationDigest,
     pub stamp: AttestedMoment,
-    pub signatures: Vec<StampedSignatureEnvelope>,
-    pub agreements: Vec<AgreementFact>,
+    pub(crate) evidence_signatures: EvidenceSignatures,
+    pub(crate) agreements: Agreements,
 }
 
 #[rustfmt::skip]
@@ -636,7 +671,12 @@ pub struct AuthorizedObjectUpdate {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizedObjectUpdateSnapshot(Vec<AuthorizedObjectUpdate>);
+pub(crate) struct Updates(Vec<AuthorizedObjectUpdate>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizedObjectUpdateSnapshot(Updates);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -661,7 +701,12 @@ pub struct ContractTimeCheckScheduled(ContractTimeCheck);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct DueContractChecksEvaluated(Vec<AuthorizedObjectUpdate>);
+pub(crate) struct Triggered(Vec<AuthorizedObjectUpdate>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct DueContractChecksEvaluated(Triggered);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -710,12 +755,17 @@ pub struct StampedSignatureEnvelope {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct AttestationExpiresAt(Option<TimestampNanos>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Attestation {
     pub content: ContentReference,
     pub signer: Identity,
     pub envelope: SignatureEnvelope,
     pub issued_at: TimestampNanos,
-    pub expires_at: Option<TimestampNanos>,
+    pub(crate) attestation_expires_at: AttestationExpiresAt,
     pub audit_context: AuditContext,
 }
 
@@ -731,11 +781,16 @@ pub struct SignedObject {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct DelegationExpiresAt(Option<TimestampNanos>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct DelegationGrant {
     pub issuer: Identity,
     pub subject: Identity,
     pub scope: ContentPurpose,
-    pub expires_at: Option<TimestampNanos>,
+    pub(crate) delegation_expires_at: DelegationExpiresAt,
 }
 
 #[rustfmt::skip]
@@ -750,12 +805,22 @@ pub struct ComponentRelease {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Delegation(Option<DelegationGrant>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignedPersonaRequest {
     pub audience: Identity,
     pub content: ContentReference,
-    pub delegation: Option<DelegationGrant>,
+    pub(crate) delegation: Delegation,
     pub envelope: SignatureEnvelope,
 }
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct SignalCallExpiresAt(Option<TimestampNanos>);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -767,7 +832,7 @@ pub struct SignalCallAuthorization {
     pub scope: AuthorizationScope,
     pub requester: Identity,
     pub nonce: ReplayNonce,
-    pub expires_at: Option<TimestampNanos>,
+    pub(crate) signal_call_expires_at: SignalCallExpiresAt,
 }
 
 #[rustfmt::skip]
@@ -825,6 +890,16 @@ pub struct AuthorizationRejection {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct AuthorizationGrantSignatures(Vec<StampedSignatureEnvelope>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct AuthorizationGrantExpiresAt(Option<TimestampNanos>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationGrant {
     pub request_slot: AuthorizationRequestSlot,
     pub authorized_object_digest: ObjectDigest,
@@ -833,10 +908,10 @@ pub struct AuthorizationGrant {
     pub authorization_scope: AuthorizationScope,
     pub policy_satisfaction: AuthorizationPolicySatisfaction,
     pub signature_result: SignatureAuthorizationResult,
-    pub signatures: Vec<StampedSignatureEnvelope>,
+    pub(crate) authorization_grant_signatures: AuthorizationGrantSignatures,
     pub issued_by: Identity,
     pub issued_at: TimestampNanos,
-    pub expires_at: Option<TimestampNanos>,
+    pub(crate) authorization_grant_expires_at: AuthorizationGrantExpiresAt,
 }
 
 #[rustfmt::skip]
@@ -847,10 +922,15 @@ pub struct AuthorizationObservationToken(AuthorizationRequestSlot);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct PendingMissingAuthorities(Vec<Identity>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationPending {
     pub request_slot: AuthorizationRequestSlot,
     pub request_digest: ObjectDigest,
-    pub missing_authorities: Vec<Identity>,
+    pub(crate) pending_missing_authorities: PendingMissingAuthorities,
     pub observation_token: AuthorizationObservationToken,
 }
 
@@ -881,19 +961,39 @@ pub struct AuthorizationUnavailable {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct StateMissingAuthorities(Vec<Identity>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Grant(Option<AuthorizationGrant>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Denial(Option<AuthorizationDenial>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationStateRecord {
     pub request_slot: AuthorizationRequestSlot,
     pub request_digest: ObjectDigest,
     pub status: AuthorizationStatus,
-    pub missing_authorities: Vec<Identity>,
-    pub grant: Option<AuthorizationGrant>,
-    pub denial: Option<AuthorizationDenial>,
+    pub(crate) state_missing_authorities: StateMissingAuthorities,
+    pub(crate) grant: Grant,
+    pub(crate) denial: Denial,
 }
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizationObservationSnapshot(Vec<AuthorizationStateRecord>);
+pub(crate) struct States(Vec<AuthorizationStateRecord>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizationObservationSnapshot(States);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -924,11 +1024,16 @@ pub struct AuthorizationUpdate(AuthorizationStateRecord);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct SignRequestExpiresAt(Option<TimestampNanos>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignRequest {
     pub content: ContentReference,
     pub signer: Identity,
     pub audit_context: AuditContext,
-    pub expires_at: Option<TimestampNanos>,
+    pub(crate) sign_request_expires_at: SignRequestExpiresAt,
 }
 
 #[rustfmt::skip]
@@ -942,12 +1047,17 @@ pub struct VerifyRequest {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Admission(Option<SignatureEnvelope>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentityRegistration {
     pub identity: Identity,
     pub public_key: BlsPublicKey,
     pub fingerprint: PublicKeyFingerprint,
     pub purpose: KeyPurpose,
-    pub admission: Option<SignatureEnvelope>,
+    pub(crate) admission: Admission,
 }
 
 #[rustfmt::skip]
@@ -1011,10 +1121,20 @@ pub struct SignReceipt {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct VerifiedIdentity(Option<Identity>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct VerificationExpiresAt(Option<TimestampNanos>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct VerificationResult {
     pub decision: VerificationDecision,
-    pub identity: Option<Identity>,
-    pub expires_at: Option<TimestampNanos>,
+    pub(crate) verified_identity: VerifiedIdentity,
+    pub(crate) verification_expires_at: VerificationExpiresAt,
 }
 
 #[rustfmt::skip]
@@ -1028,7 +1148,12 @@ pub struct IdentityReceipt {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct IdentitySnapshot(Vec<IdentityReceipt>);
+pub(crate) struct Identities(Vec<IdentityReceipt>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct IdentitySnapshot(Identities);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -1696,6 +1821,44 @@ impl PartialOrd<u64> for RequiredSignatureThreshold {
 }
 
 #[rustfmt::skip]
+impl ClusterRoot {
+    pub fn new(payload: Option<BlsPublicKey>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<BlsPublicKey> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<BlsPublicKey> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<BlsPublicKey>> for ClusterRoot {
+    fn from(payload: Option<BlsPublicKey>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl SatisfiedSigners {
+    pub fn new(payload: Vec<Identity>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<Identity> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<Identity> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<Identity>> for SatisfiedSigners {
+    fn from(payload: Vec<Identity>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl Contract {
     pub fn new(payload: Rule) -> Self {
         Self(payload)
@@ -1710,6 +1873,101 @@ impl Contract {
 #[rustfmt::skip]
 impl From<Rule> for Contract {
     fn from(payload: Rule) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Members {
+    pub fn new(payload: Vec<PolicyMember>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<PolicyMember> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<PolicyMember> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<PolicyMember>> for Members {
+    fn from(payload: Vec<PolicyMember>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Authorities {
+    pub fn new(payload: Vec<Identity>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<Identity> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<Identity> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<Identity>> for Authorities {
+    fn from(payload: Vec<Identity>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl TimeSignatures {
+    pub fn new(payload: Vec<TimeSignature>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<TimeSignature> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<TimeSignature> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<TimeSignature>> for TimeSignatures {
+    fn from(payload: Vec<TimeSignature>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl EvidenceSignatures {
+    pub fn new(payload: Vec<StampedSignatureEnvelope>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<StampedSignatureEnvelope> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<StampedSignatureEnvelope> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<StampedSignatureEnvelope>> for EvidenceSignatures {
+    fn from(payload: Vec<StampedSignatureEnvelope>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Agreements {
+    pub fn new(payload: Vec<AgreementFact>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<AgreementFact> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<AgreementFact> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<AgreementFact>> for Agreements {
+    fn from(payload: Vec<AgreementFact>) -> Self {
         Self::new(payload)
     }
 }
@@ -1772,7 +2030,7 @@ impl From<ContractAdmissionRejectionReason> for ContractAdmissionRejected {
 }
 
 #[rustfmt::skip]
-impl AuthorizedObjectUpdateSnapshot {
+impl Updates {
     pub fn new(payload: Vec<AuthorizedObjectUpdate>) -> Self {
         Self(payload)
     }
@@ -1784,8 +2042,27 @@ impl AuthorizedObjectUpdateSnapshot {
     }
 }
 #[rustfmt::skip]
-impl From<Vec<AuthorizedObjectUpdate>> for AuthorizedObjectUpdateSnapshot {
+impl From<Vec<AuthorizedObjectUpdate>> for Updates {
     fn from(payload: Vec<AuthorizedObjectUpdate>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl AuthorizedObjectUpdateSnapshot {
+    pub fn new(payload: Updates) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Updates {
+        &self.0
+    }
+    pub fn into_payload(self) -> Updates {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Updates> for AuthorizedObjectUpdateSnapshot {
+    fn from(payload: Updates) -> Self {
         Self::new(payload)
     }
 }
@@ -1829,7 +2106,7 @@ impl From<ContractTimeCheck> for ContractTimeCheckScheduled {
 }
 
 #[rustfmt::skip]
-impl DueContractChecksEvaluated {
+impl Triggered {
     pub fn new(payload: Vec<AuthorizedObjectUpdate>) -> Self {
         Self(payload)
     }
@@ -1841,8 +2118,103 @@ impl DueContractChecksEvaluated {
     }
 }
 #[rustfmt::skip]
-impl From<Vec<AuthorizedObjectUpdate>> for DueContractChecksEvaluated {
+impl From<Vec<AuthorizedObjectUpdate>> for Triggered {
     fn from(payload: Vec<AuthorizedObjectUpdate>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl DueContractChecksEvaluated {
+    pub fn new(payload: Triggered) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Triggered {
+        &self.0
+    }
+    pub fn into_payload(self) -> Triggered {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Triggered> for DueContractChecksEvaluated {
+    fn from(payload: Triggered) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl AttestationExpiresAt {
+    pub fn new(payload: Option<TimestampNanos>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<TimestampNanos> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<TimestampNanos> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<TimestampNanos>> for AttestationExpiresAt {
+    fn from(payload: Option<TimestampNanos>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl DelegationExpiresAt {
+    pub fn new(payload: Option<TimestampNanos>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<TimestampNanos> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<TimestampNanos> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<TimestampNanos>> for DelegationExpiresAt {
+    fn from(payload: Option<TimestampNanos>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Delegation {
+    pub fn new(payload: Option<DelegationGrant>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<DelegationGrant> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<DelegationGrant> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<DelegationGrant>> for Delegation {
+    fn from(payload: Option<DelegationGrant>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl SignalCallExpiresAt {
+    pub fn new(payload: Option<TimestampNanos>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<TimestampNanos> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<TimestampNanos> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<TimestampNanos>> for SignalCallExpiresAt {
+    fn from(payload: Option<TimestampNanos>) -> Self {
         Self::new(payload)
     }
 }
@@ -1867,6 +2239,44 @@ impl From<AuthorizationRequestSlot> for AuthorizationObservation {
 }
 
 #[rustfmt::skip]
+impl AuthorizationGrantSignatures {
+    pub fn new(payload: Vec<StampedSignatureEnvelope>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<StampedSignatureEnvelope> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<StampedSignatureEnvelope> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<StampedSignatureEnvelope>> for AuthorizationGrantSignatures {
+    fn from(payload: Vec<StampedSignatureEnvelope>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl AuthorizationGrantExpiresAt {
+    pub fn new(payload: Option<TimestampNanos>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<TimestampNanos> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<TimestampNanos> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<TimestampNanos>> for AuthorizationGrantExpiresAt {
+    fn from(payload: Option<TimestampNanos>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl AuthorizationObservationToken {
     pub fn new(payload: AuthorizationRequestSlot) -> Self {
         Self(payload)
@@ -1886,7 +2296,83 @@ impl From<AuthorizationRequestSlot> for AuthorizationObservationToken {
 }
 
 #[rustfmt::skip]
-impl AuthorizationObservationSnapshot {
+impl PendingMissingAuthorities {
+    pub fn new(payload: Vec<Identity>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<Identity> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<Identity> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<Identity>> for PendingMissingAuthorities {
+    fn from(payload: Vec<Identity>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl StateMissingAuthorities {
+    pub fn new(payload: Vec<Identity>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<Identity> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<Identity> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<Identity>> for StateMissingAuthorities {
+    fn from(payload: Vec<Identity>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Grant {
+    pub fn new(payload: Option<AuthorizationGrant>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<AuthorizationGrant> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<AuthorizationGrant> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<AuthorizationGrant>> for Grant {
+    fn from(payload: Option<AuthorizationGrant>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Denial {
+    pub fn new(payload: Option<AuthorizationDenial>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<AuthorizationDenial> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<AuthorizationDenial> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<AuthorizationDenial>> for Denial {
+    fn from(payload: Option<AuthorizationDenial>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl States {
     pub fn new(payload: Vec<AuthorizationStateRecord>) -> Self {
         Self(payload)
     }
@@ -1898,8 +2384,27 @@ impl AuthorizationObservationSnapshot {
     }
 }
 #[rustfmt::skip]
-impl From<Vec<AuthorizationStateRecord>> for AuthorizationObservationSnapshot {
+impl From<Vec<AuthorizationStateRecord>> for States {
     fn from(payload: Vec<AuthorizationStateRecord>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl AuthorizationObservationSnapshot {
+    pub fn new(payload: States) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &States {
+        &self.0
+    }
+    pub fn into_payload(self) -> States {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<States> for AuthorizationObservationSnapshot {
+    fn from(payload: States) -> Self {
         Self::new(payload)
     }
 }
@@ -1938,6 +2443,44 @@ impl AuthorizationUpdate {
 #[rustfmt::skip]
 impl From<AuthorizationStateRecord> for AuthorizationUpdate {
     fn from(payload: AuthorizationStateRecord) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl SignRequestExpiresAt {
+    pub fn new(payload: Option<TimestampNanos>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<TimestampNanos> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<TimestampNanos> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<TimestampNanos>> for SignRequestExpiresAt {
+    fn from(payload: Option<TimestampNanos>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Admission {
+    pub fn new(payload: Option<SignatureEnvelope>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<SignatureEnvelope> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<SignatureEnvelope> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<SignatureEnvelope>> for Admission {
+    fn from(payload: Option<SignatureEnvelope>) -> Self {
         Self::new(payload)
     }
 }
@@ -2000,7 +2543,45 @@ impl From<Identity> for IdentitySubscriptionToken {
 }
 
 #[rustfmt::skip]
-impl IdentitySnapshot {
+impl VerifiedIdentity {
+    pub fn new(payload: Option<Identity>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<Identity> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<Identity> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<Identity>> for VerifiedIdentity {
+    fn from(payload: Option<Identity>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl VerificationExpiresAt {
+    pub fn new(payload: Option<TimestampNanos>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<TimestampNanos> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<TimestampNanos> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<TimestampNanos>> for VerificationExpiresAt {
+    fn from(payload: Option<TimestampNanos>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Identities {
     pub fn new(payload: Vec<IdentityReceipt>) -> Self {
         Self(payload)
     }
@@ -2012,8 +2593,27 @@ impl IdentitySnapshot {
     }
 }
 #[rustfmt::skip]
-impl From<Vec<IdentityReceipt>> for IdentitySnapshot {
+impl From<Vec<IdentityReceipt>> for Identities {
     fn from(payload: Vec<IdentityReceipt>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl IdentitySnapshot {
+    pub fn new(payload: Identities) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Identities {
+        &self.0
+    }
+    pub fn into_payload(self) -> Identities {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Identities> for IdentitySnapshot {
+    fn from(payload: Identities) -> Self {
         Self::new(payload)
     }
 }
@@ -2294,7 +2894,7 @@ impl Output {
     pub fn identity_receipt(payload: IdentityReceipt) -> Self {
         Self::IdentityReceipt(payload)
     }
-    pub fn identity_snapshot(payload: Vec<IdentityReceipt>) -> Self {
+    pub fn identity_snapshot(payload: Identities) -> Self {
         Self::IdentitySnapshot(IdentitySnapshot::new(payload))
     }
     pub fn attestation_receipt(payload: Attestation) -> Self {
@@ -2315,9 +2915,7 @@ impl Output {
     pub fn authorization_unavailable(payload: AuthorizationUnavailable) -> Self {
         Self::AuthorizationUnavailable(payload)
     }
-    pub fn authorization_observation_snapshot(
-        payload: Vec<AuthorizationStateRecord>,
-    ) -> Self {
+    pub fn authorization_observation_snapshot(payload: States) -> Self {
         Self::AuthorizationObservationSnapshot(
             AuthorizationObservationSnapshot::new(payload),
         )
@@ -2345,9 +2943,7 @@ impl Output {
     pub fn authorization_evaluated(payload: AuthorizationEvaluated) -> Self {
         Self::AuthorizationEvaluated(payload)
     }
-    pub fn authorized_object_update_snapshot(
-        payload: Vec<AuthorizedObjectUpdate>,
-    ) -> Self {
+    pub fn authorized_object_update_snapshot(payload: Updates) -> Self {
         Self::AuthorizedObjectUpdateSnapshot(
             AuthorizedObjectUpdateSnapshot::new(payload),
         )
@@ -2362,7 +2958,7 @@ impl Output {
     pub fn contract_time_check_scheduled(payload: ContractTimeCheck) -> Self {
         Self::ContractTimeCheckScheduled(ContractTimeCheckScheduled::new(payload))
     }
-    pub fn due_contract_checks_evaluated(payload: Vec<AuthorizedObjectUpdate>) -> Self {
+    pub fn due_contract_checks_evaluated(payload: Triggered) -> Self {
         Self::DueContractChecksEvaluated(DueContractChecksEvaluated::new(payload))
     }
     pub fn authorization_observation_retracted(
