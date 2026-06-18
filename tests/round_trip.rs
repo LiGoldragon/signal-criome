@@ -8,13 +8,15 @@ use signal_criome::{
     AuthorizationObservationToken, AuthorizationPending, AuthorizationPolicyClass,
     AuthorizationPolicySatisfaction, AuthorizationRejection, AuthorizationRequestSlot,
     AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus, AuthorizationUnavailable,
-    AuthorizationUpdate, AuthorizationVerification, BlsPublicKey, BlsSignature,
-    ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose, ContentReference, Contract,
-    ContractAdmissionRejected, ContractAdmissionRejectionReason, ContractAdmitted, ContractDigest,
-    ContractFound, ContractMissing, ContractName, ContractOperationHead, CriomeEvent,
-    CriomeFrame as Frame, CriomeFrameBody as FrameBody, CriomeReply, CriomeRequest,
-    EvaluationDecision, EvaluationRejectionReason, Evidence, Identity, IdentityLookup,
-    IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
+    AuthorizationUpdate, AuthorizationVerification, AuthorizedObjectKind,
+    AuthorizedObjectObservation, AuthorizedObjectReference, AuthorizedObjectUpdate,
+    AuthorizedObjectUpdateRetracted, AuthorizedObjectUpdateSnapshot, AuthorizedObjectUpdateToken,
+    BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
+    ContentReference, Contract, ContractAdmissionRejected, ContractAdmissionRejectionReason,
+    ContractAdmitted, ContractDigest, ContractFound, ContractMissing, ContractName,
+    ContractOperationHead, CriomeEvent, CriomeFrame as Frame, CriomeFrameBody as FrameBody,
+    CriomeReply, CriomeRequest, EvaluationDecision, EvaluationRejectionReason, Evidence, Identity,
+    IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
     IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
     OperationDigest, PolicyMember, PrincipalName, PrincipalStatus, PublicKeyFingerprint,
     QuorumShortfall, Rejection, RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule,
@@ -214,6 +216,22 @@ fn evidence() -> Evidence {
     }
 }
 
+fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
+    AuthorizedObjectUpdateToken::new(agent("operator"))
+}
+
+fn authorized_object_update() -> AuthorizedObjectUpdate {
+    AuthorizedObjectUpdate {
+        object: AuthorizedObjectReference {
+            digest: ObjectDigest::from_bytes(b"operation fixture"),
+            kind: AuthorizedObjectKind::Operation,
+        },
+        contract: contract_digest(),
+        decision: EvaluationDecision::Authorized,
+        stamp: attested_moment(),
+    }
+}
+
 fn exchange() -> ExchangeIdentifier {
     ExchangeIdentifier::new(
         SessionEpoch::new(1),
@@ -362,6 +380,10 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
             contract: contract_digest(),
             evidence: evidence(),
         }),
+        CriomeRequest::ObserveAuthorizedObjects(AuthorizedObjectObservation::new(agent(
+            "operator",
+        ))),
+        CriomeRequest::AuthorizedObjectUpdateRetraction(authorized_object_update_token()),
         CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription::new(agent("operator"))),
         CriomeRequest::IdentitySubscriptionRetraction(IdentitySubscriptionToken::new(agent(
             "operator",
@@ -396,6 +418,8 @@ fn request_variants_declare_contract_local_operation_heads() {
             "AdmitContract",
             "LookupContract",
             "EvaluateAuthorization",
+            "ObserveAuthorizedObjects",
+            "AuthorizedObjectUpdateRetraction",
             "SubscribeIdentityUpdates",
             "IdentitySubscriptionRetraction",
             "AuthorizationObservationRetraction",
@@ -475,6 +499,12 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
                 },
             )),
         }),
+        CriomeReply::AuthorizedObjectUpdateSnapshot(AuthorizedObjectUpdateSnapshot::new(vec![
+            authorized_object_update(),
+        ])),
+        CriomeReply::AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateRetracted::new(
+            authorized_object_update_token(),
+        )),
         CriomeReply::AuthorizationObservationRetracted(AuthorizationObservationRetracted::new(
             authorization_observation_token(),
         )),
@@ -504,6 +534,12 @@ fn authorization_update_event_round_trips_through_length_prefixed_frame() {
     let event = CriomeEvent::AuthorizationUpdate(AuthorizationUpdate::new(authorization_state(
         AuthorizationStatus::Granted,
     )));
+    assert_eq!(round_trip_event(event.clone()), event);
+}
+
+#[test]
+fn authorized_object_update_event_round_trips_through_length_prefixed_frame() {
+    let event = CriomeEvent::AuthorizedObjectUpdate(authorized_object_update());
     assert_eq!(round_trip_event(event.clone()), event);
 }
 

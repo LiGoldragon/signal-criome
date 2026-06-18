@@ -16,20 +16,23 @@ use signal_criome::{
     AuthorizationObservationToken, AuthorizationPending, AuthorizationPolicyClass,
     AuthorizationPolicySatisfaction, AuthorizationRejection, AuthorizationRequestSlot,
     AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus, AuthorizationUnavailable,
-    AuthorizationUpdate, AuthorizationVerification, BlsPublicKey, BlsSignature,
-    ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose, ContentReference, Contract,
-    ContractAdmissionRejected, ContractAdmissionRejectionReason, ContractAdmitted, ContractDigest,
-    ContractFound, ContractMissing, ContractName, ContractOperationHead, CriomeEvent, CriomeReply,
-    CriomeRequest, EvaluationDecision, EvaluationRejectionReason, Evidence, Identity,
-    IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
-    IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
-    OperationDigest, PolicyMember, PrincipalName, PrincipalStatus, PublicKeyFingerprint,
-    QuorumShortfall, Rejection, RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule,
-    SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
-    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
-    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
-    StampedSignatureEnvelope, SubscriptionRetracted, Threshold, TimeSignature, TimeWindow,
-    TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
+    AuthorizationUpdate, AuthorizationVerification, AuthorizedObjectKind,
+    AuthorizedObjectObservation, AuthorizedObjectReference, AuthorizedObjectUpdate,
+    AuthorizedObjectUpdateRetracted, AuthorizedObjectUpdateSnapshot, AuthorizedObjectUpdateToken,
+    BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, ComponentRelease, ContentPurpose,
+    ContentReference, Contract, ContractAdmissionRejected, ContractAdmissionRejectionReason,
+    ContractAdmitted, ContractDigest, ContractFound, ContractMissing, ContractName,
+    ContractOperationHead, CriomeEvent, CriomeReply, CriomeRequest, EvaluationDecision,
+    EvaluationRejectionReason, Evidence, Identity, IdentityLookup, IdentityReceipt,
+    IdentityRegistration, IdentityRevocation, IdentitySnapshot, IdentitySubscription,
+    IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest, OperationDigest,
+    PolicyMember, PrincipalName, PrincipalStatus, PublicKeyFingerprint, QuorumShortfall,
+    Rejection, RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule, SignReceipt,
+    SignRequest, SignalCallAuthorization, SignatureAuthorizationResult, SignatureEnvelope,
+    SignatureRouteReceipt, SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute,
+    SignatureSubmission, SignatureSubmissionReceipt, StampedSignatureEnvelope,
+    SubscriptionRetracted, Threshold, TimeSignature, TimeWindow, TimestampNanos,
+    VerificationDecision, VerificationResult, VerifyRequest,
 };
 
 const CANONICAL: &str = include_str!("../examples/canonical.nota");
@@ -192,6 +195,22 @@ fn evidence() -> Evidence {
     }
 }
 
+fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
+    AuthorizedObjectUpdateToken::new(alice())
+}
+
+fn authorized_object_update() -> AuthorizedObjectUpdate {
+    AuthorizedObjectUpdate {
+        object: AuthorizedObjectReference {
+            digest: ObjectDigest::new("operation-digest-1"),
+            kind: AuthorizedObjectKind::Operation,
+        },
+        contract: contract_digest(),
+        decision: EvaluationDecision::Authorized,
+        stamp: attested_moment(),
+    }
+}
+
 fn round_trip<T>(value: T)
 where
     T: NotaEncode + NotaDecode + PartialEq + std::fmt::Debug,
@@ -320,6 +339,12 @@ fn canonical_request_examples_round_trip() {
             evidence: evidence(),
         },
     ));
+    round_trip(CriomeRequest::ObserveAuthorizedObjects(
+        AuthorizedObjectObservation::new(alice()),
+    ));
+    round_trip(CriomeRequest::AuthorizedObjectUpdateRetraction(
+        authorized_object_update_token(),
+    ));
     round_trip(CriomeRequest::SubscribeIdentityUpdates(
         IdentitySubscription::new(alice()),
     ));
@@ -414,6 +439,12 @@ fn canonical_reply_examples_round_trip() {
             )),
         },
     ));
+    round_trip(CriomeReply::AuthorizedObjectUpdateSnapshot(
+        AuthorizedObjectUpdateSnapshot::new(vec![authorized_object_update()]),
+    ));
+    round_trip(CriomeReply::AuthorizedObjectUpdateRetracted(
+        AuthorizedObjectUpdateRetracted::new(authorized_object_update_token()),
+    ));
     round_trip(CriomeReply::AuthorizationObservationRetracted(
         AuthorizationObservationRetracted::new(authorization_observation_token()),
     ));
@@ -436,4 +467,7 @@ fn canonical_event_examples_round_trip() {
     round_trip(CriomeEvent::AuthorizationUpdate(AuthorizationUpdate::new(
         authorization_state(),
     )));
+    round_trip(CriomeEvent::AuthorizedObjectUpdate(
+        authorized_object_update(),
+    ));
 }

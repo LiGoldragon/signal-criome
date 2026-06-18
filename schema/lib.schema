@@ -21,6 +21,8 @@
  (AdmitContract Contract)
  (LookupContract ContractDigest)
  (EvaluateAuthorization AuthorizationEvaluation)
+ (ObserveAuthorizedObjects AuthorizedObjectObservation opens AuthorizedObjectUpdateStream)
+ (AuthorizedObjectUpdateRetraction AuthorizedObjectUpdateToken)
  (SubscribeIdentityUpdates IdentitySubscription opens IdentityUpdateStream)
  (IdentitySubscriptionRetraction IdentitySubscriptionToken)
  (AuthorizationObservationRetraction AuthorizationObservationToken)]
@@ -42,6 +44,8 @@
  (ContractMissing ContractMissing)
  (ContractAdmissionRejected ContractAdmissionRejected)
  (AuthorizationEvaluated AuthorizationEvaluated)
+ (AuthorizedObjectUpdateSnapshot AuthorizedObjectUpdateSnapshot)
+ (AuthorizedObjectUpdateRetracted AuthorizedObjectUpdateRetracted)
  (AuthorizationObservationRetracted AuthorizationObservationRetracted)
  (SubscriptionRetracted SubscriptionRetracted)
  (Rejection Rejection)]
@@ -201,6 +205,13 @@
     AgreementMissing
   ]
 
+  AuthorizedObjectKind [Operation Contract Agreement Time]
+
+  AuthorizedObjectReference {
+    digest ObjectDigest
+    kind AuthorizedObjectKind
+  }
+
   QuorumShortfall {
     required RequiredSignatureThreshold
     satisfied RequiredSignatureThreshold
@@ -226,6 +237,29 @@
   AuthorizationEvaluated {
     contract ContractDigest
     decision EvaluationDecision
+  }
+
+  AuthorizedObjectObservation {
+    subscriber Identity
+  }
+
+  AuthorizedObjectUpdateToken {
+    subscriber Identity
+  }
+
+  AuthorizedObjectUpdate {
+    object AuthorizedObjectReference
+    contract ContractDigest
+    decision EvaluationDecision
+    stamp AttestedMoment
+  }
+
+  AuthorizedObjectUpdateSnapshot {
+    updates (Vec AuthorizedObjectUpdate)
+  }
+
+  AuthorizedObjectUpdateRetracted {
+    token AuthorizedObjectUpdateToken
   }
 
   AuthorizationDenial {
@@ -503,8 +537,10 @@
   CriomeEvent [
     (IdentityUpdate IdentityUpdate belongs IdentityUpdateStream)
     (AuthorizationUpdate AuthorizationUpdate belongs AuthorizationObservationStream)
+    (AuthorizedObjectUpdate AuthorizedObjectUpdate belongs AuthorizedObjectUpdateStream)
   ]
 
   IdentityUpdateStream (Stream { token IdentitySubscriptionToken opened IdentitySnapshot event CriomeEvent close IdentitySubscriptionToken })
   AuthorizationObservationStream (Stream { token AuthorizationObservationToken opened AuthorizationObservationSnapshot event CriomeEvent close AuthorizationObservationToken })
+  AuthorizedObjectUpdateStream (Stream { token AuthorizedObjectUpdateToken opened AuthorizedObjectUpdateSnapshot event CriomeEvent close AuthorizedObjectUpdateToken })
 }

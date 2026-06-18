@@ -63,6 +63,12 @@
 ;; CriomeRequest::EvaluateAuthorization
 (EvaluateAuthorization (contract-digest-1 (operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [])))
 
+;; CriomeRequest::ObserveAuthorizedObjects
+(ObserveAuthorizedObjects (Persona alice))
+
+;; CriomeRequest::AuthorizedObjectUpdateRetraction
+(AuthorizedObjectUpdateRetraction (Persona alice))
+
 ;; CriomeRequest::SubscribeIdentityUpdates
 (SubscribeIdentityUpdates (Persona alice))
 
@@ -128,6 +134,12 @@
 ;; CriomeReply::AuthorizationEvaluated
 (AuthorizationEvaluated (contract-digest-1 (Rejected (QuorumShort (2 1)))))
 
+;; CriomeReply::AuthorizedObjectUpdateSnapshot
+(AuthorizedObjectUpdateSnapshot [((operation-digest-1 Operation) contract-digest-1 Authorized (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]))])
+
+;; CriomeReply::AuthorizedObjectUpdateRetracted
+(AuthorizedObjectUpdateRetracted (Persona alice))
+
 ;; CriomeReply::AuthorizationObservationRetracted
 (AuthorizationObservationRetracted authorization-request-1)
 
@@ -144,3 +156,6 @@
 
 ;; CriomeEvent::AuthorizationUpdate
 (AuthorizationUpdate (authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None))
+
+;; CriomeEvent::AuthorizedObjectUpdate
+(AuthorizedObjectUpdate ((operation-digest-1 Operation) contract-digest-1 Authorized (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))])))

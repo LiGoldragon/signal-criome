@@ -501,6 +501,33 @@ pub enum EvaluationRejectionReason {
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum AuthorizedObjectKind {
+    Operation,
+    Contract,
+    Agreement,
+    Time,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizedObjectReference {
+    pub digest: ObjectDigest,
+    pub kind: AuthorizedObjectKind,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuorumShortfall {
     pub required: RequiredSignatureThreshold,
@@ -537,6 +564,36 @@ pub struct AuthorizationEvaluated {
     pub contract: ContractDigest,
     pub decision: EvaluationDecision,
 }
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizedObjectObservation(Identity);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizedObjectUpdateToken(Identity);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizedObjectUpdate {
+    pub object: AuthorizedObjectReference,
+    pub contract: ContractDigest,
+    pub decision: EvaluationDecision,
+    pub stamp: AttestedMoment,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizedObjectUpdateSnapshot(Vec<AuthorizedObjectUpdate>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateToken);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -931,6 +988,7 @@ pub struct Rejection(RejectionReason);
 pub enum CriomeEvent {
     IdentityUpdate(IdentityUpdate),
     AuthorizationUpdate(AuthorizationUpdate),
+    AuthorizedObjectUpdate(AuthorizedObjectUpdate),
 }
 
 #[rustfmt::skip]
@@ -954,6 +1012,8 @@ pub enum Input {
     AdmitContract(Contract),
     LookupContract(ContractDigest),
     EvaluateAuthorization(AuthorizationEvaluation),
+    ObserveAuthorizedObjects(AuthorizedObjectObservation),
+    AuthorizedObjectUpdateRetraction(AuthorizedObjectUpdateToken),
     SubscribeIdentityUpdates(IdentitySubscription),
     IdentitySubscriptionRetraction(IdentitySubscriptionToken),
     AuthorizationObservationRetraction(AuthorizationObservationToken),
@@ -981,6 +1041,8 @@ pub enum Output {
     ContractMissing(ContractMissing),
     ContractAdmissionRejected(ContractAdmissionRejected),
     AuthorizationEvaluated(AuthorizationEvaluated),
+    AuthorizedObjectUpdateSnapshot(AuthorizedObjectUpdateSnapshot),
+    AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateRetracted),
     AuthorizationObservationRetracted(AuthorizationObservationRetracted),
     SubscriptionRetracted(SubscriptionRetracted),
     Rejection(Rejection),
@@ -1638,6 +1700,82 @@ impl From<ContractAdmissionRejectionReason> for ContractAdmissionRejected {
 }
 
 #[rustfmt::skip]
+impl AuthorizedObjectObservation {
+    pub fn new(payload: Identity) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Identity {
+        &self.0
+    }
+    pub fn into_payload(self) -> Identity {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Identity> for AuthorizedObjectObservation {
+    fn from(payload: Identity) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl AuthorizedObjectUpdateToken {
+    pub fn new(payload: Identity) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Identity {
+        &self.0
+    }
+    pub fn into_payload(self) -> Identity {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Identity> for AuthorizedObjectUpdateToken {
+    fn from(payload: Identity) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl AuthorizedObjectUpdateSnapshot {
+    pub fn new(payload: Vec<AuthorizedObjectUpdate>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<AuthorizedObjectUpdate> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<AuthorizedObjectUpdate> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<AuthorizedObjectUpdate>> for AuthorizedObjectUpdateSnapshot {
+    fn from(payload: Vec<AuthorizedObjectUpdate>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl AuthorizedObjectUpdateRetracted {
+    pub fn new(payload: AuthorizedObjectUpdateToken) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &AuthorizedObjectUpdateToken {
+        &self.0
+    }
+    pub fn into_payload(self) -> AuthorizedObjectUpdateToken {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<AuthorizedObjectUpdateToken> for AuthorizedObjectUpdateRetracted {
+    fn from(payload: AuthorizedObjectUpdateToken) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl AuthorizationObservation {
     pub fn new(payload: AuthorizationRequestSlot) -> Self {
         Self(payload)
@@ -1973,6 +2111,9 @@ impl CriomeEvent {
     pub fn authorization_update(payload: AuthorizationStateRecord) -> Self {
         Self::AuthorizationUpdate(AuthorizationUpdate::new(payload))
     }
+    pub fn authorized_object_update(payload: AuthorizedObjectUpdate) -> Self {
+        Self::AuthorizedObjectUpdate(payload)
+    }
 }
 
 #[rustfmt::skip]
@@ -2027,6 +2168,12 @@ impl Input {
     }
     pub fn evaluate_authorization(payload: AuthorizationEvaluation) -> Self {
         Self::EvaluateAuthorization(payload)
+    }
+    pub fn observe_authorized_objects(payload: Identity) -> Self {
+        Self::ObserveAuthorizedObjects(AuthorizedObjectObservation::new(payload))
+    }
+    pub fn authorized_object_update_retraction(payload: Identity) -> Self {
+        Self::AuthorizedObjectUpdateRetraction(AuthorizedObjectUpdateToken::new(payload))
     }
     pub fn subscribe_identity_updates(payload: Identity) -> Self {
         Self::SubscribeIdentityUpdates(IdentitySubscription::new(payload))
@@ -2104,6 +2251,20 @@ impl Output {
     }
     pub fn authorization_evaluated(payload: AuthorizationEvaluated) -> Self {
         Self::AuthorizationEvaluated(payload)
+    }
+    pub fn authorized_object_update_snapshot(
+        payload: Vec<AuthorizedObjectUpdate>,
+    ) -> Self {
+        Self::AuthorizedObjectUpdateSnapshot(
+            AuthorizedObjectUpdateSnapshot::new(payload),
+        )
+    }
+    pub fn authorized_object_update_retracted(
+        payload: AuthorizedObjectUpdateToken,
+    ) -> Self {
+        Self::AuthorizedObjectUpdateRetracted(
+            AuthorizedObjectUpdateRetracted::new(payload),
+        )
     }
     pub fn authorization_observation_retracted(
         payload: AuthorizationObservationToken,
@@ -2201,6 +2362,13 @@ impl From<IdentityUpdate> for CriomeEvent {
 impl From<AuthorizationUpdate> for CriomeEvent {
     fn from(payload: AuthorizationUpdate) -> Self {
         Self::AuthorizationUpdate(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<AuthorizedObjectUpdate> for CriomeEvent {
+    fn from(payload: AuthorizedObjectUpdate) -> Self {
+        Self::AuthorizedObjectUpdate(payload)
     }
 }
 
@@ -2320,6 +2488,20 @@ impl From<ContractDigest> for Input {
 impl From<AuthorizationEvaluation> for Input {
     fn from(payload: AuthorizationEvaluation) -> Self {
         Self::EvaluateAuthorization(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<AuthorizedObjectObservation> for Input {
+    fn from(payload: AuthorizedObjectObservation) -> Self {
+        Self::ObserveAuthorizedObjects(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<AuthorizedObjectUpdateToken> for Input {
+    fn from(payload: AuthorizedObjectUpdateToken) -> Self {
+        Self::AuthorizedObjectUpdateRetraction(payload)
     }
 }
 
@@ -2471,6 +2653,20 @@ impl From<AuthorizationEvaluated> for Output {
 }
 
 #[rustfmt::skip]
+impl From<AuthorizedObjectUpdateSnapshot> for Output {
+    fn from(payload: AuthorizedObjectUpdateSnapshot) -> Self {
+        Self::AuthorizedObjectUpdateSnapshot(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<AuthorizedObjectUpdateRetracted> for Output {
+    fn from(payload: AuthorizedObjectUpdateRetracted) -> Self {
+        Self::AuthorizedObjectUpdateRetracted(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<AuthorizationObservationRetracted> for Output {
     fn from(payload: AuthorizationObservationRetracted) -> Self {
         Self::AuthorizationObservationRetracted(payload)
@@ -2542,9 +2738,11 @@ pub mod short_header {
     pub const INPUT_ADMIT_CONTRACT: u64 = 0x000E000000000000;
     pub const INPUT_LOOKUP_CONTRACT: u64 = 0x000F000000000000;
     pub const INPUT_EVALUATE_AUTHORIZATION: u64 = 0x0010000000000000;
-    pub const INPUT_SUBSCRIBE_IDENTITY_UPDATES: u64 = 0x0011000000000000;
-    pub const INPUT_IDENTITY_SUBSCRIPTION_RETRACTION: u64 = 0x0012000000000000;
-    pub const INPUT_AUTHORIZATION_OBSERVATION_RETRACTION: u64 = 0x0013000000000000;
+    pub const INPUT_OBSERVE_AUTHORIZED_OBJECTS: u64 = 0x0011000000000000;
+    pub const INPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTION: u64 = 0x0012000000000000;
+    pub const INPUT_SUBSCRIBE_IDENTITY_UPDATES: u64 = 0x0013000000000000;
+    pub const INPUT_IDENTITY_SUBSCRIPTION_RETRACTION: u64 = 0x0014000000000000;
+    pub const INPUT_AUTHORIZATION_OBSERVATION_RETRACTION: u64 = 0x0015000000000000;
     pub const OUTPUT_SIGN_RECEIPT: u64 = 0x0100000000000000;
     pub const OUTPUT_VERIFICATION_RESULT: u64 = 0x0101000000000000;
     pub const OUTPUT_IDENTITY_RECEIPT: u64 = 0x0102000000000000;
@@ -2563,9 +2761,11 @@ pub mod short_header {
     pub const OUTPUT_CONTRACT_MISSING: u64 = 0x010F000000000000;
     pub const OUTPUT_CONTRACT_ADMISSION_REJECTED: u64 = 0x0110000000000000;
     pub const OUTPUT_AUTHORIZATION_EVALUATED: u64 = 0x0111000000000000;
-    pub const OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED: u64 = 0x0112000000000000;
-    pub const OUTPUT_SUBSCRIPTION_RETRACTED: u64 = 0x0113000000000000;
-    pub const OUTPUT_REJECTION: u64 = 0x0114000000000000;
+    pub const OUTPUT_AUTHORIZED_OBJECT_UPDATE_SNAPSHOT: u64 = 0x0112000000000000;
+    pub const OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED: u64 = 0x0113000000000000;
+    pub const OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED: u64 = 0x0114000000000000;
+    pub const OUTPUT_SUBSCRIPTION_RETRACTED: u64 = 0x0115000000000000;
+    pub const OUTPUT_REJECTION: u64 = 0x0116000000000000;
 }
 
 #[rustfmt::skip]
@@ -2633,6 +2833,8 @@ pub enum InputRoute {
     AdmitContract,
     LookupContract,
     EvaluateAuthorization,
+    ObserveAuthorizedObjects,
+    AuthorizedObjectUpdateRetraction,
     SubscribeIdentityUpdates,
     IdentitySubscriptionRetraction,
     AuthorizationObservationRetraction,
@@ -2669,6 +2871,8 @@ pub enum OutputRoute {
     ContractMissing,
     ContractAdmissionRejected,
     AuthorizationEvaluated,
+    AuthorizedObjectUpdateSnapshot,
+    AuthorizedObjectUpdateRetracted,
     AuthorizationObservationRetracted,
     SubscriptionRetracted,
     Rejection,
@@ -2695,6 +2899,10 @@ impl Input {
             Self::AdmitContract(_) => InputRoute::AdmitContract,
             Self::LookupContract(_) => InputRoute::LookupContract,
             Self::EvaluateAuthorization(_) => InputRoute::EvaluateAuthorization,
+            Self::ObserveAuthorizedObjects(_) => InputRoute::ObserveAuthorizedObjects,
+            Self::AuthorizedObjectUpdateRetraction(_) => {
+                InputRoute::AuthorizedObjectUpdateRetraction
+            }
             Self::SubscribeIdentityUpdates(_) => InputRoute::SubscribeIdentityUpdates,
             Self::IdentitySubscriptionRetraction(_) => {
                 InputRoute::IdentitySubscriptionRetraction
@@ -2723,6 +2931,12 @@ impl Input {
             Self::AdmitContract(_) => short_header::INPUT_ADMIT_CONTRACT,
             Self::LookupContract(_) => short_header::INPUT_LOOKUP_CONTRACT,
             Self::EvaluateAuthorization(_) => short_header::INPUT_EVALUATE_AUTHORIZATION,
+            Self::ObserveAuthorizedObjects(_) => {
+                short_header::INPUT_OBSERVE_AUTHORIZED_OBJECTS
+            }
+            Self::AuthorizedObjectUpdateRetraction(_) => {
+                short_header::INPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTION
+            }
             Self::SubscribeIdentityUpdates(_) => {
                 short_header::INPUT_SUBSCRIBE_IDENTITY_UPDATES
             }
@@ -2768,6 +2982,12 @@ impl Input {
             short_header::INPUT_LOOKUP_CONTRACT => Ok(InputRoute::LookupContract),
             short_header::INPUT_EVALUATE_AUTHORIZATION => {
                 Ok(InputRoute::EvaluateAuthorization)
+            }
+            short_header::INPUT_OBSERVE_AUTHORIZED_OBJECTS => {
+                Ok(InputRoute::ObserveAuthorizedObjects)
+            }
+            short_header::INPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTION => {
+                Ok(InputRoute::AuthorizedObjectUpdateRetraction)
             }
             short_header::INPUT_SUBSCRIBE_IDENTITY_UPDATES => {
                 Ok(InputRoute::SubscribeIdentityUpdates)
@@ -2850,6 +3070,12 @@ impl Output {
             Self::ContractMissing(_) => OutputRoute::ContractMissing,
             Self::ContractAdmissionRejected(_) => OutputRoute::ContractAdmissionRejected,
             Self::AuthorizationEvaluated(_) => OutputRoute::AuthorizationEvaluated,
+            Self::AuthorizedObjectUpdateSnapshot(_) => {
+                OutputRoute::AuthorizedObjectUpdateSnapshot
+            }
+            Self::AuthorizedObjectUpdateRetracted(_) => {
+                OutputRoute::AuthorizedObjectUpdateRetracted
+            }
             Self::AuthorizationObservationRetracted(_) => {
                 OutputRoute::AuthorizationObservationRetracted
             }
@@ -2888,6 +3114,12 @@ impl Output {
             }
             Self::AuthorizationEvaluated(_) => {
                 short_header::OUTPUT_AUTHORIZATION_EVALUATED
+            }
+            Self::AuthorizedObjectUpdateSnapshot(_) => {
+                short_header::OUTPUT_AUTHORIZED_OBJECT_UPDATE_SNAPSHOT
+            }
+            Self::AuthorizedObjectUpdateRetracted(_) => {
+                short_header::OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED
             }
             Self::AuthorizationObservationRetracted(_) => {
                 short_header::OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED
@@ -2941,6 +3173,12 @@ impl Output {
             }
             short_header::OUTPUT_AUTHORIZATION_EVALUATED => {
                 Ok(OutputRoute::AuthorizationEvaluated)
+            }
+            short_header::OUTPUT_AUTHORIZED_OBJECT_UPDATE_SNAPSHOT => {
+                Ok(OutputRoute::AuthorizedObjectUpdateSnapshot)
+            }
+            short_header::OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED => {
+                Ok(OutputRoute::AuthorizedObjectUpdateRetracted)
             }
             short_header::OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED => {
                 Ok(OutputRoute::AuthorizationObservationRetracted)
@@ -3017,6 +3255,8 @@ impl signal_frame::SignalOperationHeads for Input {
         "AdmitContract",
         "LookupContract",
         "EvaluateAuthorization",
+        "ObserveAuthorizedObjects",
+        "AuthorizedObjectUpdateRetraction",
         "SubscribeIdentityUpdates",
         "IdentitySubscriptionRetraction",
         "AuthorizationObservationRetraction",
