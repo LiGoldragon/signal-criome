@@ -197,7 +197,10 @@ fn evidence() -> Evidence {
 }
 
 fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
-    AuthorizedObjectUpdateToken::new(alice())
+    AuthorizedObjectUpdateToken {
+        subscriber: alice(),
+        interest: AuthorizedObjectInterest::Component(ComponentKind::Spirit),
+    }
 }
 
 fn authorized_object_update() -> AuthorizedObjectUpdate {

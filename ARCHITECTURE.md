@@ -207,11 +207,14 @@ bytes; components fetch objects by digest through the routing/object-
 distribution layer. Subscribers declare `AuthorizedObjectInterest` when
 opening the stream, so fan-out is subscriber-owned: components receive the
 event classes related to their function instead of requiring criome to infer
-one universal affected-component set.
+one universal affected-component set. `AuthorizedObjectUpdateToken` carries
+that interest with the subscriber identity, so retraction closes exactly one
+`(subscriber, interest)` stream.
 
 The POC shape deliberately exposes both forms of the classifier in this
 contract: `ComponentKind` is the small embeddable unit enum, while
-`AuthorizedObjectReference`, `ComponentObjectInterest`, and
+`AuthorizedObjectUpdateToken`, `AuthorizedObjectReference`,
+`ComponentObjectInterest`, and
 `AuthorizedObjectUpdate` are wrapper records that carry the enum inside the
 relation that needs it. If router later needs the same classifier, extract the
 enum/wrappers into a shared vocabulary crate; do not turn `signal-frame` into a

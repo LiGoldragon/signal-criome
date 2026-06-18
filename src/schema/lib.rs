@@ -618,7 +618,10 @@ pub struct AuthorizedObjectObservation {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizedObjectUpdateToken(Identity);
+pub struct AuthorizedObjectUpdateToken {
+    pub subscriber: Identity,
+    pub interest: AuthorizedObjectInterest,
+}
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -1769,25 +1772,6 @@ impl From<ContractAdmissionRejectionReason> for ContractAdmissionRejected {
 }
 
 #[rustfmt::skip]
-impl AuthorizedObjectUpdateToken {
-    pub fn new(payload: Identity) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Identity {
-        &self.0
-    }
-    pub fn into_payload(self) -> Identity {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Identity> for AuthorizedObjectUpdateToken {
-    fn from(payload: Identity) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
 impl AuthorizedObjectUpdateSnapshot {
     pub fn new(payload: Vec<AuthorizedObjectUpdate>) -> Self {
         Self(payload)
@@ -2273,8 +2257,10 @@ impl Input {
     pub fn observe_authorized_objects(payload: AuthorizedObjectObservation) -> Self {
         Self::ObserveAuthorizedObjects(payload)
     }
-    pub fn authorized_object_update_retraction(payload: Identity) -> Self {
-        Self::AuthorizedObjectUpdateRetraction(AuthorizedObjectUpdateToken::new(payload))
+    pub fn authorized_object_update_retraction(
+        payload: AuthorizedObjectUpdateToken,
+    ) -> Self {
+        Self::AuthorizedObjectUpdateRetraction(payload)
     }
     pub fn schedule_contract_time_check(payload: ContractTimeCheck) -> Self {
         Self::ScheduleContractTimeCheck(payload)

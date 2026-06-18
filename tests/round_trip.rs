@@ -219,7 +219,10 @@ fn evidence() -> Evidence {
 }
 
 fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
-    AuthorizedObjectUpdateToken::new(agent("operator"))
+    AuthorizedObjectUpdateToken {
+        subscriber: agent("operator"),
+        interest: AuthorizedObjectInterest::Component(ComponentKind::Spirit),
+    }
 }
 
 fn authorized_object_update() -> AuthorizedObjectUpdate {

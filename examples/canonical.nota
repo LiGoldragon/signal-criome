@@ -67,7 +67,7 @@
 (ObserveAuthorizedObjects ((Persona alice) (Component Spirit)))
 
 ;; CriomeRequest::AuthorizedObjectUpdateRetraction
-(AuthorizedObjectUpdateRetraction (Persona alice))
+(AuthorizedObjectUpdateRetraction ((Persona alice) (Component Spirit)))
 
 ;; CriomeRequest::SubscribeIdentityUpdates
 (SubscribeIdentityUpdates (Persona alice))
@@ -138,7 +138,7 @@
 (AuthorizedObjectUpdateSnapshot [((Spirit operation-digest-1 Operation) contract-digest-1 Authorized (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]))])
 
 ;; CriomeReply::AuthorizedObjectUpdateRetracted
-(AuthorizedObjectUpdateRetracted (Persona alice))
+(AuthorizedObjectUpdateRetracted ((Persona alice) (Component Spirit)))
 
 ;; CriomeReply::AuthorizationObservationRetracted
 (AuthorizationObservationRetracted authorization-request-1)
