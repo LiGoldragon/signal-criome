@@ -135,8 +135,8 @@ impl RequiredSignatureThreshold {
 impl CriomeDaemonConfiguration {
     pub fn new(socket_path: impl Into<String>, store_path: impl Into<String>) -> Self {
         Self {
-            socket_path: DaemonPath::new(socket_path.into()),
-            store_path: DaemonPath::new(store_path.into()),
+            socket_path: SocketPath::new(DaemonPath::new(socket_path.into())),
+            store_path: StorePath::new(DaemonPath::new(store_path.into())),
             cluster_root: ClusterRoot::new(None),
         }
     }
@@ -171,7 +171,7 @@ impl AuthorizationPolicySatisfaction {
         satisfied_signers: Vec<Identity>,
     ) -> Self {
         Self {
-            policy_class,
+            policy_class: PolicyClass::new(policy_class),
             required_signature_threshold,
             satisfied_signers: SatisfiedSigners::new(satisfied_signers),
         }
@@ -188,7 +188,7 @@ impl Threshold {
         members: Vec<PolicyMember>,
     ) -> Self {
         Self {
-            required_signatures,
+            required: Required::new(required_signatures),
             members: Members::new(members),
         }
     }
@@ -205,8 +205,8 @@ impl AttestedMomentProposition {
         authorities: Vec<Identity>,
     ) -> Self {
         Self {
-            window,
-            required_signatures,
+            window: Window::new(window),
+            required_signature_threshold: required_signatures,
             authorities: Authorities::new(authorities),
         }
     }
@@ -222,7 +222,7 @@ impl AttestedMoment {
         time_signatures: Vec<TimeSignature>,
     ) -> Self {
         Self {
-            proposition,
+            proposition: Proposition::new(proposition),
             time_signatures: TimeSignatures::new(time_signatures),
         }
     }
@@ -241,9 +241,9 @@ impl Evidence {
         agreements: Vec<AgreementFact>,
     ) -> Self {
         Self {
-            component,
-            operation,
-            stamp,
+            component: Component::new(component),
+            operation: Operation::new(operation),
+            stamp: Stamp::new(stamp),
             evidence_signatures: EvidenceSignatures::new(evidence_signatures),
             agreements: Agreements::new(agreements),
         }
@@ -268,10 +268,10 @@ impl Attestation {
         audit_context: AuditContext,
     ) -> Self {
         Self {
-            content,
-            signer,
-            envelope,
-            issued_at,
+            content: Content::new(content),
+            signer: Signer::new(signer),
+            envelope: Envelope::new(envelope),
+            issued_at: IssuedAt::new(issued_at),
             attestation_expires_at: AttestationExpiresAt::new(expires_at),
             audit_context,
         }
@@ -293,12 +293,12 @@ impl SignalCallAuthorization {
         expires_at: Option<TimestampNanos>,
     ) -> Self {
         Self {
-            request_digest,
-            contract,
-            operation,
-            scope,
-            requester,
-            nonce,
+            request_digest: RequestDigest::new(request_digest),
+            call_contract: CallContract::new(contract),
+            call_operation: CallOperation::new(operation),
+            call_scope: CallScope::new(scope),
+            requester: Requester::new(requester),
+            nonce: Nonce::new(nonce),
             signal_call_expires_at: SignalCallExpiresAt::new(expires_at),
         }
     }
@@ -324,16 +324,16 @@ impl AuthorizationGrant {
         expires_at: Option<TimestampNanos>,
     ) -> Self {
         Self {
-            request_slot,
-            authorized_object_digest,
-            authorized_contract,
-            authorized_operation,
+            request_slot: RequestSlot::new(request_slot),
+            authorized_object_digest: AuthorizedObjectDigest::new(authorized_object_digest),
+            authorized_contract: AuthorizedContract::new(authorized_contract),
+            authorized_operation: AuthorizedOperation::new(authorized_operation),
             authorization_scope,
-            policy_satisfaction,
-            signature_result,
+            policy_satisfaction: PolicySatisfaction::new(policy_satisfaction),
+            signature_result: SignatureResult::new(signature_result),
             authorization_grant_signatures: AuthorizationGrantSignatures::new(signatures),
-            issued_by,
-            issued_at,
+            issued_by: IssuedBy::new(issued_by),
+            issued_at: IssuedAt::new(issued_at),
             authorization_grant_expires_at: AuthorizationGrantExpiresAt::new(expires_at),
         }
     }
@@ -347,10 +347,10 @@ impl AuthorizationPending {
         observation_token: AuthorizationObservationToken,
     ) -> Self {
         Self {
-            request_slot,
-            request_digest,
+            request_slot: RequestSlot::new(request_slot),
+            request_digest: RequestDigest::new(request_digest),
             pending_missing_authorities: PendingMissingAuthorities::new(missing_authorities),
-            observation_token,
+            observation_token: ObservationToken::new(observation_token),
         }
     }
 
@@ -369,9 +369,9 @@ impl AuthorizationStateRecord {
         denial: Option<AuthorizationDenial>,
     ) -> Self {
         Self {
-            request_slot,
-            request_digest,
-            status,
+            request_slot: RequestSlot::new(request_slot),
+            request_digest: RequestDigest::new(request_digest),
+            status: Status::new(status),
             state_missing_authorities: StateMissingAuthorities::new(missing_authorities),
             grant: Grant::new(grant),
             denial: Denial::new(denial),
@@ -399,8 +399,8 @@ impl SignRequest {
         expires_at: Option<TimestampNanos>,
     ) -> Self {
         Self {
-            content,
-            signer,
+            content: Content::new(content),
+            signer: Signer::new(signer),
             audit_context,
             sign_request_expires_at: SignRequestExpiresAt::new(expires_at),
         }
@@ -421,9 +421,9 @@ impl IdentityRegistration {
     ) -> Self {
         Self {
             identity,
-            public_key,
-            fingerprint,
-            purpose,
+            public_key: PublicKey::new(public_key),
+            fingerprint: Fingerprint::new(fingerprint),
+            key_purpose_role: KeyPurposeRole::new(purpose),
             admission: Admission::new(admission),
         }
     }
@@ -440,7 +440,7 @@ impl VerificationResult {
         expires_at: Option<TimestampNanos>,
     ) -> Self {
         Self {
-            decision,
+            result_decision: ResultDecision::new(decision),
             verified_identity: VerifiedIdentity::new(identity),
             verification_expires_at: VerificationExpiresAt::new(expires_at),
         }

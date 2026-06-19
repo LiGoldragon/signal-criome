@@ -1,5 +1,16 @@
 use nota_next::{NotaDecode, NotaEncode, NotaSource};
 use signal_criome::{
+    AdmissionRejectionReason, Artifact, Audience, Authorization, AuthorizationContent,
+    AuthorizedBy, CallContract, CallOperation, CallScope, ClosesAt, Component, Content,
+    ContractObjectDigest, Decision, DenialDetail, DenialReason, DenialSource, Digest, Envelope,
+    EnvelopeSignature, ExpiredAt, Fingerprint, GrantContent, Interest, IssuedAt, Kind, Nonce,
+    Object, ObservationToken, OpensAt, PolicyVersion, PrincipalStatusRole, PublicKey, Purpose,
+    Receipt, RejectionDetail, Rejector, Release, ReleaseComponent, RequestDigest, RequestSlot,
+    Requester, Required, RequiredSigner, RevocationReason, RoutedTo, Satisfied, SchemaVersion,
+    Scheme, Signer, Solicitation, Source, Stamp, StampedSignature, State, Subscriber,
+    SubscriptionToken, Token, UnavailableReason,
+};
+use signal_criome::{
     ArchiveAttestationRequest, Attestation, AttestationReceipt, AttestedMoment,
     AttestedMomentProposition, AuditContext, AuthorizationDenial, AuthorizationDenialReason,
     AuthorizationDenialSource, AuthorizationDenied, AuthorizationEvaluated,
@@ -54,33 +65,33 @@ fn cluster(name: &str) -> Identity {
 
 fn content(purpose: ContentPurpose) -> ContentReference {
     ContentReference {
-        digest: ObjectDigest::from_bytes(b"contract fixture"),
-        purpose,
-        schema_version: PrincipalName::new("signal-criome/0"),
+        digest: Digest::new(ObjectDigest::from_bytes(b"contract fixture")),
+        purpose: Purpose::new(purpose),
+        schema_version: SchemaVersion::new(PrincipalName::new("signal-criome/0")),
     }
 }
 
 fn audit(purpose: ContentPurpose) -> AuditContext {
     AuditContext {
-        purpose,
-        audience: PrincipalName::new("persona-engine"),
-        policy_version: PrincipalName::new("policy-v1"),
-        nonce: ReplayNonce::new("nonce-1"),
+        purpose: Purpose::new(purpose),
+        audience: Audience::new(PrincipalName::new("persona-engine")),
+        policy_version: PolicyVersion::new(PrincipalName::new("policy-v1")),
+        nonce: Nonce::new(ReplayNonce::new("nonce-1")),
     }
 }
 
 fn envelope() -> SignatureEnvelope {
     SignatureEnvelope {
-        scheme: SignatureScheme::Bls12_381MinPk,
-        public_key: BlsPublicKey::new("bls-pubkey-fixture"),
-        signature: BlsSignature::new("bls-signature-fixture"),
+        scheme: Scheme::new(SignatureScheme::Bls12_381MinPk),
+        public_key: PublicKey::new(BlsPublicKey::new("bls-pubkey-fixture")),
+        envelope_signature: EnvelopeSignature::new(BlsSignature::new("bls-signature-fixture")),
     }
 }
 
 fn stamped_envelope() -> StampedSignatureEnvelope {
     StampedSignatureEnvelope {
-        stamp: attested_moment(),
-        envelope: envelope(),
+        stamp: Stamp::new(attested_moment()),
+        envelope: Envelope::new(envelope()),
     }
 }
 
@@ -124,7 +135,7 @@ fn signal_call_authorization() -> SignalCallAuthorization {
 }
 
 fn authorization_observation_token() -> AuthorizationObservationToken {
-    AuthorizationObservationToken::new(authorization_request_slot())
+    AuthorizationObservationToken::new(RequestSlot::new(authorization_request_slot()))
 }
 
 fn authorization_grant() -> AuthorizationGrant {
@@ -155,21 +166,21 @@ fn authorization_state(status: AuthorizationStatus) -> AuthorizationStateRecord 
         vec![developer("reviewer")],
         (status == AuthorizationStatus::Granted).then(authorization_grant),
         (status == AuthorizationStatus::Denied).then_some(AuthorizationDenial {
-            source: AuthorizationDenialSource::Signers,
-            reason: AuthorizationDenialReason::SignatureRejected,
+            denial_source: DenialSource::new(AuthorizationDenialSource::Signers),
+            denial_reason: DenialReason::new(AuthorizationDenialReason::SignatureRejected),
         }),
     )
 }
 
 fn signature_solicitation() -> SignatureSolicitation {
     SignatureSolicitation {
-        request_slot: authorization_request_slot(),
-        request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
-        contract: contract_name(),
-        operation: contract_operation_head(),
-        scope: authorization_scope(),
-        requester: developer("operator"),
-        required_signer: developer("reviewer"),
+        request_slot: RequestSlot::new(authorization_request_slot()),
+        request_digest: RequestDigest::new(ObjectDigest::from_bytes(b"signal-lojix request")),
+        call_contract: CallContract::new(contract_name()),
+        call_operation: CallOperation::new(contract_operation_head()),
+        call_scope: CallScope::new(authorization_scope()),
+        requester: Requester::new(developer("operator")),
+        required_signer: RequiredSigner::new(developer("reviewer")),
     }
 }
 
@@ -185,15 +196,15 @@ fn attested_moment() -> AttestedMoment {
     AttestedMoment::new(
         AttestedMomentProposition::new(
             TimeWindow {
-                opens_at: TimestampNanos::new(10),
-                closes_at: TimestampNanos::new(20),
+                opens_at: OpensAt::new(TimestampNanos::new(10)),
+                closes_at: ClosesAt::new(TimestampNanos::new(20)),
             },
             RequiredSignatureThreshold::new(1),
             vec![developer("timekeeper")],
         ),
         vec![TimeSignature {
-            signer: developer("timekeeper"),
-            envelope: envelope(),
+            signer: Signer::new(developer("timekeeper")),
+            envelope: Envelope::new(envelope()),
         }],
     )
 }
@@ -220,21 +231,21 @@ fn evidence() -> Evidence {
 
 fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
     AuthorizedObjectUpdateToken {
-        subscriber: agent("operator"),
-        interest: AuthorizedObjectInterest::Component(ComponentKind::Spirit),
+        subscriber: Subscriber::new(agent("operator")),
+        interest: Interest::new(AuthorizedObjectInterest::Component(ComponentKind::Spirit)),
     }
 }
 
 fn authorized_object_update() -> AuthorizedObjectUpdate {
     AuthorizedObjectUpdate {
-        object: AuthorizedObjectReference {
-            component: ComponentKind::Spirit,
-            digest: ObjectDigest::from_bytes(b"operation fixture"),
-            kind: AuthorizedObjectKind::Operation,
-        },
-        contract: contract_digest(),
-        decision: EvaluationDecision::Authorized,
-        stamp: attested_moment(),
+        object: Object::new(AuthorizedObjectReference {
+            component: Component::new(ComponentKind::Spirit),
+            digest: Digest::new(ObjectDigest::from_bytes(b"operation fixture")),
+            kind: Kind::new(AuthorizedObjectKind::Operation),
+        }),
+        contract_object_digest: ContractObjectDigest::new(contract_digest()),
+        decision: Decision::new(EvaluationDecision::Authorized),
+        stamp: Stamp::new(attested_moment()),
     }
 }
 
@@ -325,7 +336,7 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
         )),
         CriomeRequest::VerifyAttestation(VerifyRequest {
             attestation: attestation(ContentPurpose::SignedObject),
-            content: content(ContentPurpose::SignedObject),
+            content: Content::new(content(ContentPurpose::SignedObject)),
         }),
         CriomeRequest::RegisterIdentity(IdentityRegistration::new(
             persona("designer"),
@@ -336,65 +347,69 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
         )),
         CriomeRequest::RevokeIdentity(IdentityRevocation {
             identity: persona("designer"),
-            fingerprint: PublicKeyFingerprint::new("fingerprint-designer"),
-            reason: PrincipalName::new("retired"),
+            fingerprint: Fingerprint::new(PublicKeyFingerprint::new("fingerprint-designer")),
+            revocation_reason: RevocationReason::new(PrincipalName::new("retired")),
         }),
         CriomeRequest::LookupIdentity(IdentityLookup::new(host("prometheus"))),
         CriomeRequest::AttestArchive(ArchiveAttestationRequest {
-            release: ComponentRelease {
-                component: PrincipalName::new("persona-router"),
-                artifact: ObjectDigest::from_bytes(b"closure"),
-                authorized_by: developer("operator"),
-            },
+            release: Release::new(ComponentRelease {
+                release_component: ReleaseComponent::new(PrincipalName::new("persona-router")),
+                artifact: Artifact::new(ObjectDigest::from_bytes(b"closure")),
+                authorized_by: AuthorizedBy::new(developer("operator")),
+            }),
             audit_context: audit(ContentPurpose::Archive),
         }),
         CriomeRequest::AttestChannelGrant(ChannelGrantAttestationRequest {
-            grant_content: content(ContentPurpose::ChannelGrant),
-            source: persona("mind"),
+            grant_content: GrantContent::new(content(ContentPurpose::ChannelGrant)),
+            source: Source::new(persona("mind")),
             audit_context: audit(ContentPurpose::ChannelGrant),
         }),
         CriomeRequest::AttestAuthorization(signal_criome::AuthorizationAttestationRequest {
-            authorization_content: content(ContentPurpose::Authorization),
-            source: persona("mind"),
+            authorization_content: AuthorizationContent::new(content(
+                ContentPurpose::Authorization,
+            )),
+            source: Source::new(persona("mind")),
             audit_context: audit(ContentPurpose::Authorization),
         }),
         CriomeRequest::AuthorizeSignalCall(signal_call_authorization()),
-        CriomeRequest::ObserveAuthorization(AuthorizationObservation::new(
+        CriomeRequest::ObserveAuthorization(AuthorizationObservation::new(RequestSlot::new(
             authorization_request_slot(),
-        )),
+        ))),
         CriomeRequest::VerifyAuthorization(AuthorizationVerification {
-            request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
-            authorization: authorization_grant(),
+            request_digest: RequestDigest::new(ObjectDigest::from_bytes(b"signal-lojix request")),
+            authorization: Authorization::new(authorization_grant()),
         }),
         CriomeRequest::RouteSignatureRequest(SignatureSolicitationRoute {
-            solicitation: signature_solicitation(),
-            routed_to: host("balboa"),
+            solicitation: Solicitation::new(signature_solicitation()),
+            routed_to: RoutedTo::new(host("balboa")),
         }),
         CriomeRequest::SubmitSignature(SignatureSubmission {
-            request_slot: authorization_request_slot(),
-            signer: developer("reviewer"),
-            signature: stamped_envelope(),
+            request_slot: RequestSlot::new(authorization_request_slot()),
+            signer: Signer::new(developer("reviewer")),
+            stamped_signature: StampedSignature::new(stamped_envelope()),
         }),
         CriomeRequest::RejectAuthorization(AuthorizationRejection {
-            request_slot: authorization_request_slot(),
-            rejector: developer("reviewer"),
-            reason: AuthorizationDenialReason::SignatureRejected,
+            request_slot: RequestSlot::new(authorization_request_slot()),
+            rejector: Rejector::new(developer("reviewer")),
+            denial_reason: DenialReason::new(AuthorizationDenialReason::SignatureRejected),
         }),
         CriomeRequest::AdmitContract(policy_contract()),
         CriomeRequest::LookupContract(contract_digest()),
         CriomeRequest::EvaluateAuthorization(AuthorizationEvaluation {
-            contract: contract_digest(),
+            contract_object_digest: ContractObjectDigest::new(contract_digest()),
             evidence: evidence(),
         }),
         CriomeRequest::ObserveAuthorizedObjects(AuthorizedObjectObservation {
-            subscriber: agent("operator"),
-            interest: AuthorizedObjectInterest::Component(ComponentKind::Spirit),
+            subscriber: Subscriber::new(agent("operator")),
+            interest: Interest::new(AuthorizedObjectInterest::Component(ComponentKind::Spirit)),
         }),
         CriomeRequest::AuthorizedObjectUpdateRetraction(authorized_object_update_token()),
-        CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription::new(agent("operator"))),
-        CriomeRequest::IdentitySubscriptionRetraction(IdentitySubscriptionToken::new(agent(
+        CriomeRequest::SubscribeIdentityUpdates(IdentitySubscription::new(Subscriber::new(agent(
             "operator",
-        ))),
+        )))),
+        CriomeRequest::IdentitySubscriptionRetraction(IdentitySubscriptionToken::new(
+            Subscriber::new(agent("operator")),
+        )),
         CriomeRequest::AuthorizationObservationRetraction(authorization_observation_token()),
     ];
 
@@ -440,12 +455,12 @@ fn request_variants_declare_contract_local_operation_heads() {
 fn reply_variants_round_trip_through_length_prefixed_frame() {
     let receipt = IdentityReceipt {
         identity: persona("designer"),
-        status: PrincipalStatus::Active,
+        principal_status_role: PrincipalStatusRole::new(PrincipalStatus::Active),
     };
     let replies = vec![
         CriomeReply::SignReceipt(SignReceipt {
             attestation: attestation(ContentPurpose::SignedObject),
-            issued_at: TimestampNanos::new(1),
+            issued_at: IssuedAt::new(TimestampNanos::new(1)),
         }),
         CriomeReply::VerificationResult(VerificationResult::new(
             VerificationDecision::Valid,
@@ -465,19 +480,21 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
         )),
         CriomeReply::AuthorizationGranted(authorization_grant()),
         CriomeReply::AuthorizationDenied(AuthorizationDenied {
-            request_slot: authorization_request_slot(),
-            denial: AuthorizationDenial {
-                source: AuthorizationDenialSource::Policy,
-                reason: AuthorizationDenialReason::SignatureScopeMismatch,
-            },
+            request_slot: RequestSlot::new(authorization_request_slot()),
+            denial_detail: DenialDetail::new(AuthorizationDenial {
+                denial_source: DenialSource::new(AuthorizationDenialSource::Policy),
+                denial_reason: DenialReason::new(AuthorizationDenialReason::SignatureScopeMismatch),
+            }),
         }),
         CriomeReply::AuthorizationExpired(AuthorizationExpired {
-            request_slot: authorization_request_slot(),
-            expired_at: TimestampNanos::new(13),
+            request_slot: RequestSlot::new(authorization_request_slot()),
+            expired_at: ExpiredAt::new(TimestampNanos::new(13)),
         }),
         CriomeReply::AuthorizationUnavailable(AuthorizationUnavailable {
-            request_slot: authorization_request_slot(),
-            reason: PrincipalName::new("criome-peer-unreachable"),
+            request_slot: RequestSlot::new(authorization_request_slot()),
+            unavailable_reason: UnavailableReason::new(PrincipalName::new(
+                "criome-peer-unreachable",
+            )),
         }),
         CriomeReply::AuthorizationObservationSnapshot(
             AuthorizationObservationSnapshot::from_states(vec![authorization_state(
@@ -485,44 +502,50 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
             )]),
         ),
         CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
-            request_slot: authorization_request_slot(),
-            routed_to: host("balboa"),
+            request_slot: RequestSlot::new(authorization_request_slot()),
+            routed_to: RoutedTo::new(host("balboa")),
         }),
         CriomeReply::SignatureSubmissionReceipt(SignatureSubmissionReceipt {
-            request_slot: authorization_request_slot(),
-            signer: developer("reviewer"),
+            request_slot: RequestSlot::new(authorization_request_slot()),
+            signer: Signer::new(developer("reviewer")),
         }),
-        CriomeReply::ContractAdmitted(ContractAdmitted::new(contract_digest())),
+        CriomeReply::ContractAdmitted(ContractAdmitted::new(ContractObjectDigest::new(
+            contract_digest(),
+        ))),
         CriomeReply::ContractFound(ContractFound {
-            digest: contract_digest(),
+            contract_object_digest: ContractObjectDigest::new(contract_digest()),
             contract: policy_contract(),
         }),
-        CriomeReply::ContractMissing(ContractMissing::new(contract_digest())),
+        CriomeReply::ContractMissing(ContractMissing::new(ContractObjectDigest::new(
+            contract_digest(),
+        ))),
         CriomeReply::ContractAdmissionRejected(ContractAdmissionRejected::new(
-            ContractAdmissionRejectionReason::DuplicatePolicyMember,
+            AdmissionRejectionReason::new(ContractAdmissionRejectionReason::DuplicatePolicyMember),
         )),
         CriomeReply::AuthorizationEvaluated(AuthorizationEvaluated {
-            contract: contract_digest(),
-            decision: EvaluationDecision::Rejected(EvaluationRejectionReason::QuorumShort(
-                QuorumShortfall {
-                    required: RequiredSignatureThreshold::new(2),
-                    satisfied: RequiredSignatureThreshold::new(1),
-                },
+            contract_object_digest: ContractObjectDigest::new(contract_digest()),
+            decision: Decision::new(EvaluationDecision::Rejected(
+                EvaluationRejectionReason::QuorumShort(QuorumShortfall {
+                    required: Required::new(RequiredSignatureThreshold::new(2)),
+                    satisfied: Satisfied::new(RequiredSignatureThreshold::new(1)),
+                }),
             )),
         }),
         CriomeReply::AuthorizedObjectUpdateSnapshot(AuthorizedObjectUpdateSnapshot::from_updates(
             vec![authorized_object_update()],
         )),
         CriomeReply::AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateRetracted::new(
-            authorized_object_update_token(),
+            Token::new(authorized_object_update_token()),
         )),
         CriomeReply::AuthorizationObservationRetracted(AuthorizationObservationRetracted::new(
-            authorization_observation_token(),
+            ObservationToken::new(authorization_observation_token()),
         )),
-        CriomeReply::SubscriptionRetracted(SubscriptionRetracted::new(
-            IdentitySubscriptionToken::new(agent("operator")),
-        )),
-        CriomeReply::Rejection(Rejection::new(RejectionReason::ReplayAttempted)),
+        CriomeReply::SubscriptionRetracted(SubscriptionRetracted::new(SubscriptionToken::new(
+            IdentitySubscriptionToken::new(Subscriber::new(agent("operator"))),
+        ))),
+        CriomeReply::Rejection(Rejection::new(RejectionDetail::new(
+            RejectionReason::ReplayAttempted,
+        ))),
     ];
 
     for reply in replies {
@@ -534,16 +557,16 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
 fn identity_update_event_round_trips_through_length_prefixed_frame() {
     let receipt = IdentityReceipt {
         identity: persona("designer"),
-        status: PrincipalStatus::Active,
+        principal_status_role: PrincipalStatusRole::new(PrincipalStatus::Active),
     };
-    let event = CriomeEvent::IdentityUpdate(IdentityUpdate::new(receipt));
+    let event = CriomeEvent::IdentityUpdate(IdentityUpdate::new(Receipt::new(receipt)));
     assert_eq!(round_trip_event(event.clone()), event);
 }
 
 #[test]
 fn authorization_update_event_round_trips_through_length_prefixed_frame() {
-    let event = CriomeEvent::AuthorizationUpdate(AuthorizationUpdate::new(authorization_state(
-        AuthorizationStatus::Granted,
+    let event = CriomeEvent::AuthorizationUpdate(AuthorizationUpdate::new(State::new(
+        authorization_state(AuthorizationStatus::Granted),
     )));
     assert_eq!(round_trip_event(event.clone()), event);
 }
@@ -558,20 +581,24 @@ fn authorized_object_update_event_round_trips_through_length_prefixed_frame() {
 fn authorization_grant_carries_satisfied_policy_threshold() {
     let grant = authorization_grant();
 
-    assert_eq!(grant.request_slot, authorization_request_slot());
     assert_eq!(
-        grant.policy_satisfaction.policy_class,
+        grant.request_slot,
+        RequestSlot::new(authorization_request_slot()),
+    );
+    assert_eq!(
+        *grant.policy_satisfaction.payload().policy_class.payload(),
         AuthorizationPolicyClass::ComplexQuorum,
     );
     assert_eq!(
         grant
             .policy_satisfaction
+            .payload()
             .required_signature_threshold
             .into_u16(),
         1,
     );
     assert_eq!(
-        grant.policy_satisfaction.satisfied_signers(),
+        grant.policy_satisfaction.payload().satisfied_signers(),
         &[cluster("uranus")],
     );
 }
@@ -581,7 +608,7 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
     let source = std::fs::read_to_string("schema/lib.schema").expect("read schema");
 
     for required in [
-        "signature.StampedSignatureEnvelope",
+        "StampedSignature StampedSignatureEnvelope",
         "(EvidenceSignatures (Vector StampedSignatureEnvelope))",
         "(AuthorizationGrantSignatures (Vec StampedSignatureEnvelope))",
     ] {
@@ -591,8 +618,7 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
         );
     }
     assert!(
-        source
-            .contains("TimeSignature {\n    signer.Identity\n    envelope.SignatureEnvelope\n  }"),
+        source.contains("TimeSignature {\n    Signer\n    Envelope\n  }"),
         "time signatures must stay bare because they create AttestedMoment"
     );
 }
@@ -601,13 +627,17 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
 fn authorized_object_update_carries_references_not_payloads() {
     let source = std::fs::read_to_string("schema/lib.schema").expect("read schema");
 
-    assert!(source.contains("AuthorizedObjectReference {\n    component.ComponentKind"));
-    assert!(source.contains("    digest.ObjectDigest"));
-    assert!(source.contains("AuthorizedObjectUpdate {\n    object.AuthorizedObjectReference"));
-    assert!(source.contains("    contract.ContractDigest"));
-    assert!(source.contains("    stamp.AttestedMoment"));
     assert!(
-        !source.contains("AuthorizedObjectUpdate {\n    object Contract"),
+        source.contains("AuthorizedObjectReference {\n    Component\n    Digest\n    Kind\n  }")
+    );
+    assert!(source.contains("Digest ObjectDigest"));
+    assert!(source.contains(
+        "AuthorizedObjectUpdate {\n    Object\n    ContractObjectDigest\n    Decision\n    Stamp\n  }"
+    ));
+    assert!(source.contains("Object AuthorizedObjectReference"));
+    assert!(source.contains("Stamp AttestedMoment"));
+    assert!(
+        !source.contains("AuthorizedObjectUpdate {\n    Object\n    Contract\n"),
         "authorized object pulse must not carry inline contract payloads"
     );
 }
@@ -615,18 +645,18 @@ fn authorized_object_update_carries_references_not_payloads() {
 #[test]
 fn authorization_denial_distinguishes_policy_from_signer_refusal() {
     let policy_denial = AuthorizationDenied {
-        request_slot: authorization_request_slot(),
-        denial: AuthorizationDenial {
-            source: AuthorizationDenialSource::Policy,
-            reason: AuthorizationDenialReason::PolicyRefused,
-        },
+        request_slot: RequestSlot::new(authorization_request_slot()),
+        denial_detail: DenialDetail::new(AuthorizationDenial {
+            denial_source: DenialSource::new(AuthorizationDenialSource::Policy),
+            denial_reason: DenialReason::new(AuthorizationDenialReason::PolicyRefused),
+        }),
     };
     let signer_denial = AuthorizationDenied {
-        request_slot: authorization_request_slot(),
-        denial: AuthorizationDenial {
-            source: AuthorizationDenialSource::Signers,
-            reason: AuthorizationDenialReason::SignerThresholdRejected,
-        },
+        request_slot: RequestSlot::new(authorization_request_slot()),
+        denial_detail: DenialDetail::new(AuthorizationDenial {
+            denial_source: DenialSource::new(AuthorizationDenialSource::Signers),
+            denial_reason: DenialReason::new(AuthorizationDenialReason::SignerThresholdRejected),
+        }),
     };
 
     assert_ne!(policy_denial, signer_denial);
