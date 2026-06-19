@@ -225,13 +225,17 @@ fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
     }
 }
 
+fn authorized_object_reference() -> AuthorizedObjectReference {
+    AuthorizedObjectReference {
+        component: ComponentKind::Spirit,
+        digest: operation_digest().object_digest().clone(),
+        kind: AuthorizedObjectKind::Head,
+    }
+}
+
 fn authorized_object_update() -> AuthorizedObjectUpdate {
     AuthorizedObjectUpdate {
-        object: AuthorizedObjectReference {
-            component: ComponentKind::Spirit,
-            digest: ObjectDigest::from_bytes(b"operation fixture"),
-            kind: AuthorizedObjectKind::Operation,
-        },
+        object: authorized_object_reference(),
         contract: contract_digest(),
         decision: EvaluationDecision::Authorized,
         stamp: attested_moment(),
@@ -384,6 +388,7 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
         CriomeRequest::LookupContract(contract_digest()),
         CriomeRequest::EvaluateAuthorization(AuthorizationEvaluation {
             contract: contract_digest(),
+            object: authorized_object_reference(),
             evidence: evidence(),
         }),
         CriomeRequest::ObserveAuthorizedObjects(AuthorizedObjectObservation {

@@ -534,6 +534,7 @@ pub struct Evidence {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationEvaluation {
     pub contract: ContractDigest,
+    pub object: AuthorizedObjectReference,
     pub evidence: Evidence,
 }
 
@@ -574,6 +575,7 @@ pub enum AuthorizedObjectKind {
     Contract,
     Agreement,
     Time,
+    Head,
 }
 
 #[rustfmt::skip]

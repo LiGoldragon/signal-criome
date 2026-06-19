@@ -194,6 +194,7 @@
 
   AuthorizationEvaluation {
     contract.ContractDigest
+    object.AuthorizedObjectReference
     Evidence
   }
 
@@ -211,7 +212,7 @@
     AgreementMissing
   ]
 
-  AuthorizedObjectKind [Operation Contract Agreement Time]
+  AuthorizedObjectKind [Operation Contract Agreement Time Head]
 
   ComponentObjectInterest {
     component.ComponentKind

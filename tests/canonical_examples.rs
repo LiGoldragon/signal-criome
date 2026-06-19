@@ -203,13 +203,17 @@ fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
     }
 }
 
+fn authorized_object_reference() -> AuthorizedObjectReference {
+    AuthorizedObjectReference {
+        component: ComponentKind::Spirit,
+        digest: operation_digest().object_digest().clone(),
+        kind: AuthorizedObjectKind::Head,
+    }
+}
+
 fn authorized_object_update() -> AuthorizedObjectUpdate {
     AuthorizedObjectUpdate {
-        object: AuthorizedObjectReference {
-            component: ComponentKind::Spirit,
-            digest: ObjectDigest::new("operation-digest-1"),
-            kind: AuthorizedObjectKind::Operation,
-        },
+        object: authorized_object_reference(),
         contract: contract_digest(),
         decision: EvaluationDecision::Authorized,
         stamp: attested_moment(),
@@ -341,6 +345,7 @@ fn canonical_request_examples_round_trip() {
     round_trip(CriomeRequest::EvaluateAuthorization(
         AuthorizationEvaluation {
             contract: contract_digest(),
+            object: authorized_object_reference(),
             evidence: evidence(),
         },
     ));
