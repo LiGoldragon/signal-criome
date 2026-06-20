@@ -140,6 +140,7 @@ impl CriomeDaemonConfiguration {
             meta_socket_path: MetaSocketPath::new(None),
             cluster_root: ClusterRoot::new(None),
             authorization_mode: AuthorizationMode::Quorum,
+            peers: Peers::new(Vec::new()),
         }
     }
 
@@ -178,6 +179,18 @@ impl CriomeDaemonConfiguration {
         self.cluster_root.payload().as_ref()
     }
 
+    /// Set the admitted peer criome nodes this daemon can address for
+    /// cross-criome quorum signature solicitation. Empty by default; a
+    /// single-node deployment carries no peers.
+    pub fn with_peers(mut self, peers: Vec<PeerNode>) -> Self {
+        self.peers = Peers::new(peers);
+        self
+    }
+
+    pub fn peers(&self) -> &[PeerNode] {
+        self.peers.payload().as_slice()
+    }
+
     pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, CriomeDaemonConfigurationArchiveError> {
         rkyv::from_bytes::<Self, rkyv::rancor::Error>(bytes)
             .map_err(|_| CriomeDaemonConfigurationArchiveError::Decode)
@@ -187,6 +200,20 @@ impl CriomeDaemonConfiguration {
         rkyv::to_bytes::<rkyv::rancor::Error>(self)
             .map(|bytes| bytes.to_vec())
             .map_err(|_| CriomeDaemonConfigurationArchiveError::Encode)
+    }
+}
+
+impl PeerNode {
+    pub fn new(
+        master_public_key: BlsPublicKey,
+        address: PeerAddress,
+        identity: Identity,
+    ) -> Self {
+        Self {
+            master_public_key,
+            address,
+            identity,
+        }
     }
 }
 

@@ -41,6 +41,11 @@ pub struct BlsPublicKey(String);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct PeerAddress(String);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct BlsSignature(String);
 
 #[rustfmt::skip]
@@ -382,6 +387,15 @@ pub enum Identity {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct PeerNode {
+    pub master_public_key: BlsPublicKey,
+    pub address: PeerAddress,
+    pub identity: Identity,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub(crate) struct MetaSocketPath(Option<DaemonPath>);
 
 #[rustfmt::skip]
@@ -392,12 +406,18 @@ pub(crate) struct ClusterRoot(Option<BlsPublicKey>);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Peers(Vec<PeerNode>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CriomeDaemonConfiguration {
     pub socket_path: DaemonPath,
     pub store_path: DaemonPath,
     pub(crate) meta_socket_path: MetaSocketPath,
     pub(crate) cluster_root: ClusterRoot,
     pub authorization_mode: AuthorizationMode,
+    pub(crate) peers: Peers,
 }
 
 #[rustfmt::skip]
@@ -1400,6 +1420,25 @@ impl From<String> for BlsPublicKey {
 }
 
 #[rustfmt::skip]
+impl PeerAddress {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for PeerAddress {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl BlsSignature {
     pub fn new(payload: impl Into<String>) -> Self {
         Self(payload.into())
@@ -1661,6 +1700,25 @@ impl ClusterRoot {
 #[rustfmt::skip]
 impl From<Option<BlsPublicKey>> for ClusterRoot {
     fn from(payload: Option<BlsPublicKey>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Peers {
+    pub fn new(payload: Vec<PeerNode>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<PeerNode> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<PeerNode> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<PeerNode>> for Peers {
+    fn from(payload: Vec<PeerNode>) -> Self {
         Self::new(payload)
     }
 }
