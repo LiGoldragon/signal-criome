@@ -42,6 +42,9 @@
 ;; CriomeRequest::ObserveAuthorization
 (ObserveAuthorization authorization-request-1)
 
+;; CriomeRequest::ObserveParkedAuthorizations
+(ObserveParkedAuthorizations ())
+
 ;; CriomeRequest::VerifyAuthorization
 (VerifyAuthorization (digest-lojix-request (authorization-request-1 digest-lojix-request signal-lojix Deploy deploy-zeus-full-os (ComplexQuorum 1 [(Cluster uranus)]) RequiredSignaturesSatisfied [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] (Cluster uranus) 110 None)))
 
@@ -111,7 +114,10 @@
 (AuthorizationUnavailable (authorization-request-1 criome-peer-unreachable))
 
 ;; CriomeReply::AuthorizationObservationSnapshot
-(AuthorizationObservationSnapshot [(authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None)])
+(AuthorizationObservationSnapshot [(authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None None)])
+
+;; CriomeReply::ParkedAuthorizationSnapshot
+(ParkedAuthorizationSnapshot [(authorization-request-1 (contract-digest-1 (Spirit operation-digest-1 Head) (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [])))])
 
 ;; CriomeReply::SignatureRouteReceipt
 (SignatureRouteReceipt (authorization-request-1 (Host balboa)))
@@ -155,7 +161,7 @@
 (IdentityUpdate ((Persona alice) Active))
 
 ;; CriomeEvent::AuthorizationUpdate
-(AuthorizationUpdate (authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None))
+(AuthorizationUpdate (authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None None))
 
 ;; CriomeEvent::AuthorizedObjectUpdate
 (AuthorizedObjectUpdate ((Spirit operation-digest-1 Head) contract-digest-1 Authorized (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))])))

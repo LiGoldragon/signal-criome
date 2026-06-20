@@ -19,7 +19,8 @@ use signal_criome::{
     EvaluationRejectionReason, Evidence, Identity, IdentityLookup, IdentityReceipt,
     IdentityRegistration, IdentityRevocation, IdentitySnapshot, IdentitySubscription,
     IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest, OperationDigest,
-    PolicyMember, PrincipalName, PrincipalStatus, PublicKeyFingerprint, QuorumShortfall, Rejection,
+    ParkedAuthorization, ParkedAuthorizationObservation, ParkedAuthorizationSnapshot, PolicyMember,
+    PrincipalName, PrincipalStatus, PublicKeyFingerprint, QuorumShortfall, Rejection,
     RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule, SignReceipt, SignRequest,
     SignalCallAuthorization, SignatureAuthorizationResult, SignatureEnvelope,
     SignatureRouteReceipt, SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute,
@@ -242,6 +243,14 @@ fn authorized_object_update() -> AuthorizedObjectUpdate {
     }
 }
 
+fn authorization_evaluation() -> AuthorizationEvaluation {
+    AuthorizationEvaluation {
+        contract: contract_digest(),
+        object: authorized_object_reference(),
+        evidence: evidence(),
+    }
+}
+
 fn exchange() -> ExchangeIdentifier {
     ExchangeIdentifier::new(
         SessionEpoch::new(1),
@@ -366,6 +375,7 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
         CriomeRequest::ObserveAuthorization(AuthorizationObservation::new(
             authorization_request_slot(),
         )),
+        CriomeRequest::ObserveParkedAuthorizations(ParkedAuthorizationObservation::new()),
         CriomeRequest::VerifyAuthorization(AuthorizationVerification {
             request_digest: ObjectDigest::from_bytes(b"signal-lojix request"),
             authorization: authorization_grant(),
@@ -386,11 +396,7 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
         }),
         CriomeRequest::AdmitContract(policy_contract()),
         CriomeRequest::LookupContract(contract_digest()),
-        CriomeRequest::EvaluateAuthorization(AuthorizationEvaluation {
-            contract: contract_digest(),
-            object: authorized_object_reference(),
-            evidence: evidence(),
-        }),
+        CriomeRequest::EvaluateAuthorization(authorization_evaluation()),
         CriomeRequest::ObserveAuthorizedObjects(AuthorizedObjectObservation {
             subscriber: agent("operator"),
             interest: AuthorizedObjectInterest::Component(ComponentKind::Spirit),
@@ -427,6 +433,7 @@ fn request_variants_declare_contract_local_operation_heads() {
             "RouteSignatureRequest",
             "SubmitSignature",
             "RejectAuthorization",
+            "ObserveParkedAuthorizations",
             "AdmitContract",
             "LookupContract",
             "EvaluateAuthorization",
@@ -489,6 +496,12 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
                 AuthorizationStatus::Pending,
             )]),
         ),
+        CriomeReply::ParkedAuthorizationSnapshot(ParkedAuthorizationSnapshot::from_parked(vec![
+            ParkedAuthorization {
+                request_slot: authorization_request_slot(),
+                evaluation: authorization_evaluation(),
+            },
+        ])),
         CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
             request_slot: authorization_request_slot(),
             routed_to: host("balboa"),

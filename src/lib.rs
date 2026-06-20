@@ -401,7 +401,13 @@ impl AuthorizationStateRecord {
             state_missing_authorities: StateMissingAuthorities::new(missing_authorities),
             grant: Grant::new(grant),
             denial: Denial::new(denial),
+            parked_evaluation: ParkedEvaluation::new(None),
         }
+    }
+
+    pub fn with_parked_evaluation(mut self, evaluation: AuthorizationEvaluation) -> Self {
+        self.parked_evaluation = ParkedEvaluation::new(Some(evaluation));
+        self
     }
 
     pub fn missing_authorities(&self) -> &[Identity] {
@@ -414,6 +420,30 @@ impl AuthorizationStateRecord {
 
     pub fn denial(&self) -> Option<&AuthorizationDenial> {
         self.denial.payload().as_ref()
+    }
+
+    pub fn parked_evaluation(&self) -> Option<&AuthorizationEvaluation> {
+        self.parked_evaluation.payload().as_ref()
+    }
+}
+
+impl ParkedAuthorizationObservation {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl ParkedAuthorizationSnapshot {
+    pub fn from_parked(parked: Vec<ParkedAuthorization>) -> Self {
+        Self::new(ParkedAuthorizations::new(parked))
+    }
+
+    pub fn parked(&self) -> &[ParkedAuthorization] {
+        self.payload().payload().as_slice()
+    }
+
+    pub fn into_parked(self) -> Vec<ParkedAuthorization> {
+        self.into_payload().into_payload()
     }
 }
 

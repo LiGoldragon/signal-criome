@@ -18,6 +18,7 @@
  (RouteSignatureRequest SignatureSolicitationRoute)
  (SubmitSignature SignatureSubmission)
  (RejectAuthorization AuthorizationRejection)
+ (ObserveParkedAuthorizations ParkedAuthorizationObservation)
  (AdmitContract Contract)
  (LookupContract ContractDigest)
  (EvaluateAuthorization AuthorizationEvaluation)
@@ -41,6 +42,7 @@
  (AuthorizationObservationSnapshot AuthorizationObservationSnapshot)
  (SignatureRouteReceipt SignatureRouteReceipt)
  (SignatureSubmissionReceipt SignatureSubmissionReceipt)
+ (ParkedAuthorizationSnapshot ParkedAuthorizationSnapshot)
  (ContractAdmitted ContractAdmitted)
  (ContractFound ContractFound)
  (ContractMissing ContractMissing)
@@ -79,8 +81,8 @@
   VerificationDecision [Valid InvalidSignature UnknownSigner Expired Revoked ReplayAttempted]
   SignatureAuthorizationResult [SingleSignature RequiredSignaturesSatisfied PendingSignatures Rejected Expired]
   AuthorizationPolicyClass [SimpleSelfSigned ComplexQuorum]
-  AuthorizationMode [Quorum AutoApprove]
-  AuthorizationStatus [Pending Signing Granted Denied Expired Unavailable]
+  AuthorizationMode [Quorum AutoApprove ClientApproval]
+  AuthorizationStatus [Pending Signing Parked Granted Denied Expired Unavailable]
   AuthorizationDenialReason [PolicyRefused RequiredSignatureMissing SignatureRejected SignerThresholdRejected SignatureExpired RequestDigestMismatch SignatureScopeMismatch SignerUnavailable]
   AuthorizationDenialSource [Policy Signers]
   RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration]
@@ -459,10 +461,22 @@
     (StateMissingAuthorities (Vec Identity))
     (Grant (Optional AuthorizationGrant))
     (Denial (Optional AuthorizationDenial))
+    (ParkedEvaluation (Optional AuthorizationEvaluation))
   }
 
   AuthorizationObservationSnapshot {
     (States (Vec AuthorizationStateRecord))
+  }
+
+  ParkedAuthorization {
+    request_slot.AuthorizationRequestSlot
+    evaluation.AuthorizationEvaluation
+  }
+
+  ParkedAuthorizationObservation { }
+
+  ParkedAuthorizationSnapshot {
+    (ParkedAuthorizations (Vec ParkedAuthorization))
   }
 
   SignatureRouteReceipt {

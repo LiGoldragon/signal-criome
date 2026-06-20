@@ -26,13 +26,15 @@ use signal_criome::{
     EvaluationDecision, EvaluationRejectionReason, Evidence, Identity, IdentityLookup,
     IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
     IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
-    OperationDigest, PolicyMember, PrincipalName, PrincipalStatus, PublicKeyFingerprint,
-    QuorumShortfall, Rejection, RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule,
-    SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
-    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
-    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
-    StampedSignatureEnvelope, SubscriptionRetracted, Threshold, TimeSignature, TimeWindow,
-    TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest,
+    OperationDigest, ParkedAuthorization, ParkedAuthorizationObservation,
+    ParkedAuthorizationSnapshot, PolicyMember, PrincipalName, PrincipalStatus,
+    PublicKeyFingerprint, QuorumShortfall, Rejection, RejectionReason, ReplayNonce,
+    RequiredSignatureThreshold, Rule, SignReceipt, SignRequest, SignalCallAuthorization,
+    SignatureAuthorizationResult, SignatureEnvelope, SignatureRouteReceipt, SignatureScheme,
+    SignatureSolicitation, SignatureSolicitationRoute, SignatureSubmission,
+    SignatureSubmissionReceipt, StampedSignatureEnvelope, SubscriptionRetracted, Threshold,
+    TimeSignature, TimeWindow, TimestampNanos, VerificationDecision, VerificationResult,
+    VerifyRequest,
 };
 
 const CANONICAL: &str = include_str!("../examples/canonical.nota");
@@ -220,6 +222,14 @@ fn authorized_object_update() -> AuthorizedObjectUpdate {
     }
 }
 
+fn authorization_evaluation() -> AuthorizationEvaluation {
+    AuthorizationEvaluation {
+        contract: contract_digest(),
+        object: authorized_object_reference(),
+        evidence: evidence(),
+    }
+}
+
 fn round_trip<T>(value: T)
 where
     T: NotaEncode + NotaDecode + PartialEq + std::fmt::Debug,
@@ -318,6 +328,9 @@ fn canonical_request_examples_round_trip() {
     round_trip(CriomeRequest::ObserveAuthorization(
         AuthorizationObservation::new(authorization_request_slot()),
     ));
+    round_trip(CriomeRequest::ObserveParkedAuthorizations(
+        ParkedAuthorizationObservation::new(),
+    ));
     round_trip(CriomeRequest::VerifyAuthorization(
         AuthorizationVerification {
             request_digest: ObjectDigest::new("digest-lojix-request"),
@@ -343,11 +356,7 @@ fn canonical_request_examples_round_trip() {
     round_trip(CriomeRequest::AdmitContract(policy_contract()));
     round_trip(CriomeRequest::LookupContract(contract_digest()));
     round_trip(CriomeRequest::EvaluateAuthorization(
-        AuthorizationEvaluation {
-            contract: contract_digest(),
-            object: authorized_object_reference(),
-            evidence: evidence(),
-        },
+        authorization_evaluation(),
     ));
     round_trip(CriomeRequest::ObserveAuthorizedObjects(
         AuthorizedObjectObservation {
@@ -419,6 +428,12 @@ fn canonical_reply_examples_round_trip() {
     ));
     round_trip(CriomeReply::AuthorizationObservationSnapshot(
         AuthorizationObservationSnapshot::from_states(vec![authorization_state()]),
+    ));
+    round_trip(CriomeReply::ParkedAuthorizationSnapshot(
+        ParkedAuthorizationSnapshot::from_parked(vec![ParkedAuthorization {
+            request_slot: authorization_request_slot(),
+            evaluation: authorization_evaluation(),
+        }]),
     ));
     round_trip(CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
         request_slot: authorization_request_slot(),

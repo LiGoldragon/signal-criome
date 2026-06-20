@@ -247,6 +247,7 @@ pub enum AuthorizationPolicyClass {
 pub enum AuthorizationMode {
     Quorum,
     AutoApprove,
+    ClientApproval,
 }
 
 #[rustfmt::skip]
@@ -264,6 +265,7 @@ pub enum AuthorizationMode {
 pub enum AuthorizationStatus {
     Pending,
     Signing,
+    Parked,
     Granted,
     Denied,
     Expired,
@@ -1002,6 +1004,11 @@ pub(crate) struct Denial(Option<AuthorizationDenial>);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ParkedEvaluation(Option<AuthorizationEvaluation>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationStateRecord {
     pub request_slot: AuthorizationRequestSlot,
     pub request_digest: ObjectDigest,
@@ -1009,6 +1016,7 @@ pub struct AuthorizationStateRecord {
     pub(crate) state_missing_authorities: StateMissingAuthorities,
     pub(crate) grant: Grant,
     pub(crate) denial: Denial,
+    pub(crate) parked_evaluation: ParkedEvaluation,
 }
 
 #[rustfmt::skip]
@@ -1020,6 +1028,29 @@ pub(crate) struct States(Vec<AuthorizationStateRecord>);
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationObservationSnapshot(States);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ParkedAuthorization {
+    pub request_slot: AuthorizationRequestSlot,
+    pub evaluation: AuthorizationEvaluation,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ParkedAuthorizationObservation {}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ParkedAuthorizations(Vec<ParkedAuthorization>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ParkedAuthorizationSnapshot(ParkedAuthorizations);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -1228,6 +1259,7 @@ pub enum Input {
     RouteSignatureRequest(SignatureSolicitationRoute),
     SubmitSignature(SignatureSubmission),
     RejectAuthorization(AuthorizationRejection),
+    ObserveParkedAuthorizations(ParkedAuthorizationObservation),
     AdmitContract(Contract),
     LookupContract(ContractDigest),
     EvaluateAuthorization(AuthorizationEvaluation),
@@ -1257,6 +1289,7 @@ pub enum Output {
     AuthorizationObservationSnapshot(AuthorizationObservationSnapshot),
     SignatureRouteReceipt(SignatureRouteReceipt),
     SignatureSubmissionReceipt(SignatureSubmissionReceipt),
+    ParkedAuthorizationSnapshot(ParkedAuthorizationSnapshot),
     ContractAdmitted(ContractAdmitted),
     ContractFound(ContractFound),
     ContractMissing(ContractMissing),
@@ -2165,6 +2198,25 @@ impl From<Option<AuthorizationDenial>> for Denial {
 }
 
 #[rustfmt::skip]
+impl ParkedEvaluation {
+    pub fn new(payload: Option<AuthorizationEvaluation>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<AuthorizationEvaluation> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<AuthorizationEvaluation> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<AuthorizationEvaluation>> for ParkedEvaluation {
+    fn from(payload: Option<AuthorizationEvaluation>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl States {
     pub fn new(payload: Vec<AuthorizationStateRecord>) -> Self {
         Self(payload)
@@ -2198,6 +2250,44 @@ impl AuthorizationObservationSnapshot {
 #[rustfmt::skip]
 impl From<States> for AuthorizationObservationSnapshot {
     fn from(payload: States) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ParkedAuthorizations {
+    pub fn new(payload: Vec<ParkedAuthorization>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<ParkedAuthorization> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<ParkedAuthorization> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<ParkedAuthorization>> for ParkedAuthorizations {
+    fn from(payload: Vec<ParkedAuthorization>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ParkedAuthorizationSnapshot {
+    pub fn new(payload: ParkedAuthorizations) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ParkedAuthorizations {
+        &self.0
+    }
+    pub fn into_payload(self) -> ParkedAuthorizations {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ParkedAuthorizations> for ParkedAuthorizationSnapshot {
+    fn from(payload: ParkedAuthorizations) -> Self {
         Self::new(payload)
     }
 }
@@ -2638,6 +2728,11 @@ impl Input {
     pub fn reject_authorization(payload: AuthorizationRejection) -> Self {
         Self::RejectAuthorization(payload)
     }
+    pub fn observe_parked_authorizations(
+        payload: ParkedAuthorizationObservation,
+    ) -> Self {
+        Self::ObserveParkedAuthorizations(payload)
+    }
     pub fn admit_contract(payload: Rule) -> Self {
         Self::AdmitContract(Contract::new(payload))
     }
@@ -2718,6 +2813,9 @@ impl Output {
     }
     pub fn signature_submission_receipt(payload: SignatureSubmissionReceipt) -> Self {
         Self::SignatureSubmissionReceipt(payload)
+    }
+    pub fn parked_authorization_snapshot(payload: ParkedAuthorizations) -> Self {
+        Self::ParkedAuthorizationSnapshot(ParkedAuthorizationSnapshot::new(payload))
     }
     pub fn contract_admitted(payload: ContractDigest) -> Self {
         Self::ContractAdmitted(ContractAdmitted::new(payload))
@@ -2980,6 +3078,13 @@ impl From<AuthorizationRejection> for Input {
 }
 
 #[rustfmt::skip]
+impl From<ParkedAuthorizationObservation> for Input {
+    fn from(payload: ParkedAuthorizationObservation) -> Self {
+        Self::ObserveParkedAuthorizations(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<Contract> for Input {
     fn from(payload: Contract) -> Self {
         Self::AdmitContract(payload)
@@ -3141,6 +3246,13 @@ impl From<SignatureSubmissionReceipt> for Output {
 }
 
 #[rustfmt::skip]
+impl From<ParkedAuthorizationSnapshot> for Output {
+    fn from(payload: ParkedAuthorizationSnapshot) -> Self {
+        Self::ParkedAuthorizationSnapshot(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<ContractAdmitted> for Output {
     fn from(payload: ContractAdmitted) -> Self {
         Self::ContractAdmitted(payload)
@@ -3272,16 +3384,17 @@ pub mod short_header {
     pub const INPUT_ROUTE_SIGNATURE_REQUEST: u64 = 0x000B000000000000;
     pub const INPUT_SUBMIT_SIGNATURE: u64 = 0x000C000000000000;
     pub const INPUT_REJECT_AUTHORIZATION: u64 = 0x000D000000000000;
-    pub const INPUT_ADMIT_CONTRACT: u64 = 0x000E000000000000;
-    pub const INPUT_LOOKUP_CONTRACT: u64 = 0x000F000000000000;
-    pub const INPUT_EVALUATE_AUTHORIZATION: u64 = 0x0010000000000000;
-    pub const INPUT_OBSERVE_AUTHORIZED_OBJECTS: u64 = 0x0011000000000000;
-    pub const INPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTION: u64 = 0x0012000000000000;
-    pub const INPUT_SCHEDULE_CONTRACT_TIME_CHECK: u64 = 0x0013000000000000;
-    pub const INPUT_RUN_DUE_CONTRACT_CHECKS: u64 = 0x0014000000000000;
-    pub const INPUT_SUBSCRIBE_IDENTITY_UPDATES: u64 = 0x0015000000000000;
-    pub const INPUT_IDENTITY_SUBSCRIPTION_RETRACTION: u64 = 0x0016000000000000;
-    pub const INPUT_AUTHORIZATION_OBSERVATION_RETRACTION: u64 = 0x0017000000000000;
+    pub const INPUT_OBSERVE_PARKED_AUTHORIZATIONS: u64 = 0x000E000000000000;
+    pub const INPUT_ADMIT_CONTRACT: u64 = 0x000F000000000000;
+    pub const INPUT_LOOKUP_CONTRACT: u64 = 0x0010000000000000;
+    pub const INPUT_EVALUATE_AUTHORIZATION: u64 = 0x0011000000000000;
+    pub const INPUT_OBSERVE_AUTHORIZED_OBJECTS: u64 = 0x0012000000000000;
+    pub const INPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTION: u64 = 0x0013000000000000;
+    pub const INPUT_SCHEDULE_CONTRACT_TIME_CHECK: u64 = 0x0014000000000000;
+    pub const INPUT_RUN_DUE_CONTRACT_CHECKS: u64 = 0x0015000000000000;
+    pub const INPUT_SUBSCRIBE_IDENTITY_UPDATES: u64 = 0x0016000000000000;
+    pub const INPUT_IDENTITY_SUBSCRIPTION_RETRACTION: u64 = 0x0017000000000000;
+    pub const INPUT_AUTHORIZATION_OBSERVATION_RETRACTION: u64 = 0x0018000000000000;
     pub const OUTPUT_SIGN_RECEIPT: u64 = 0x0100000000000000;
     pub const OUTPUT_VERIFICATION_RESULT: u64 = 0x0101000000000000;
     pub const OUTPUT_IDENTITY_RECEIPT: u64 = 0x0102000000000000;
@@ -3295,18 +3408,19 @@ pub mod short_header {
     pub const OUTPUT_AUTHORIZATION_OBSERVATION_SNAPSHOT: u64 = 0x010A000000000000;
     pub const OUTPUT_SIGNATURE_ROUTE_RECEIPT: u64 = 0x010B000000000000;
     pub const OUTPUT_SIGNATURE_SUBMISSION_RECEIPT: u64 = 0x010C000000000000;
-    pub const OUTPUT_CONTRACT_ADMITTED: u64 = 0x010D000000000000;
-    pub const OUTPUT_CONTRACT_FOUND: u64 = 0x010E000000000000;
-    pub const OUTPUT_CONTRACT_MISSING: u64 = 0x010F000000000000;
-    pub const OUTPUT_CONTRACT_ADMISSION_REJECTED: u64 = 0x0110000000000000;
-    pub const OUTPUT_AUTHORIZATION_EVALUATED: u64 = 0x0111000000000000;
-    pub const OUTPUT_AUTHORIZED_OBJECT_UPDATE_SNAPSHOT: u64 = 0x0112000000000000;
-    pub const OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED: u64 = 0x0113000000000000;
-    pub const OUTPUT_CONTRACT_TIME_CHECK_SCHEDULED: u64 = 0x0114000000000000;
-    pub const OUTPUT_DUE_CONTRACT_CHECKS_EVALUATED: u64 = 0x0115000000000000;
-    pub const OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED: u64 = 0x0116000000000000;
-    pub const OUTPUT_SUBSCRIPTION_RETRACTED: u64 = 0x0117000000000000;
-    pub const OUTPUT_REJECTION: u64 = 0x0118000000000000;
+    pub const OUTPUT_PARKED_AUTHORIZATION_SNAPSHOT: u64 = 0x010D000000000000;
+    pub const OUTPUT_CONTRACT_ADMITTED: u64 = 0x010E000000000000;
+    pub const OUTPUT_CONTRACT_FOUND: u64 = 0x010F000000000000;
+    pub const OUTPUT_CONTRACT_MISSING: u64 = 0x0110000000000000;
+    pub const OUTPUT_CONTRACT_ADMISSION_REJECTED: u64 = 0x0111000000000000;
+    pub const OUTPUT_AUTHORIZATION_EVALUATED: u64 = 0x0112000000000000;
+    pub const OUTPUT_AUTHORIZED_OBJECT_UPDATE_SNAPSHOT: u64 = 0x0113000000000000;
+    pub const OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED: u64 = 0x0114000000000000;
+    pub const OUTPUT_CONTRACT_TIME_CHECK_SCHEDULED: u64 = 0x0115000000000000;
+    pub const OUTPUT_DUE_CONTRACT_CHECKS_EVALUATED: u64 = 0x0116000000000000;
+    pub const OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED: u64 = 0x0117000000000000;
+    pub const OUTPUT_SUBSCRIPTION_RETRACTED: u64 = 0x0118000000000000;
+    pub const OUTPUT_REJECTION: u64 = 0x0119000000000000;
 }
 
 #[rustfmt::skip]
@@ -3371,6 +3485,7 @@ pub enum InputRoute {
     RouteSignatureRequest,
     SubmitSignature,
     RejectAuthorization,
+    ObserveParkedAuthorizations,
     AdmitContract,
     LookupContract,
     EvaluateAuthorization,
@@ -3409,6 +3524,7 @@ pub enum OutputRoute {
     AuthorizationObservationSnapshot,
     SignatureRouteReceipt,
     SignatureSubmissionReceipt,
+    ParkedAuthorizationSnapshot,
     ContractAdmitted,
     ContractFound,
     ContractMissing,
@@ -3441,6 +3557,9 @@ impl Input {
             Self::RouteSignatureRequest(_) => InputRoute::RouteSignatureRequest,
             Self::SubmitSignature(_) => InputRoute::SubmitSignature,
             Self::RejectAuthorization(_) => InputRoute::RejectAuthorization,
+            Self::ObserveParkedAuthorizations(_) => {
+                InputRoute::ObserveParkedAuthorizations
+            }
             Self::AdmitContract(_) => InputRoute::AdmitContract,
             Self::LookupContract(_) => InputRoute::LookupContract,
             Self::EvaluateAuthorization(_) => InputRoute::EvaluateAuthorization,
@@ -3475,6 +3594,9 @@ impl Input {
             Self::RouteSignatureRequest(_) => short_header::INPUT_ROUTE_SIGNATURE_REQUEST,
             Self::SubmitSignature(_) => short_header::INPUT_SUBMIT_SIGNATURE,
             Self::RejectAuthorization(_) => short_header::INPUT_REJECT_AUTHORIZATION,
+            Self::ObserveParkedAuthorizations(_) => {
+                short_header::INPUT_OBSERVE_PARKED_AUTHORIZATIONS
+            }
             Self::AdmitContract(_) => short_header::INPUT_ADMIT_CONTRACT,
             Self::LookupContract(_) => short_header::INPUT_LOOKUP_CONTRACT,
             Self::EvaluateAuthorization(_) => short_header::INPUT_EVALUATE_AUTHORIZATION,
@@ -3528,6 +3650,9 @@ impl Input {
             short_header::INPUT_SUBMIT_SIGNATURE => Ok(InputRoute::SubmitSignature),
             short_header::INPUT_REJECT_AUTHORIZATION => {
                 Ok(InputRoute::RejectAuthorization)
+            }
+            short_header::INPUT_OBSERVE_PARKED_AUTHORIZATIONS => {
+                Ok(InputRoute::ObserveParkedAuthorizations)
             }
             short_header::INPUT_ADMIT_CONTRACT => Ok(InputRoute::AdmitContract),
             short_header::INPUT_LOOKUP_CONTRACT => Ok(InputRoute::LookupContract),
@@ -3622,6 +3747,9 @@ impl Output {
             Self::SignatureSubmissionReceipt(_) => {
                 OutputRoute::SignatureSubmissionReceipt
             }
+            Self::ParkedAuthorizationSnapshot(_) => {
+                OutputRoute::ParkedAuthorizationSnapshot
+            }
             Self::ContractAdmitted(_) => OutputRoute::ContractAdmitted,
             Self::ContractFound(_) => OutputRoute::ContractFound,
             Self::ContractMissing(_) => OutputRoute::ContractMissing,
@@ -3668,6 +3796,9 @@ impl Output {
             }
             Self::SignatureSubmissionReceipt(_) => {
                 short_header::OUTPUT_SIGNATURE_SUBMISSION_RECEIPT
+            }
+            Self::ParkedAuthorizationSnapshot(_) => {
+                short_header::OUTPUT_PARKED_AUTHORIZATION_SNAPSHOT
             }
             Self::ContractAdmitted(_) => short_header::OUTPUT_CONTRACT_ADMITTED,
             Self::ContractFound(_) => short_header::OUTPUT_CONTRACT_FOUND,
@@ -3733,6 +3864,9 @@ impl Output {
             }
             short_header::OUTPUT_SIGNATURE_SUBMISSION_RECEIPT => {
                 Ok(OutputRoute::SignatureSubmissionReceipt)
+            }
+            short_header::OUTPUT_PARKED_AUTHORIZATION_SNAPSHOT => {
+                Ok(OutputRoute::ParkedAuthorizationSnapshot)
             }
             short_header::OUTPUT_CONTRACT_ADMITTED => Ok(OutputRoute::ContractAdmitted),
             short_header::OUTPUT_CONTRACT_FOUND => Ok(OutputRoute::ContractFound),
@@ -3827,6 +3961,7 @@ impl signal_frame::SignalOperationHeads for Input {
         "RouteSignatureRequest",
         "SubmitSignature",
         "RejectAuthorization",
+        "ObserveParkedAuthorizations",
         "AdmitContract",
         "LookupContract",
         "EvaluateAuthorization",
