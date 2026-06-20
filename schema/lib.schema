@@ -104,6 +104,7 @@
   CriomeDaemonConfiguration {
     socket_path.DaemonPath
     store_path.DaemonPath
+    (MetaSocketPath (Optional DaemonPath))
     (ClusterRoot (Optional BlsPublicKey))
   }
 

@@ -137,8 +137,20 @@ impl CriomeDaemonConfiguration {
         Self {
             socket_path: DaemonPath::new(socket_path.into()),
             store_path: DaemonPath::new(store_path.into()),
+            meta_socket_path: MetaSocketPath::new(None),
             cluster_root: ClusterRoot::new(None),
         }
+    }
+
+    /// Set the private meta socket used by local user-owned approval/configuration
+    /// clients such as Mentci.
+    pub fn with_meta_socket_path(mut self, meta_socket_path: impl Into<String>) -> Self {
+        self.meta_socket_path = MetaSocketPath::new(Some(DaemonPath::new(meta_socket_path.into())));
+        self
+    }
+
+    pub fn meta_socket_path(&self) -> Option<&DaemonPath> {
+        self.meta_socket_path.payload().as_ref()
     }
 
     /// Set the cluster-root trust anchor (the public key whose signature admits

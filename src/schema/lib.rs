@@ -363,6 +363,11 @@ pub enum Identity {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct MetaSocketPath(Option<DaemonPath>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub(crate) struct ClusterRoot(Option<BlsPublicKey>);
 
 #[rustfmt::skip]
@@ -371,6 +376,7 @@ pub(crate) struct ClusterRoot(Option<BlsPublicKey>);
 pub struct CriomeDaemonConfiguration {
     pub socket_path: DaemonPath,
     pub store_path: DaemonPath,
+    pub(crate) meta_socket_path: MetaSocketPath,
     pub(crate) cluster_root: ClusterRoot,
 }
 
@@ -1819,6 +1825,25 @@ impl PartialEq<u64> for RequiredSignatureThreshold {
 impl PartialOrd<u64> for RequiredSignatureThreshold {
     fn partial_cmp(&self, other: &u64) -> Option<std::cmp::Ordering> {
         self.payload().partial_cmp(other)
+    }
+}
+
+#[rustfmt::skip]
+impl MetaSocketPath {
+    pub fn new(payload: Option<DaemonPath>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<DaemonPath> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<DaemonPath> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<DaemonPath>> for MetaSocketPath {
+    fn from(payload: Option<DaemonPath>) -> Self {
+        Self::new(payload)
     }
 }
 
