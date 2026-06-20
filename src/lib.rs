@@ -139,7 +139,21 @@ impl CriomeDaemonConfiguration {
             store_path: DaemonPath::new(store_path.into()),
             meta_socket_path: MetaSocketPath::new(None),
             cluster_root: ClusterRoot::new(None),
+            authorization_mode: AuthorizationMode::Quorum,
         }
+    }
+
+    /// Set the authorization verdict mode: `Quorum` (default; gathered BLS
+    /// signatures must satisfy the contract) or `AutoApprove` (a configured
+    /// acceptance policy that authorizes every well-formed request, for
+    /// bootstrap and testing). Spirit `t00s`.
+    pub fn with_authorization_mode(mut self, authorization_mode: AuthorizationMode) -> Self {
+        self.authorization_mode = authorization_mode;
+        self
+    }
+
+    pub fn authorization_mode(&self) -> &AuthorizationMode {
+        &self.authorization_mode
     }
 
     /// Set the private meta socket used by local user-owned approval/configuration

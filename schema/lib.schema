@@ -79,6 +79,7 @@
   VerificationDecision [Valid InvalidSignature UnknownSigner Expired Revoked ReplayAttempted]
   SignatureAuthorizationResult [SingleSignature RequiredSignaturesSatisfied PendingSignatures Rejected Expired]
   AuthorizationPolicyClass [SimpleSelfSigned ComplexQuorum]
+  AuthorizationMode [Quorum AutoApprove]
   AuthorizationStatus [Pending Signing Granted Denied Expired Unavailable]
   AuthorizationDenialReason [PolicyRefused RequiredSignatureMissing SignatureRejected SignerThresholdRejected SignatureExpired RequestDigestMismatch SignatureScopeMismatch SignerUnavailable]
   AuthorizationDenialSource [Policy Signers]
@@ -106,6 +107,7 @@
     store_path.DaemonPath
     (MetaSocketPath (Optional DaemonPath))
     (ClusterRoot (Optional BlsPublicKey))
+    AuthorizationMode
   }
 
   AuthorizationPolicySatisfaction {

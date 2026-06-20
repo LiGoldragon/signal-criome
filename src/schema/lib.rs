@@ -244,6 +244,23 @@ pub enum AuthorizationPolicyClass {
     PartialEq,
     Eq,
 )]
+pub enum AuthorizationMode {
+    Quorum,
+    AutoApprove,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum AuthorizationStatus {
     Pending,
     Signing,
@@ -378,6 +395,7 @@ pub struct CriomeDaemonConfiguration {
     pub store_path: DaemonPath,
     pub(crate) meta_socket_path: MetaSocketPath,
     pub(crate) cluster_root: ClusterRoot,
+    pub authorization_mode: AuthorizationMode,
 }
 
 #[rustfmt::skip]
