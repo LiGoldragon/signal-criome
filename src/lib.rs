@@ -217,6 +217,18 @@ impl PeerNode {
     }
 }
 
+impl PeerEnvelope {
+    pub fn new(
+        sender_public_key: BlsPublicKey,
+        signature: BlsSignature,
+    ) -> Self {
+        Self {
+            sender_public_key,
+            signature,
+        }
+    }
+}
+
 impl AuthorizationPolicySatisfaction {
     pub fn new(
         policy_class: AuthorizationPolicyClass,
