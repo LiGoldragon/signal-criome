@@ -363,6 +363,14 @@ impl AuthorizationGrant {
             authorization_grant_expires_at: AuthorizationGrantExpiresAt::new(expires_at),
         }
     }
+
+    pub fn signatures(&self) -> &[StampedSignatureEnvelope] {
+        self.authorization_grant_signatures.payload().as_slice()
+    }
+
+    pub fn expires_at(&self) -> Option<TimestampNanos> {
+        *self.authorization_grant_expires_at.payload()
+    }
 }
 
 impl AuthorizationPending {
