@@ -54,6 +54,11 @@ the rest of this contract's domain verbs); replies carry receipts,
 results, and snapshots. Subscriptions close through typed domain close
 operations such as `IdentitySubscriptionRetraction`.
 
+Parked authorization snapshots are the approver-facing queue. A parked entry
+can carry either a policy `AuthorizationEvaluation` or the original
+`SignalCallAuthorization` that will become a signed `AuthorizationGrant` when a
+meta approver answers the slot.
+
 ## Wire vocabulary discipline — contract-local operation roots
 
 Per `primary/skills/contract-repo.md` §"Public contracts use
