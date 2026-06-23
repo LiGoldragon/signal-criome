@@ -107,15 +107,15 @@
   CriomeDaemonConfiguration {
     socket_path.DaemonPath
     store_path.DaemonPath
-    (MetaSocketPath (Optional DaemonPath))
-    (ClusterRoot (Optional BlsPublicKey))
+    MetaSocketPath.(Optional DaemonPath)
+    ClusterRoot.(Optional BlsPublicKey)
     AuthorizationMode
   }
 
   AuthorizationPolicySatisfaction {
     policy_class.AuthorizationPolicyClass
     RequiredSignatureThreshold
-    (SatisfiedSigners (Vec Identity))
+    SatisfiedSigners.(Vec Identity)
   }
 
   Contract {
@@ -141,7 +141,7 @@
 
   Threshold {
     required_signatures.RequiredSignatureThreshold
-    (Members (Vector PolicyMember))
+    Members.(Vector PolicyMember)
   }
 
   TimedRule {
@@ -176,7 +176,7 @@
   AttestedMomentProposition {
     window.TimeWindow
     required_signatures.RequiredSignatureThreshold
-    (Authorities (Vector Identity))
+    Authorities.(Vector Identity)
   }
 
   TimeSignature {
@@ -186,15 +186,15 @@
 
   AttestedMoment {
     proposition.AttestedMomentProposition
-    (TimeSignatures (Vector TimeSignature))
+    TimeSignatures.(Vector TimeSignature)
   }
 
   Evidence {
     component.ComponentKind
     operation.OperationDigest
     stamp.AttestedMoment
-    (EvidenceSignatures (Vector StampedSignatureEnvelope))
-    (Agreements (Vector AgreementFact))
+    EvidenceSignatures.(Vector StampedSignatureEnvelope)
+    Agreements.(Vector AgreementFact)
   }
 
   AuthorizationEvaluation {
@@ -282,7 +282,7 @@
   }
 
   AuthorizedObjectUpdateSnapshot {
-    (Updates (Vec AuthorizedObjectUpdate))
+    Updates.(Vec AuthorizedObjectUpdate)
   }
 
   AuthorizedObjectUpdateRetracted {
@@ -301,7 +301,7 @@
   }
 
   DueContractChecksEvaluated {
-    (Triggered (Vec AuthorizedObjectUpdate))
+    Triggered.(Vec AuthorizedObjectUpdate)
   }
 
   AuthorizationDenial {
@@ -338,7 +338,7 @@
     signer.Identity
     envelope.SignatureEnvelope
     issued_at.TimestampNanos
-    (AttestationExpiresAt (Optional TimestampNanos))
+    AttestationExpiresAt.(Optional TimestampNanos)
     AuditContext
   }
 
@@ -352,7 +352,7 @@
     issuer.Identity
     subject.Identity
     scope.ContentPurpose
-    (DelegationExpiresAt (Optional TimestampNanos))
+    DelegationExpiresAt.(Optional TimestampNanos)
   }
 
   ComponentRelease {
@@ -364,7 +364,7 @@
   SignedPersonaRequest {
     audience.Identity
     content.ContentReference
-    (Delegation (Optional DelegationGrant))
+    Delegation.(Optional DelegationGrant)
     envelope.SignatureEnvelope
   }
 
@@ -375,7 +375,7 @@
     scope.AuthorizationScope
     requester.Identity
     nonce.ReplayNonce
-    (SignalCallExpiresAt (Optional TimestampNanos))
+    SignalCallExpiresAt.(Optional TimestampNanos)
   }
 
   AuthorizationObservation {
@@ -422,10 +422,10 @@
     AuthorizationScope
     policy_satisfaction.AuthorizationPolicySatisfaction
     signature_result.SignatureAuthorizationResult
-    (AuthorizationGrantSignatures (Vec StampedSignatureEnvelope))
+    AuthorizationGrantSignatures.(Vec StampedSignatureEnvelope)
     issued_by.Identity
     issued_at.TimestampNanos
-    (AuthorizationGrantExpiresAt (Optional TimestampNanos))
+    AuthorizationGrantExpiresAt.(Optional TimestampNanos)
   }
 
   AuthorizationObservationToken {
@@ -435,7 +435,7 @@
   AuthorizationPending {
     request_slot.AuthorizationRequestSlot
     request_digest.ObjectDigest
-    (PendingMissingAuthorities (Vec Identity))
+    PendingMissingAuthorities.(Vec Identity)
     observation_token.AuthorizationObservationToken
   }
 
@@ -458,27 +458,27 @@
     request_slot.AuthorizationRequestSlot
     request_digest.ObjectDigest
     status.AuthorizationStatus
-    (StateMissingAuthorities (Vec Identity))
-    (Grant (Optional AuthorizationGrant))
-    (Denial (Optional AuthorizationDenial))
-    (ParkedEvaluation (Optional AuthorizationEvaluation))
-    (SignalAuthorization (Optional SignalCallAuthorization))
+    StateMissingAuthorities.(Vec Identity)
+    Grant.(Optional AuthorizationGrant)
+    Denial.(Optional AuthorizationDenial)
+    ParkedEvaluation.(Optional AuthorizationEvaluation)
+    SignalAuthorization.(Optional SignalCallAuthorization)
   }
 
   AuthorizationObservationSnapshot {
-    (States (Vec AuthorizationStateRecord))
+    States.(Vec AuthorizationStateRecord)
   }
 
   ParkedAuthorization {
     request_slot.AuthorizationRequestSlot
-    (ParkedAuthorizationEvaluation (Optional AuthorizationEvaluation))
-    (ParkedSignalAuthorization (Optional SignalCallAuthorization))
+    ParkedAuthorizationEvaluation.(Optional AuthorizationEvaluation)
+    ParkedSignalAuthorization.(Optional SignalCallAuthorization)
   }
 
   ParkedAuthorizationObservation { }
 
   ParkedAuthorizationSnapshot {
-    (ParkedAuthorizations (Vec ParkedAuthorization))
+    ParkedAuthorizations.(Vec ParkedAuthorization)
   }
 
   SignatureRouteReceipt {
@@ -503,7 +503,7 @@
     content.ContentReference
     signer.Identity
     AuditContext
-    (SignRequestExpiresAt (Optional TimestampNanos))
+    SignRequestExpiresAt.(Optional TimestampNanos)
   }
 
   VerifyRequest {
@@ -516,7 +516,7 @@
     public_key.BlsPublicKey
     fingerprint.PublicKeyFingerprint
     purpose.KeyPurpose
-    (Admission (Optional SignatureEnvelope))
+    Admission.(Optional SignatureEnvelope)
   }
 
   IdentityRevocation {
@@ -561,8 +561,8 @@
 
   VerificationResult {
     decision.VerificationDecision
-    (VerifiedIdentity (Optional Identity))
-    (VerificationExpiresAt (Optional TimestampNanos))
+    VerifiedIdentity.(Optional Identity)
+    VerificationExpiresAt.(Optional TimestampNanos)
   }
 
   IdentityReceipt {
@@ -571,7 +571,7 @@
   }
 
   IdentitySnapshot {
-    (Identities (Vec IdentityReceipt))
+    Identities.(Vec IdentityReceipt)
   }
 
   AttestationReceipt {
@@ -596,7 +596,7 @@
     (AuthorizedObjectUpdate AuthorizedObjectUpdate belongs AuthorizedObjectUpdateStream)
   ]
 
-  IdentityUpdateStream (Stream { token IdentitySubscriptionToken opened IdentitySnapshot event CriomeEvent close IdentitySubscriptionToken })
-  AuthorizationObservationStream (Stream { token AuthorizationObservationToken opened AuthorizationObservationSnapshot event CriomeEvent close AuthorizationObservationToken })
-  AuthorizedObjectUpdateStream (Stream { token AuthorizedObjectUpdateToken opened AuthorizedObjectUpdateSnapshot event CriomeEvent close AuthorizedObjectUpdateToken })
+  IdentityUpdateStream (Stream { token.IdentitySubscriptionToken opened.IdentitySnapshot event.CriomeEvent close.IdentitySubscriptionToken })
+  AuthorizationObservationStream (Stream { token.AuthorizationObservationToken opened.AuthorizationObservationSnapshot event.CriomeEvent close.AuthorizationObservationToken })
+  AuthorizedObjectUpdateStream (Stream { token.AuthorizedObjectUpdateToken opened.AuthorizedObjectUpdateSnapshot event.CriomeEvent close.AuthorizedObjectUpdateToken })
 }

@@ -497,10 +497,10 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
             )]),
         ),
         CriomeReply::ParkedAuthorizationSnapshot(ParkedAuthorizationSnapshot::from_parked(vec![
-            ParkedAuthorization {
-                request_slot: authorization_request_slot(),
-                evaluation: authorization_evaluation(),
-            },
+            ParkedAuthorization::from_evaluation(
+                authorization_request_slot(),
+                authorization_evaluation(),
+            ),
         ])),
         CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
             request_slot: authorization_request_slot(),
@@ -600,8 +600,8 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
 
     for required in [
         "signature.StampedSignatureEnvelope",
-        "(EvidenceSignatures (Vector StampedSignatureEnvelope))",
-        "(AuthorizationGrantSignatures (Vec StampedSignatureEnvelope))",
+        "EvidenceSignatures.(Vector StampedSignatureEnvelope)",
+        "AuthorizationGrantSignatures.(Vec StampedSignatureEnvelope)",
     ] {
         assert!(
             source.contains(required),

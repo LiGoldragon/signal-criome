@@ -430,10 +430,10 @@ fn canonical_reply_examples_round_trip() {
         AuthorizationObservationSnapshot::from_states(vec![authorization_state()]),
     ));
     round_trip(CriomeReply::ParkedAuthorizationSnapshot(
-        ParkedAuthorizationSnapshot::from_parked(vec![ParkedAuthorization {
-            request_slot: authorization_request_slot(),
-            evaluation: authorization_evaluation(),
-        }]),
+        ParkedAuthorizationSnapshot::from_parked(vec![ParkedAuthorization::from_evaluation(
+            authorization_request_slot(),
+            authorization_evaluation(),
+        )]),
     ));
     round_trip(CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
         request_slot: authorization_request_slot(),
