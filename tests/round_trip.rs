@@ -1,4 +1,4 @@
-use nota_next::{NotaDecode, NotaEncode, NotaSource};
+use nota::{NotaDecode, NotaEncode, NotaSource};
 use signal_criome::{
     ArchiveAttestationRequest, Attestation, AttestationReceipt, AttestedMoment,
     AttestedMomentProposition, AuditContext, AuthorizationDenial, AuthorizationDenialReason,

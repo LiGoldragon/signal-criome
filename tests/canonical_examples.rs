@@ -6,7 +6,7 @@
 //! and one example per request/reply family. Exhaustive per-variant
 //! round-trip witnesses already live in `tests/round_trip.rs`.
 
-use nota_next::{NotaDecode, NotaEncode, NotaSource};
+use nota::{NotaDecode, NotaEncode, NotaSource};
 use signal_criome::{
     ArchiveAttestationRequest, Attestation, AttestationReceipt, AttestedMoment,
     AttestedMomentProposition, AuditContext, AuthorizationAttestationRequest, AuthorizationDenial,
