@@ -640,8 +640,8 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
 
     for required in [
         "signature.StampedSignatureEnvelope",
-        "EvidenceSignatures.(Vector StampedSignatureEnvelope)",
-        "AuthorizationGrantSignatures.(Vec StampedSignatureEnvelope)",
+        "evidence_signatures.(Vector StampedSignatureEnvelope)",
+        "authorization_grant_signatures.(Vec StampedSignatureEnvelope)",
     ] {
         assert!(
             source.contains(required),

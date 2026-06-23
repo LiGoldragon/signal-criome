@@ -112,15 +112,15 @@
   CriomeDaemonConfiguration {
     socket_path.DaemonPath
     store_path.DaemonPath
-    MetaSocketPath.(Optional DaemonPath)
-    ClusterRoot.(Optional BlsPublicKey)
+    meta_socket_path.(Optional DaemonPath)
+    cluster_root.(Optional BlsPublicKey)
     AuthorizationMode
   }
 
   AuthorizationPolicySatisfaction {
     policy_class.AuthorizationPolicyClass
     RequiredSignatureThreshold
-    SatisfiedSigners.(Vec Identity)
+    satisfied_signers.(Vec Identity)
   }
 
   Contract {
@@ -162,7 +162,7 @@
 
   Threshold {
     required_signatures.RequiredSignatureThreshold
-    Members.(Vector PolicyMember)
+    members.(Vector PolicyMember)
   }
 
   TimedRule {
@@ -197,7 +197,7 @@
   AttestedMomentProposition {
     window.TimeWindow
     required_signatures.RequiredSignatureThreshold
-    Authorities.(Vector Identity)
+    authorities.(Vector Identity)
   }
 
   TimeSignature {
@@ -207,17 +207,17 @@
 
   AttestedMoment {
     proposition.AttestedMomentProposition
-    TimeSignatures.(Vector TimeSignature)
+    time_signatures.(Vector TimeSignature)
   }
 
   Evidence {
     component.ComponentKind
     operation.OperationDigest
     stamp.AttestedMoment
-    EvidenceSignatures.(Vector StampedSignatureEnvelope)
-    Agreements.(Vector AgreementFact)
-    WorkflowReceipts.(Vector WorkflowReceipt)
-    ObjectCoSignatures.(Vector ObjectCoSignature)
+    evidence_signatures.(Vector StampedSignatureEnvelope)
+    agreements.(Vector AgreementFact)
+    workflow_receipts.(Vector WorkflowReceipt)
+    object_co_signatures.(Vector ObjectCoSignature)
   }
 
   WorkflowReceipt {
@@ -235,8 +235,8 @@
 
   CoSignatureExpectation {
     object.AuthorizedObjectReference
-    ExpectedSigners.(Vector Identity)
-    ObservedSigners.(Vector Identity)
+    expected_signers.(Vector Identity)
+    observed_signers.(Vector Identity)
   }
 
   AuthorizationEvaluation {
@@ -332,7 +332,7 @@
   }
 
   AuthorizedObjectUpdateSnapshot {
-    Updates.(Vec AuthorizedObjectUpdate)
+    updates.(Vec AuthorizedObjectUpdate)
   }
 
   AuthorizedObjectUpdateRetracted {
@@ -351,7 +351,7 @@
   }
 
   DueContractChecksEvaluated {
-    Triggered.(Vec AuthorizedObjectUpdate)
+    triggered.(Vec AuthorizedObjectUpdate)
   }
 
   AuthorizationDenial {
@@ -388,7 +388,7 @@
     signer.Identity
     envelope.SignatureEnvelope
     issued_at.TimestampNanos
-    AttestationExpiresAt.(Optional TimestampNanos)
+    attestation_expires_at.(Optional TimestampNanos)
     AuditContext
   }
 
@@ -402,7 +402,7 @@
     issuer.Identity
     subject.Identity
     scope.ContentPurpose
-    DelegationExpiresAt.(Optional TimestampNanos)
+    delegation_expires_at.(Optional TimestampNanos)
   }
 
   ComponentRelease {
@@ -414,7 +414,7 @@
   SignedPersonaRequest {
     audience.Identity
     content.ContentReference
-    Delegation.(Optional DelegationGrant)
+    delegation.(Optional DelegationGrant)
     envelope.SignatureEnvelope
   }
 
@@ -425,7 +425,7 @@
     scope.AuthorizationScope
     requester.Identity
     nonce.ReplayNonce
-    SignalCallExpiresAt.(Optional TimestampNanos)
+    signal_call_expires_at.(Optional TimestampNanos)
   }
 
   AuthorizationObservation {
@@ -472,10 +472,10 @@
     AuthorizationScope
     policy_satisfaction.AuthorizationPolicySatisfaction
     signature_result.SignatureAuthorizationResult
-    AuthorizationGrantSignatures.(Vec StampedSignatureEnvelope)
+    authorization_grant_signatures.(Vec StampedSignatureEnvelope)
     issued_by.Identity
     issued_at.TimestampNanos
-    AuthorizationGrantExpiresAt.(Optional TimestampNanos)
+    authorization_grant_expires_at.(Optional TimestampNanos)
   }
 
   AuthorizationObservationToken {
@@ -485,7 +485,7 @@
   AuthorizationPending {
     request_slot.AuthorizationRequestSlot
     request_digest.ObjectDigest
-    PendingMissingAuthorities.(Vec Identity)
+    pending_missing_authorities.(Vec Identity)
     observation_token.AuthorizationObservationToken
   }
 
@@ -508,27 +508,27 @@
     request_slot.AuthorizationRequestSlot
     request_digest.ObjectDigest
     status.AuthorizationStatus
-    StateMissingAuthorities.(Vec Identity)
-    Grant.(Optional AuthorizationGrant)
-    Denial.(Optional AuthorizationDenial)
-    ParkedEvaluation.(Optional AuthorizationEvaluation)
-    SignalAuthorization.(Optional SignalCallAuthorization)
+    state_missing_authorities.(Vec Identity)
+    grant.(Optional AuthorizationGrant)
+    denial.(Optional AuthorizationDenial)
+    parked_evaluation.(Optional AuthorizationEvaluation)
+    signal_authorization.(Optional SignalCallAuthorization)
   }
 
   AuthorizationObservationSnapshot {
-    States.(Vec AuthorizationStateRecord)
+    states.(Vec AuthorizationStateRecord)
   }
 
   ParkedAuthorization {
     request_slot.AuthorizationRequestSlot
-    ParkedAuthorizationEvaluation.(Optional AuthorizationEvaluation)
-    ParkedSignalAuthorization.(Optional SignalCallAuthorization)
+    parked_authorization_evaluation.(Optional AuthorizationEvaluation)
+    parked_signal_authorization.(Optional SignalCallAuthorization)
   }
 
   ParkedAuthorizationObservation { }
 
   ParkedAuthorizationSnapshot {
-    ParkedAuthorizations.(Vec ParkedAuthorization)
+    parked_authorizations.(Vec ParkedAuthorization)
   }
 
   SignatureRouteReceipt {
@@ -553,7 +553,7 @@
     content.ContentReference
     signer.Identity
     AuditContext
-    SignRequestExpiresAt.(Optional TimestampNanos)
+    sign_request_expires_at.(Optional TimestampNanos)
   }
 
   VerifyRequest {
@@ -566,7 +566,7 @@
     public_key.BlsPublicKey
     fingerprint.PublicKeyFingerprint
     purpose.KeyPurpose
-    Admission.(Optional SignatureEnvelope)
+    admission.(Optional SignatureEnvelope)
   }
 
   IdentityRevocation {
@@ -611,8 +611,8 @@
 
   VerificationResult {
     decision.VerificationDecision
-    VerifiedIdentity.(Optional Identity)
-    VerificationExpiresAt.(Optional TimestampNanos)
+    verified_identity.(Optional Identity)
+    verification_expires_at.(Optional TimestampNanos)
   }
 
   IdentityReceipt {
@@ -621,7 +621,7 @@
   }
 
   IdentitySnapshot {
-    Identities.(Vec IdentityReceipt)
+    identities.(Vec IdentityReceipt)
   }
 
   AttestationReceipt {

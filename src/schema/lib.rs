@@ -14,186 +14,117 @@ pub type Path = std::string::String;
 pub use nota_next::{NotaDecodeError, NotaEncode, NotaSource};
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct DaemonPath(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PrincipalName(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PrincipalId(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PublicKeyFingerprint(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct BlsPublicKey(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct BlsSignature(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectDigest(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractDigest(ObjectDigest);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct OperationDigest(ObjectDigest);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CompositionDigest(ObjectDigest);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct WorkflowDigest(ObjectDigest);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct WorkflowProvenanceDigest(ObjectDigest);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AttestedMomentDigest(ObjectDigest);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ReplayNonce(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractName(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationRequestSlot(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationScope(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractOperationHead(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct WorkflowStepName(String);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimestampNanos(Integer);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RequiredSignatureThreshold(Integer);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CompositionThreshold(Integer);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -210,10 +141,7 @@ pub enum SignatureScheme {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -230,10 +158,7 @@ pub enum PrincipalStatus {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -253,10 +178,7 @@ pub enum KeyPurpose {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -278,10 +200,7 @@ pub enum ContentPurpose {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -302,10 +221,7 @@ pub enum VerificationDecision {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -325,10 +241,7 @@ pub enum SignatureAuthorizationResult {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -345,10 +258,7 @@ pub enum AuthorizationPolicyClass {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -366,10 +276,7 @@ pub enum AuthorizationMode {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -391,10 +298,7 @@ pub enum AuthorizationStatus {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -417,10 +321,7 @@ pub enum AuthorizationDenialReason {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -437,10 +338,7 @@ pub enum AuthorizationDenialSource {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -462,10 +360,7 @@ pub enum RejectionReason {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -487,10 +382,7 @@ pub enum ComponentKind {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum ContractAdmissionRejectionReason {
     DanglingReference(ContractDigest),
@@ -502,10 +394,7 @@ pub enum ContractAdmissionRejectionReason {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Identity {
     Persona(PrincipalName),
@@ -516,68 +405,32 @@ pub enum Identity {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct MetaSocketPath(Option<DaemonPath>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct ClusterRoot(Option<BlsPublicKey>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CriomeDaemonConfiguration {
     pub socket_path: DaemonPath,
     pub store_path: DaemonPath,
-    pub(crate) meta_socket_path: MetaSocketPath,
-    pub(crate) cluster_root: ClusterRoot,
+    pub meta_socket_path: Option<DaemonPath>,
+    pub cluster_root: Option<BlsPublicKey>,
     pub authorization_mode: AuthorizationMode,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct SatisfiedSigners(Vec<Identity>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationPolicySatisfaction {
     pub policy_class: AuthorizationPolicyClass,
     pub required_signature_threshold: RequiredSignatureThreshold,
-    pub(crate) satisfied_signers: SatisfiedSigners,
+    pub satisfied_signers: Vec<Identity>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Contract(Rule);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Rule {
     SignedBy(Identity),
@@ -594,10 +447,7 @@ pub enum Rule {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct WorkflowGuard {
     pub workflow: WorkflowDigest,
@@ -605,10 +455,7 @@ pub struct WorkflowGuard {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Composition {
     AllOf(Vec<CompositionDigest>),
@@ -620,10 +467,7 @@ pub enum Composition {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum PolicyMember {
     KeyMember(Identity),
@@ -631,29 +475,15 @@ pub enum PolicyMember {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Members(Vec<PolicyMember>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Threshold {
     pub required_signatures: RequiredSignatureThreshold,
-    pub(crate) members: Members,
+    pub members: Vec<PolicyMember>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimedRule {
     pub boundary: TimestampNanos,
@@ -661,10 +491,7 @@ pub struct TimedRule {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimeSwitch {
     pub boundary: TimestampNanos,
@@ -673,10 +500,7 @@ pub struct TimeSwitch {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AgreementRule {
     pub divergence: ObjectDigest,
@@ -685,10 +509,7 @@ pub struct AgreementRule {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AgreementFact {
     pub divergence: ObjectDigest,
@@ -698,10 +519,7 @@ pub struct AgreementFact {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimeWindow {
     pub opens_at: TimestampNanos,
@@ -709,30 +527,16 @@ pub struct TimeWindow {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Authorities(Vec<Identity>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AttestedMomentProposition {
     pub window: TimeWindow,
     pub required_signatures: RequiredSignatureThreshold,
-    pub(crate) authorities: Authorities,
+    pub authorities: Vec<Identity>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimeSignature {
     pub signer: Identity,
@@ -740,77 +544,28 @@ pub struct TimeSignature {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct TimeSignatures(Vec<TimeSignature>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AttestedMoment {
     pub proposition: AttestedMomentProposition,
-    pub(crate) time_signatures: TimeSignatures,
+    pub time_signatures: Vec<TimeSignature>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct EvidenceSignatures(Vec<StampedSignatureEnvelope>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Agreements(Vec<AgreementFact>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct WorkflowReceipts(Vec<WorkflowReceipt>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct ObjectCoSignatures(Vec<ObjectCoSignature>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Evidence {
     pub component: ComponentKind,
     pub operation: OperationDigest,
     pub stamp: AttestedMoment,
-    pub(crate) evidence_signatures: EvidenceSignatures,
-    pub(crate) agreements: Agreements,
-    pub(crate) workflow_receipts: WorkflowReceipts,
-    pub(crate) object_co_signatures: ObjectCoSignatures,
+    pub evidence_signatures: Vec<StampedSignatureEnvelope>,
+    pub agreements: Vec<AgreementFact>,
+    pub workflow_receipts: Vec<WorkflowReceipt>,
+    pub object_co_signatures: Vec<ObjectCoSignature>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct WorkflowReceipt {
     pub workflow: WorkflowDigest,
@@ -820,10 +575,7 @@ pub struct WorkflowReceipt {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectCoSignature {
     pub object: AuthorizedObjectReference,
@@ -832,38 +584,16 @@ pub struct ObjectCoSignature {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct ExpectedSigners(Vec<Identity>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct ObservedSigners(Vec<Identity>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CoSignatureExpectation {
     pub object: AuthorizedObjectReference,
-    pub(crate) expected_signers: ExpectedSigners,
-    pub(crate) observed_signers: ObservedSigners,
+    pub expected_signers: Vec<Identity>,
+    pub observed_signers: Vec<Identity>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationEvaluation {
     pub contract: ContractDigest,
@@ -872,10 +602,7 @@ pub struct AuthorizationEvaluation {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum EvaluationDecision {
     Authorized,
@@ -886,10 +613,7 @@ pub enum EvaluationDecision {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum EscalationTarget {
     Psyche,
@@ -898,10 +622,7 @@ pub enum EscalationTarget {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum EvaluationRejectionReason {
     SignatureMissing(Identity),
@@ -912,10 +633,7 @@ pub enum EvaluationRejectionReason {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -935,10 +653,7 @@ pub enum AuthorizedObjectKind {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ComponentObjectInterest {
     pub component: ComponentKind,
@@ -946,10 +661,7 @@ pub struct ComponentObjectInterest {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum AuthorizedObjectInterest {
     AnyAuthorizedObject,
@@ -959,10 +671,7 @@ pub enum AuthorizedObjectInterest {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectReference {
     pub component: ComponentKind,
@@ -971,10 +680,7 @@ pub struct AuthorizedObjectReference {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuorumShortfall {
     pub required: RequiredSignatureThreshold,
@@ -982,18 +688,12 @@ pub struct QuorumShortfall {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractAdmitted(ContractDigest);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractFound {
     pub digest: ContractDigest,
@@ -1001,26 +701,17 @@ pub struct ContractFound {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractMissing(ContractDigest);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractAdmissionRejected(ContractAdmissionRejectionReason);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationEvaluated {
     pub contract: ContractDigest,
@@ -1028,10 +719,7 @@ pub struct AuthorizationEvaluated {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectObservation {
     pub subscriber: Identity,
@@ -1039,10 +727,7 @@ pub struct AuthorizedObjectObservation {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectUpdateToken {
     pub subscriber: Identity,
@@ -1050,10 +735,7 @@ pub struct AuthorizedObjectUpdateToken {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectUpdate {
     pub object: AuthorizedObjectReference,
@@ -1063,34 +745,17 @@ pub struct AuthorizedObjectUpdate {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Updates(Vec<AuthorizedObjectUpdate>);
+pub struct AuthorizedObjectUpdateSnapshot(Vec<AuthorizedObjectUpdate>);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizedObjectUpdateSnapshot(Updates);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateToken);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractTimeCheck {
     pub contract: ContractDigest,
@@ -1100,34 +765,17 @@ pub struct ContractTimeCheck {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractTimeCheckScheduled(ContractTimeCheck);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Triggered(Vec<AuthorizedObjectUpdate>);
+pub struct DueContractChecksEvaluated(Vec<AuthorizedObjectUpdate>);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct DueContractChecksEvaluated(Triggered);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationDenial {
     pub source: AuthorizationDenialSource,
@@ -1135,10 +783,7 @@ pub struct AuthorizationDenial {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContentReference {
     pub digest: ObjectDigest,
@@ -1147,10 +792,7 @@ pub struct ContentReference {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuditContext {
     pub purpose: ContentPurpose,
@@ -1160,10 +802,7 @@ pub struct AuditContext {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureEnvelope {
     pub scheme: SignatureScheme,
@@ -1172,10 +811,7 @@ pub struct SignatureEnvelope {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct StampedSignatureEnvelope {
     pub stamp: AttestedMoment,
@@ -1183,33 +819,19 @@ pub struct StampedSignatureEnvelope {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct AttestationExpiresAt(Option<TimestampNanos>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Attestation {
     pub content: ContentReference,
     pub signer: Identity,
     pub envelope: SignatureEnvelope,
     pub issued_at: TimestampNanos,
-    pub(crate) attestation_expires_at: AttestationExpiresAt,
+    pub attestation_expires_at: Option<TimestampNanos>,
     pub audit_context: AuditContext,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignedObject {
     pub content: ContentReference,
@@ -1218,31 +840,17 @@ pub struct SignedObject {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct DelegationExpiresAt(Option<TimestampNanos>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct DelegationGrant {
     pub issuer: Identity,
     pub subject: Identity,
     pub scope: ContentPurpose,
-    pub(crate) delegation_expires_at: DelegationExpiresAt,
+    pub delegation_expires_at: Option<TimestampNanos>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ComponentRelease {
     pub component: PrincipalName,
@@ -1251,39 +859,17 @@ pub struct ComponentRelease {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Delegation(Option<DelegationGrant>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignedPersonaRequest {
     pub audience: Identity,
     pub content: ContentReference,
-    pub(crate) delegation: Delegation,
+    pub delegation: Option<DelegationGrant>,
     pub envelope: SignatureEnvelope,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct SignalCallExpiresAt(Option<TimestampNanos>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignalCallAuthorization {
     pub request_digest: ObjectDigest,
@@ -1292,22 +878,16 @@ pub struct SignalCallAuthorization {
     pub scope: AuthorizationScope,
     pub requester: Identity,
     pub nonce: ReplayNonce,
-    pub(crate) signal_call_expires_at: SignalCallExpiresAt,
+    pub signal_call_expires_at: Option<TimestampNanos>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationObservation(AuthorizationRequestSlot);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationVerification {
     pub request_digest: ObjectDigest,
@@ -1315,10 +895,7 @@ pub struct AuthorizationVerification {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureSolicitation {
     pub request_slot: AuthorizationRequestSlot,
@@ -1331,10 +908,7 @@ pub struct SignatureSolicitation {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureSolicitationRoute {
     pub solicitation: SignatureSolicitation,
@@ -1342,10 +916,7 @@ pub struct SignatureSolicitationRoute {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureSubmission {
     pub request_slot: AuthorizationRequestSlot,
@@ -1354,10 +925,7 @@ pub struct SignatureSubmission {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationRejection {
     pub request_slot: AuthorizationRequestSlot,
@@ -1366,26 +934,7 @@ pub struct AuthorizationRejection {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct AuthorizationGrantSignatures(Vec<StampedSignatureEnvelope>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct AuthorizationGrantExpiresAt(Option<TimestampNanos>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationGrant {
     pub request_slot: AuthorizationRequestSlot,
@@ -1395,46 +944,29 @@ pub struct AuthorizationGrant {
     pub authorization_scope: AuthorizationScope,
     pub policy_satisfaction: AuthorizationPolicySatisfaction,
     pub signature_result: SignatureAuthorizationResult,
-    pub(crate) authorization_grant_signatures: AuthorizationGrantSignatures,
+    pub authorization_grant_signatures: Vec<StampedSignatureEnvelope>,
     pub issued_by: Identity,
     pub issued_at: TimestampNanos,
-    pub(crate) authorization_grant_expires_at: AuthorizationGrantExpiresAt,
+    pub authorization_grant_expires_at: Option<TimestampNanos>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationObservationToken(AuthorizationRequestSlot);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct PendingMissingAuthorities(Vec<Identity>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationPending {
     pub request_slot: AuthorizationRequestSlot,
     pub request_digest: ObjectDigest,
-    pub(crate) pending_missing_authorities: PendingMissingAuthorities,
+    pub pending_missing_authorities: Vec<Identity>,
     pub observation_token: AuthorizationObservationToken,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationDenied {
     pub request_slot: AuthorizationRequestSlot,
@@ -1442,10 +974,7 @@ pub struct AuthorizationDenied {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationExpired {
     pub request_slot: AuthorizationRequestSlot,
@@ -1453,10 +982,7 @@ pub struct AuthorizationExpired {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationUnavailable {
     pub request_slot: AuthorizationRequestSlot,
@@ -1464,135 +990,45 @@ pub struct AuthorizationUnavailable {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct StateMissingAuthorities(Vec<Identity>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Grant(Option<AuthorizationGrant>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Denial(Option<AuthorizationDenial>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct ParkedEvaluation(Option<AuthorizationEvaluation>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct SignalAuthorization(Option<SignalCallAuthorization>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationStateRecord {
     pub request_slot: AuthorizationRequestSlot,
     pub request_digest: ObjectDigest,
     pub status: AuthorizationStatus,
-    pub(crate) state_missing_authorities: StateMissingAuthorities,
-    pub(crate) grant: Grant,
-    pub(crate) denial: Denial,
-    pub(crate) parked_evaluation: ParkedEvaluation,
-    pub(crate) signal_authorization: SignalAuthorization,
+    pub state_missing_authorities: Vec<Identity>,
+    pub grant: Option<AuthorizationGrant>,
+    pub denial: Option<AuthorizationDenial>,
+    pub parked_evaluation: Option<AuthorizationEvaluation>,
+    pub signal_authorization: Option<SignalCallAuthorization>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct States(Vec<AuthorizationStateRecord>);
+pub struct AuthorizationObservationSnapshot(Vec<AuthorizationStateRecord>);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AuthorizationObservationSnapshot(States);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct ParkedAuthorizationEvaluation(Option<AuthorizationEvaluation>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct ParkedSignalAuthorization(Option<SignalCallAuthorization>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ParkedAuthorization {
     pub request_slot: AuthorizationRequestSlot,
-    pub(crate) parked_authorization_evaluation: ParkedAuthorizationEvaluation,
-    pub(crate) parked_signal_authorization: ParkedSignalAuthorization,
+    pub parked_authorization_evaluation: Option<AuthorizationEvaluation>,
+    pub parked_signal_authorization: Option<SignalCallAuthorization>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ParkedAuthorizationObservation {}
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct ParkedAuthorizations(Vec<ParkedAuthorization>);
+pub struct ParkedAuthorizationSnapshot(Vec<ParkedAuthorization>);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ParkedAuthorizationSnapshot(ParkedAuthorizations);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureRouteReceipt {
     pub request_slot: AuthorizationRequestSlot,
@@ -1600,10 +1036,7 @@ pub struct SignatureRouteReceipt {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureSubmissionReceipt {
     pub request_slot: AuthorizationRequestSlot,
@@ -1611,47 +1044,27 @@ pub struct SignatureSubmissionReceipt {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationObservationRetracted(AuthorizationObservationToken);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationUpdate(AuthorizationStateRecord);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct SignRequestExpiresAt(Option<TimestampNanos>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignRequest {
     pub content: ContentReference,
     pub signer: Identity,
     pub audit_context: AuditContext,
-    pub(crate) sign_request_expires_at: SignRequestExpiresAt,
+    pub sign_request_expires_at: Option<TimestampNanos>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct VerifyRequest {
     pub attestation: Attestation,
@@ -1659,32 +1072,18 @@ pub struct VerifyRequest {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Admission(Option<SignatureEnvelope>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentityRegistration {
     pub identity: Identity,
     pub public_key: BlsPublicKey,
     pub fingerprint: PublicKeyFingerprint,
     pub purpose: KeyPurpose,
-    pub(crate) admission: Admission,
+    pub admission: Option<SignatureEnvelope>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentityRevocation {
     pub identity: Identity,
@@ -1693,18 +1092,12 @@ pub struct IdentityRevocation {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentityLookup(Identity);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ArchiveAttestationRequest {
     pub release: ComponentRelease,
@@ -1712,10 +1105,7 @@ pub struct ArchiveAttestationRequest {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ChannelGrantAttestationRequest {
     pub grant_content: ContentReference,
@@ -1724,10 +1114,7 @@ pub struct ChannelGrantAttestationRequest {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationAttestationRequest {
     pub authorization_content: ContentReference,
@@ -1736,26 +1123,17 @@ pub struct AuthorizationAttestationRequest {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentitySubscription(Identity);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentitySubscriptionToken(Identity);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignReceipt {
     pub attestation: Attestation,
@@ -1763,38 +1141,16 @@ pub struct SignReceipt {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct VerifiedIdentity(Option<Identity>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct VerificationExpiresAt(Option<TimestampNanos>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct VerificationResult {
     pub decision: VerificationDecision,
-    pub(crate) verified_identity: VerifiedIdentity,
-    pub(crate) verification_expires_at: VerificationExpiresAt,
+    pub verified_identity: Option<Identity>,
+    pub verification_expires_at: Option<TimestampNanos>,
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentityReceipt {
     pub identity: Identity,
@@ -1802,58 +1158,32 @@ pub struct IdentityReceipt {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Identities(Vec<IdentityReceipt>);
+pub struct IdentitySnapshot(Vec<IdentityReceipt>);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct IdentitySnapshot(Identities);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AttestationReceipt(Attestation);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentityUpdate(IdentityReceipt);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SubscriptionRetracted(IdentitySubscriptionToken);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Rejection(RejectionReason);
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum CriomeEvent {
     IdentityUpdate(IdentityUpdate),
@@ -1862,10 +1192,7 @@ pub enum CriomeEvent {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Input {
     Sign(SignRequest),
@@ -1896,10 +1223,7 @@ pub enum Input {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Output {
     SignReceipt(SignReceipt),
@@ -2349,63 +1673,6 @@ impl From<Integer> for CompositionThreshold {
 }
 
 #[rustfmt::skip]
-impl MetaSocketPath {
-    pub fn new(payload: Option<DaemonPath>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<DaemonPath> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<DaemonPath> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<DaemonPath>> for MetaSocketPath {
-    fn from(payload: Option<DaemonPath>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ClusterRoot {
-    pub fn new(payload: Option<BlsPublicKey>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<BlsPublicKey> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<BlsPublicKey> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<BlsPublicKey>> for ClusterRoot {
-    fn from(payload: Option<BlsPublicKey>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl SatisfiedSigners {
-    pub fn new(payload: Vec<Identity>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<Identity> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<Identity> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<Identity>> for SatisfiedSigners {
-    fn from(payload: Vec<Identity>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
 impl Contract {
     pub fn new(payload: Rule) -> Self {
         Self(payload)
@@ -2420,177 +1687,6 @@ impl Contract {
 #[rustfmt::skip]
 impl From<Rule> for Contract {
     fn from(payload: Rule) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Members {
-    pub fn new(payload: Vec<PolicyMember>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<PolicyMember> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<PolicyMember> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<PolicyMember>> for Members {
-    fn from(payload: Vec<PolicyMember>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Authorities {
-    pub fn new(payload: Vec<Identity>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<Identity> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<Identity> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<Identity>> for Authorities {
-    fn from(payload: Vec<Identity>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl TimeSignatures {
-    pub fn new(payload: Vec<TimeSignature>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<TimeSignature> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<TimeSignature> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<TimeSignature>> for TimeSignatures {
-    fn from(payload: Vec<TimeSignature>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl EvidenceSignatures {
-    pub fn new(payload: Vec<StampedSignatureEnvelope>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<StampedSignatureEnvelope> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<StampedSignatureEnvelope> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<StampedSignatureEnvelope>> for EvidenceSignatures {
-    fn from(payload: Vec<StampedSignatureEnvelope>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Agreements {
-    pub fn new(payload: Vec<AgreementFact>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<AgreementFact> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<AgreementFact> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<AgreementFact>> for Agreements {
-    fn from(payload: Vec<AgreementFact>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl WorkflowReceipts {
-    pub fn new(payload: Vec<WorkflowReceipt>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<WorkflowReceipt> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<WorkflowReceipt> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<WorkflowReceipt>> for WorkflowReceipts {
-    fn from(payload: Vec<WorkflowReceipt>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ObjectCoSignatures {
-    pub fn new(payload: Vec<ObjectCoSignature>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<ObjectCoSignature> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<ObjectCoSignature> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<ObjectCoSignature>> for ObjectCoSignatures {
-    fn from(payload: Vec<ObjectCoSignature>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ExpectedSigners {
-    pub fn new(payload: Vec<Identity>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<Identity> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<Identity> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<Identity>> for ExpectedSigners {
-    fn from(payload: Vec<Identity>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ObservedSigners {
-    pub fn new(payload: Vec<Identity>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<Identity> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<Identity> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<Identity>> for ObservedSigners {
-    fn from(payload: Vec<Identity>) -> Self {
         Self::new(payload)
     }
 }
@@ -2653,7 +1749,7 @@ impl From<ContractAdmissionRejectionReason> for ContractAdmissionRejected {
 }
 
 #[rustfmt::skip]
-impl Updates {
+impl AuthorizedObjectUpdateSnapshot {
     pub fn new(payload: Vec<AuthorizedObjectUpdate>) -> Self {
         Self(payload)
     }
@@ -2665,27 +1761,8 @@ impl Updates {
     }
 }
 #[rustfmt::skip]
-impl From<Vec<AuthorizedObjectUpdate>> for Updates {
+impl From<Vec<AuthorizedObjectUpdate>> for AuthorizedObjectUpdateSnapshot {
     fn from(payload: Vec<AuthorizedObjectUpdate>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl AuthorizedObjectUpdateSnapshot {
-    pub fn new(payload: Updates) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Updates {
-        &self.0
-    }
-    pub fn into_payload(self) -> Updates {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Updates> for AuthorizedObjectUpdateSnapshot {
-    fn from(payload: Updates) -> Self {
         Self::new(payload)
     }
 }
@@ -2729,7 +1806,7 @@ impl From<ContractTimeCheck> for ContractTimeCheckScheduled {
 }
 
 #[rustfmt::skip]
-impl Triggered {
+impl DueContractChecksEvaluated {
     pub fn new(payload: Vec<AuthorizedObjectUpdate>) -> Self {
         Self(payload)
     }
@@ -2741,103 +1818,8 @@ impl Triggered {
     }
 }
 #[rustfmt::skip]
-impl From<Vec<AuthorizedObjectUpdate>> for Triggered {
+impl From<Vec<AuthorizedObjectUpdate>> for DueContractChecksEvaluated {
     fn from(payload: Vec<AuthorizedObjectUpdate>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl DueContractChecksEvaluated {
-    pub fn new(payload: Triggered) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Triggered {
-        &self.0
-    }
-    pub fn into_payload(self) -> Triggered {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Triggered> for DueContractChecksEvaluated {
-    fn from(payload: Triggered) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl AttestationExpiresAt {
-    pub fn new(payload: Option<TimestampNanos>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<TimestampNanos> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<TimestampNanos> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<TimestampNanos>> for AttestationExpiresAt {
-    fn from(payload: Option<TimestampNanos>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl DelegationExpiresAt {
-    pub fn new(payload: Option<TimestampNanos>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<TimestampNanos> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<TimestampNanos> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<TimestampNanos>> for DelegationExpiresAt {
-    fn from(payload: Option<TimestampNanos>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Delegation {
-    pub fn new(payload: Option<DelegationGrant>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<DelegationGrant> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<DelegationGrant> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<DelegationGrant>> for Delegation {
-    fn from(payload: Option<DelegationGrant>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl SignalCallExpiresAt {
-    pub fn new(payload: Option<TimestampNanos>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<TimestampNanos> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<TimestampNanos> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<TimestampNanos>> for SignalCallExpiresAt {
-    fn from(payload: Option<TimestampNanos>) -> Self {
         Self::new(payload)
     }
 }
@@ -2862,44 +1844,6 @@ impl From<AuthorizationRequestSlot> for AuthorizationObservation {
 }
 
 #[rustfmt::skip]
-impl AuthorizationGrantSignatures {
-    pub fn new(payload: Vec<StampedSignatureEnvelope>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<StampedSignatureEnvelope> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<StampedSignatureEnvelope> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<StampedSignatureEnvelope>> for AuthorizationGrantSignatures {
-    fn from(payload: Vec<StampedSignatureEnvelope>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl AuthorizationGrantExpiresAt {
-    pub fn new(payload: Option<TimestampNanos>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<TimestampNanos> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<TimestampNanos> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<TimestampNanos>> for AuthorizationGrantExpiresAt {
-    fn from(payload: Option<TimestampNanos>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
 impl AuthorizationObservationToken {
     pub fn new(payload: AuthorizationRequestSlot) -> Self {
         Self(payload)
@@ -2919,121 +1863,7 @@ impl From<AuthorizationRequestSlot> for AuthorizationObservationToken {
 }
 
 #[rustfmt::skip]
-impl PendingMissingAuthorities {
-    pub fn new(payload: Vec<Identity>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<Identity> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<Identity> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<Identity>> for PendingMissingAuthorities {
-    fn from(payload: Vec<Identity>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl StateMissingAuthorities {
-    pub fn new(payload: Vec<Identity>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<Identity> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<Identity> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<Identity>> for StateMissingAuthorities {
-    fn from(payload: Vec<Identity>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Grant {
-    pub fn new(payload: Option<AuthorizationGrant>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<AuthorizationGrant> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<AuthorizationGrant> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<AuthorizationGrant>> for Grant {
-    fn from(payload: Option<AuthorizationGrant>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Denial {
-    pub fn new(payload: Option<AuthorizationDenial>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<AuthorizationDenial> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<AuthorizationDenial> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<AuthorizationDenial>> for Denial {
-    fn from(payload: Option<AuthorizationDenial>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ParkedEvaluation {
-    pub fn new(payload: Option<AuthorizationEvaluation>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<AuthorizationEvaluation> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<AuthorizationEvaluation> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<AuthorizationEvaluation>> for ParkedEvaluation {
-    fn from(payload: Option<AuthorizationEvaluation>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl SignalAuthorization {
-    pub fn new(payload: Option<SignalCallAuthorization>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<SignalCallAuthorization> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<SignalCallAuthorization> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<SignalCallAuthorization>> for SignalAuthorization {
-    fn from(payload: Option<SignalCallAuthorization>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl States {
+impl AuthorizationObservationSnapshot {
     pub fn new(payload: Vec<AuthorizationStateRecord>) -> Self {
         Self(payload)
     }
@@ -3045,71 +1875,14 @@ impl States {
     }
 }
 #[rustfmt::skip]
-impl From<Vec<AuthorizationStateRecord>> for States {
+impl From<Vec<AuthorizationStateRecord>> for AuthorizationObservationSnapshot {
     fn from(payload: Vec<AuthorizationStateRecord>) -> Self {
         Self::new(payload)
     }
 }
 
 #[rustfmt::skip]
-impl AuthorizationObservationSnapshot {
-    pub fn new(payload: States) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &States {
-        &self.0
-    }
-    pub fn into_payload(self) -> States {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<States> for AuthorizationObservationSnapshot {
-    fn from(payload: States) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ParkedAuthorizationEvaluation {
-    pub fn new(payload: Option<AuthorizationEvaluation>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<AuthorizationEvaluation> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<AuthorizationEvaluation> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<AuthorizationEvaluation>> for ParkedAuthorizationEvaluation {
-    fn from(payload: Option<AuthorizationEvaluation>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ParkedSignalAuthorization {
-    pub fn new(payload: Option<SignalCallAuthorization>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<SignalCallAuthorization> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<SignalCallAuthorization> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<SignalCallAuthorization>> for ParkedSignalAuthorization {
-    fn from(payload: Option<SignalCallAuthorization>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ParkedAuthorizations {
+impl ParkedAuthorizationSnapshot {
     pub fn new(payload: Vec<ParkedAuthorization>) -> Self {
         Self(payload)
     }
@@ -3121,27 +1894,8 @@ impl ParkedAuthorizations {
     }
 }
 #[rustfmt::skip]
-impl From<Vec<ParkedAuthorization>> for ParkedAuthorizations {
+impl From<Vec<ParkedAuthorization>> for ParkedAuthorizationSnapshot {
     fn from(payload: Vec<ParkedAuthorization>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ParkedAuthorizationSnapshot {
-    pub fn new(payload: ParkedAuthorizations) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &ParkedAuthorizations {
-        &self.0
-    }
-    pub fn into_payload(self) -> ParkedAuthorizations {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<ParkedAuthorizations> for ParkedAuthorizationSnapshot {
-    fn from(payload: ParkedAuthorizations) -> Self {
         Self::new(payload)
     }
 }
@@ -3180,44 +1934,6 @@ impl AuthorizationUpdate {
 #[rustfmt::skip]
 impl From<AuthorizationStateRecord> for AuthorizationUpdate {
     fn from(payload: AuthorizationStateRecord) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl SignRequestExpiresAt {
-    pub fn new(payload: Option<TimestampNanos>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<TimestampNanos> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<TimestampNanos> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<TimestampNanos>> for SignRequestExpiresAt {
-    fn from(payload: Option<TimestampNanos>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Admission {
-    pub fn new(payload: Option<SignatureEnvelope>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<SignatureEnvelope> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<SignatureEnvelope> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<SignatureEnvelope>> for Admission {
-    fn from(payload: Option<SignatureEnvelope>) -> Self {
         Self::new(payload)
     }
 }
@@ -3280,45 +1996,7 @@ impl From<Identity> for IdentitySubscriptionToken {
 }
 
 #[rustfmt::skip]
-impl VerifiedIdentity {
-    pub fn new(payload: Option<Identity>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<Identity> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<Identity> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<Identity>> for VerifiedIdentity {
-    fn from(payload: Option<Identity>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl VerificationExpiresAt {
-    pub fn new(payload: Option<TimestampNanos>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<TimestampNanos> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<TimestampNanos> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<TimestampNanos>> for VerificationExpiresAt {
-    fn from(payload: Option<TimestampNanos>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Identities {
+impl IdentitySnapshot {
     pub fn new(payload: Vec<IdentityReceipt>) -> Self {
         Self(payload)
     }
@@ -3330,27 +2008,8 @@ impl Identities {
     }
 }
 #[rustfmt::skip]
-impl From<Vec<IdentityReceipt>> for Identities {
+impl From<Vec<IdentityReceipt>> for IdentitySnapshot {
     fn from(payload: Vec<IdentityReceipt>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl IdentitySnapshot {
-    pub fn new(payload: Identities) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Identities {
-        &self.0
-    }
-    pub fn into_payload(self) -> Identities {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Identities> for IdentitySnapshot {
-    fn from(payload: Identities) -> Self {
         Self::new(payload)
     }
 }
@@ -3677,7 +2336,7 @@ impl Output {
     pub fn identity_receipt(payload: IdentityReceipt) -> Self {
         Self::IdentityReceipt(payload)
     }
-    pub fn identity_snapshot(payload: Identities) -> Self {
+    pub fn identity_snapshot(payload: Vec<IdentityReceipt>) -> Self {
         Self::IdentitySnapshot(IdentitySnapshot::new(payload))
     }
     pub fn attestation_receipt(payload: Attestation) -> Self {
@@ -3698,7 +2357,9 @@ impl Output {
     pub fn authorization_unavailable(payload: AuthorizationUnavailable) -> Self {
         Self::AuthorizationUnavailable(payload)
     }
-    pub fn authorization_observation_snapshot(payload: States) -> Self {
+    pub fn authorization_observation_snapshot(
+        payload: Vec<AuthorizationStateRecord>,
+    ) -> Self {
         Self::AuthorizationObservationSnapshot(
             AuthorizationObservationSnapshot::new(payload),
         )
@@ -3709,7 +2370,7 @@ impl Output {
     pub fn signature_submission_receipt(payload: SignatureSubmissionReceipt) -> Self {
         Self::SignatureSubmissionReceipt(payload)
     }
-    pub fn parked_authorization_snapshot(payload: ParkedAuthorizations) -> Self {
+    pub fn parked_authorization_snapshot(payload: Vec<ParkedAuthorization>) -> Self {
         Self::ParkedAuthorizationSnapshot(ParkedAuthorizationSnapshot::new(payload))
     }
     pub fn contract_admitted(payload: ContractDigest) -> Self {
@@ -3729,7 +2390,9 @@ impl Output {
     pub fn authorization_evaluated(payload: AuthorizationEvaluated) -> Self {
         Self::AuthorizationEvaluated(payload)
     }
-    pub fn authorized_object_update_snapshot(payload: Updates) -> Self {
+    pub fn authorized_object_update_snapshot(
+        payload: Vec<AuthorizedObjectUpdate>,
+    ) -> Self {
         Self::AuthorizedObjectUpdateSnapshot(
             AuthorizedObjectUpdateSnapshot::new(payload),
         )
@@ -3744,7 +2407,7 @@ impl Output {
     pub fn contract_time_check_scheduled(payload: ContractTimeCheck) -> Self {
         Self::ContractTimeCheckScheduled(ContractTimeCheckScheduled::new(payload))
     }
-    pub fn due_contract_checks_evaluated(payload: Triggered) -> Self {
+    pub fn due_contract_checks_evaluated(payload: Vec<AuthorizedObjectUpdate>) -> Self {
         Self::DueContractChecksEvaluated(DueContractChecksEvaluated::new(payload))
     }
     pub fn authorization_observation_retracted(
@@ -4417,10 +3080,7 @@ impl std::fmt::Display for SignalFrameError {
 impl std::error::Error for SignalFrameError {}
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -4460,10 +3120,7 @@ pub enum InputRoute {
 }
 
 #[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
-)]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
