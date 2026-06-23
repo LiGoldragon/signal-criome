@@ -65,14 +65,19 @@
   ObjectDigest String
   ContractDigest ObjectDigest
   OperationDigest ObjectDigest
+  CompositionDigest ObjectDigest
+  WorkflowDigest ObjectDigest
+  WorkflowProvenanceDigest ObjectDigest
   AttestedMomentDigest ObjectDigest
   ReplayNonce String
   ContractName String
   AuthorizationRequestSlot String
   AuthorizationScope String
   ContractOperationHead String
+  WorkflowStepName String
   TimestampNanos Integer
   RequiredSignatureThreshold Integer
+  CompositionThreshold Integer
 
   SignatureScheme [Bls12_381MinPk Bls12_381MinSig]
   PrincipalStatus [Active Revoked]
@@ -127,11 +132,27 @@
     (All (Vector ContractDigest))
     (Any (Vector ContractDigest))
     (Threshold Threshold)
+    (Workflow WorkflowGuard)
+    (Composition Composition)
     (ActiveAfter TimedRule)
     (ActiveUntil TimedRule)
     (TimeSwitch TimeSwitch)
     (Agreement AgreementRule)
     EscalateToPsyche
+  ]
+
+  WorkflowGuard {
+    workflow.WorkflowDigest
+    executor.Identity
+  }
+
+  Composition [
+    (AllOf (Vector CompositionDigest))
+    (AnyOf (Vector CompositionDigest))
+    (Threshold CompositionThreshold)
+    (Escalate EscalationTarget)
+    (WorkflowStep WorkflowStepName)
+    (Signature Identity)
   ]
 
   PolicyMember [
@@ -195,6 +216,27 @@
     stamp.AttestedMoment
     EvidenceSignatures.(Vector StampedSignatureEnvelope)
     Agreements.(Vector AgreementFact)
+    WorkflowReceipts.(Vector WorkflowReceipt)
+    ObjectCoSignatures.(Vector ObjectCoSignature)
+  }
+
+  WorkflowReceipt {
+    workflow.WorkflowDigest
+    operation.OperationDigest
+    outcome.EvaluationDecision
+    provenance.WorkflowProvenanceDigest
+  }
+
+  ObjectCoSignature {
+    object.AuthorizedObjectReference
+    signer.Identity
+    signature.StampedSignatureEnvelope
+  }
+
+  CoSignatureExpectation {
+    object.AuthorizedObjectReference
+    ExpectedSigners.(Vector Identity)
+    ObservedSigners.(Vector Identity)
   }
 
   AuthorizationEvaluation {
@@ -206,7 +248,15 @@
   EvaluationDecision [
     Authorized
     (Rejected EvaluationRejectionReason)
-    EscalateToPsyche
+    Deferred
+    NonJudgement
+    (Escalate EscalationTarget)
+  ]
+
+  EscalationTarget [
+    Psyche
+    (Workflow WorkflowDigest)
+    (SmarterAgent Identity)
   ]
 
   EvaluationRejectionReason [

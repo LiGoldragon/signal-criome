@@ -192,6 +192,26 @@ escalation-to-approve prompt.
   escalation-to-approve flows; the CLI handles one-shot meta
   operations.
 
+### Workflow guard substrate
+
+`Rule::Workflow` and `Rule::Composition` are the contract-level entry points
+for cognitive adjudication. Criome stores and evaluates the guard contract;
+it does not execute the LLM workflow. A local workflow runner such as
+orchestrate returns a content-addressed `WorkflowReceipt` naming:
+
+- the workflow digest;
+- the authorized operation digest;
+- the resulting `EvaluationDecision`;
+- the provenance digest for the execution log.
+
+Those receipts ride inside `Evidence.workflow_receipts`. The evidence object
+also carries `object_co_signatures`, which are peer-criome signatures over
+the same authorized object. `CoSignatureExpectation` is the observation shape
+for the second trust plane: expected peer signers versus observed peer
+signers. Recursive combinations are referenced by `CompositionDigest`
+children instead of embedding arbitrary recursive trees directly in the
+rkyv wire object.
+
 Authorization observation follows the same subscription discipline as
 identity updates: `ObserveAuthorization` opens
 `AuthorizationObservationStream`; `AuthorizationObservationRetraction`

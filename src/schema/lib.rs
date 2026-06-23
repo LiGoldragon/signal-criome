@@ -91,6 +91,30 @@ pub struct OperationDigest(ObjectDigest);
     derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct CompositionDigest(ObjectDigest);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct WorkflowDigest(ObjectDigest);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct WorkflowProvenanceDigest(ObjectDigest);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AttestedMomentDigest(ObjectDigest);
 
 #[rustfmt::skip]
@@ -139,6 +163,14 @@ pub struct ContractOperationHead(String);
     derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct WorkflowStepName(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimestampNanos(Integer);
 
 #[rustfmt::skip]
@@ -148,6 +180,14 @@ pub struct TimestampNanos(Integer);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RequiredSignatureThreshold(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct CompositionThreshold(Integer);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -544,11 +584,39 @@ pub enum Rule {
     All(Vec<ContractDigest>),
     Any(Vec<ContractDigest>),
     Threshold(Threshold),
+    Workflow(WorkflowGuard),
+    Composition(Composition),
     ActiveAfter(TimedRule),
     ActiveUntil(TimedRule),
     TimeSwitch(TimeSwitch),
     Agreement(AgreementRule),
     EscalateToPsyche,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct WorkflowGuard {
+    pub workflow: WorkflowDigest,
+    pub executor: Identity,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum Composition {
+    AllOf(Vec<CompositionDigest>),
+    AnyOf(Vec<CompositionDigest>),
+    Threshold(CompositionThreshold),
+    Escalate(EscalationTarget),
+    WorkflowStep(WorkflowStepName),
+    Signature(Identity),
 }
 
 #[rustfmt::skip]
@@ -712,12 +780,83 @@ pub(crate) struct Agreements(Vec<AgreementFact>);
     derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct WorkflowReceipts(Vec<WorkflowReceipt>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ObjectCoSignatures(Vec<ObjectCoSignature>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Evidence {
     pub component: ComponentKind,
     pub operation: OperationDigest,
     pub stamp: AttestedMoment,
     pub(crate) evidence_signatures: EvidenceSignatures,
     pub(crate) agreements: Agreements,
+    pub(crate) workflow_receipts: WorkflowReceipts,
+    pub(crate) object_co_signatures: ObjectCoSignatures,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct WorkflowReceipt {
+    pub workflow: WorkflowDigest,
+    pub operation: OperationDigest,
+    pub outcome: EvaluationDecision,
+    pub provenance: WorkflowProvenanceDigest,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ObjectCoSignature {
+    pub object: AuthorizedObjectReference,
+    pub signer: Identity,
+    pub signature: StampedSignatureEnvelope,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ExpectedSigners(Vec<Identity>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ObservedSigners(Vec<Identity>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct CoSignatureExpectation {
+    pub object: AuthorizedObjectReference,
+    pub(crate) expected_signers: ExpectedSigners,
+    pub(crate) observed_signers: ObservedSigners,
 }
 
 #[rustfmt::skip]
@@ -741,7 +880,21 @@ pub struct AuthorizationEvaluation {
 pub enum EvaluationDecision {
     Authorized,
     Rejected(EvaluationRejectionReason),
-    EscalateToPsyche,
+    Deferred,
+    NonJudgement,
+    Escalate(EscalationTarget),
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota_next::NotaDecode, nota_next::NotaDecodeTraced, nota_next::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum EscalationTarget {
+    Psyche,
+    Workflow(WorkflowDigest),
+    SmarterAgent(Identity),
 }
 
 #[rustfmt::skip]
@@ -1949,6 +2102,63 @@ impl From<ObjectDigest> for OperationDigest {
 }
 
 #[rustfmt::skip]
+impl CompositionDigest {
+    pub fn new(payload: ObjectDigest) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ObjectDigest {
+        &self.0
+    }
+    pub fn into_payload(self) -> ObjectDigest {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ObjectDigest> for CompositionDigest {
+    fn from(payload: ObjectDigest) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl WorkflowDigest {
+    pub fn new(payload: ObjectDigest) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ObjectDigest {
+        &self.0
+    }
+    pub fn into_payload(self) -> ObjectDigest {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ObjectDigest> for WorkflowDigest {
+    fn from(payload: ObjectDigest) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl WorkflowProvenanceDigest {
+    pub fn new(payload: ObjectDigest) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ObjectDigest {
+        &self.0
+    }
+    pub fn into_payload(self) -> ObjectDigest {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ObjectDigest> for WorkflowProvenanceDigest {
+    fn from(payload: ObjectDigest) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl AttestedMomentDigest {
     pub fn new(payload: ObjectDigest) -> Self {
         Self(payload)
@@ -2063,6 +2273,25 @@ impl From<String> for ContractOperationHead {
 }
 
 #[rustfmt::skip]
+impl WorkflowStepName {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for WorkflowStepName {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl TimestampNanos {
     pub fn new(payload: Integer) -> Self {
         Self(payload)
@@ -2095,6 +2324,25 @@ impl RequiredSignatureThreshold {
 }
 #[rustfmt::skip]
 impl From<Integer> for RequiredSignatureThreshold {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl CompositionThreshold {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for CompositionThreshold {
     fn from(payload: Integer) -> Self {
         Self::new(payload)
     }
@@ -2267,6 +2515,82 @@ impl Agreements {
 #[rustfmt::skip]
 impl From<Vec<AgreementFact>> for Agreements {
     fn from(payload: Vec<AgreementFact>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl WorkflowReceipts {
+    pub fn new(payload: Vec<WorkflowReceipt>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<WorkflowReceipt> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<WorkflowReceipt> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<WorkflowReceipt>> for WorkflowReceipts {
+    fn from(payload: Vec<WorkflowReceipt>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ObjectCoSignatures {
+    pub fn new(payload: Vec<ObjectCoSignature>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<ObjectCoSignature> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<ObjectCoSignature> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<ObjectCoSignature>> for ObjectCoSignatures {
+    fn from(payload: Vec<ObjectCoSignature>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ExpectedSigners {
+    pub fn new(payload: Vec<Identity>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<Identity> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<Identity> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<Identity>> for ExpectedSigners {
+    fn from(payload: Vec<Identity>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ObservedSigners {
+    pub fn new(payload: Vec<Identity>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<Identity> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<Identity> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<Identity>> for ObservedSigners {
+    fn from(payload: Vec<Identity>) -> Self {
         Self::new(payload)
     }
 }
@@ -3147,6 +3471,12 @@ impl Rule {
     pub fn threshold(payload: Threshold) -> Self {
         Self::Threshold(payload)
     }
+    pub fn workflow(payload: WorkflowGuard) -> Self {
+        Self::Workflow(payload)
+    }
+    pub fn composition(payload: Composition) -> Self {
+        Self::Composition(payload)
+    }
     pub fn active_after(payload: TimedRule) -> Self {
         Self::ActiveAfter(payload)
     }
@@ -3158,6 +3488,28 @@ impl Rule {
     }
     pub fn agreement(payload: AgreementRule) -> Self {
         Self::Agreement(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Composition {
+    pub fn all_of(payload: Vec<CompositionDigest>) -> Self {
+        Self::AllOf(payload)
+    }
+    pub fn any_of(payload: Vec<CompositionDigest>) -> Self {
+        Self::AnyOf(payload)
+    }
+    pub fn threshold(payload: Integer) -> Self {
+        Self::Threshold(CompositionThreshold::new(payload))
+    }
+    pub fn escalate(payload: EscalationTarget) -> Self {
+        Self::Escalate(payload)
+    }
+    pub fn workflow_step(payload: String) -> Self {
+        Self::WorkflowStep(WorkflowStepName::new(payload))
+    }
+    pub fn signature(payload: Identity) -> Self {
+        Self::Signature(payload)
     }
 }
 
@@ -3175,6 +3527,19 @@ impl PolicyMember {
 impl EvaluationDecision {
     pub fn rejected(payload: EvaluationRejectionReason) -> Self {
         Self::Rejected(payload)
+    }
+    pub fn escalate(payload: EscalationTarget) -> Self {
+        Self::Escalate(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl EscalationTarget {
+    pub fn workflow(payload: ObjectDigest) -> Self {
+        Self::Workflow(WorkflowDigest::new(payload))
+    }
+    pub fn smarter_agent(payload: Identity) -> Self {
+        Self::SmarterAgent(payload)
     }
 }
 
@@ -3419,6 +3784,20 @@ impl From<Threshold> for Rule {
 }
 
 #[rustfmt::skip]
+impl From<WorkflowGuard> for Rule {
+    fn from(payload: WorkflowGuard) -> Self {
+        Self::Workflow(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<Composition> for Rule {
+    fn from(payload: Composition) -> Self {
+        Self::Composition(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<TimeSwitch> for Rule {
     fn from(payload: TimeSwitch) -> Self {
         Self::TimeSwitch(payload)
@@ -3429,6 +3808,34 @@ impl From<TimeSwitch> for Rule {
 impl From<AgreementRule> for Rule {
     fn from(payload: AgreementRule) -> Self {
         Self::Agreement(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<CompositionThreshold> for Composition {
+    fn from(payload: CompositionThreshold) -> Self {
+        Self::Threshold(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<EscalationTarget> for Composition {
+    fn from(payload: EscalationTarget) -> Self {
+        Self::Escalate(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<WorkflowStepName> for Composition {
+    fn from(payload: WorkflowStepName) -> Self {
+        Self::WorkflowStep(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<Identity> for Composition {
+    fn from(payload: Identity) -> Self {
+        Self::Signature(payload)
     }
 }
 
@@ -3450,6 +3857,27 @@ impl From<ContractDigest> for PolicyMember {
 impl From<EvaluationRejectionReason> for EvaluationDecision {
     fn from(payload: EvaluationRejectionReason) -> Self {
         Self::Rejected(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<EscalationTarget> for EvaluationDecision {
+    fn from(payload: EscalationTarget) -> Self {
+        Self::Escalate(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<WorkflowDigest> for EscalationTarget {
+    fn from(payload: WorkflowDigest) -> Self {
+        Self::Workflow(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<Identity> for EscalationTarget {
+    fn from(payload: Identity) -> Self {
+        Self::SmarterAgent(payload)
     }
 }
 

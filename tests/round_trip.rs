@@ -11,22 +11,24 @@ use signal_criome::{
     AuthorizationUpdate, AuthorizationVerification, AuthorizedObjectInterest, AuthorizedObjectKind,
     AuthorizedObjectObservation, AuthorizedObjectReference, AuthorizedObjectUpdate,
     AuthorizedObjectUpdateRetracted, AuthorizedObjectUpdateSnapshot, AuthorizedObjectUpdateToken,
-    BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, ComponentKind, ComponentRelease,
-    ContentPurpose, ContentReference, Contract, ContractAdmissionRejected,
-    ContractAdmissionRejectionReason, ContractAdmitted, ContractDigest, ContractFound,
-    ContractMissing, ContractName, ContractOperationHead, CriomeEvent, CriomeFrame as Frame,
-    CriomeFrameBody as FrameBody, CriomeReply, CriomeRequest, EvaluationDecision,
-    EvaluationRejectionReason, Evidence, Identity, IdentityLookup, IdentityReceipt,
-    IdentityRegistration, IdentityRevocation, IdentitySnapshot, IdentitySubscription,
-    IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest, OperationDigest,
-    ParkedAuthorization, ParkedAuthorizationObservation, ParkedAuthorizationSnapshot, PolicyMember,
-    PrincipalName, PrincipalStatus, PublicKeyFingerprint, QuorumShortfall, Rejection,
-    RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule, SignReceipt, SignRequest,
+    BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, CoSignatureExpectation,
+    ComponentKind, ComponentRelease, Composition, CompositionDigest, ContentPurpose,
+    ContentReference, Contract, ContractAdmissionRejected, ContractAdmissionRejectionReason,
+    ContractAdmitted, ContractDigest, ContractFound, ContractMissing, ContractName,
+    ContractOperationHead, CriomeEvent, CriomeFrame as Frame, CriomeFrameBody as FrameBody,
+    CriomeReply, CriomeRequest, EscalationTarget, EvaluationDecision, EvaluationRejectionReason,
+    Evidence, Identity, IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation,
+    IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose,
+    ObjectCoSignature, ObjectDigest, OperationDigest, ParkedAuthorization,
+    ParkedAuthorizationObservation, ParkedAuthorizationSnapshot, PolicyMember, PrincipalName,
+    PrincipalStatus, PublicKeyFingerprint, QuorumShortfall, Rejection, RejectionReason,
+    ReplayNonce, RequiredSignatureThreshold, Rule, SignReceipt, SignRequest,
     SignalCallAuthorization, SignatureAuthorizationResult, SignatureEnvelope,
     SignatureRouteReceipt, SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute,
     SignatureSubmission, SignatureSubmissionReceipt, StampedSignatureEnvelope,
     SubscriptionRetracted, Threshold, TimeSignature, TimeWindow, TimestampNanos,
-    VerificationDecision, VerificationResult, VerifyRequest,
+    VerificationDecision, VerificationResult, VerifyRequest, WorkflowDigest, WorkflowGuard,
+    WorkflowProvenanceDigest, WorkflowReceipt,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -182,6 +184,18 @@ fn operation_digest() -> OperationDigest {
     OperationDigest::from_bytes(b"operation fixture")
 }
 
+fn composition_digest(name: &str) -> CompositionDigest {
+    CompositionDigest::from_bytes(name.as_bytes())
+}
+
+fn workflow_digest() -> WorkflowDigest {
+    WorkflowDigest::from_bytes(b"guardian workflow")
+}
+
+fn workflow_provenance_digest() -> WorkflowProvenanceDigest {
+    WorkflowProvenanceDigest::from_bytes(b"guardian workflow provenance")
+}
+
 fn attested_moment() -> AttestedMoment {
     AttestedMoment::new(
         AttestedMomentProposition::new(
@@ -217,6 +231,23 @@ fn evidence() -> Evidence {
         vec![stamped_envelope()],
         Vec::new(),
     )
+}
+
+fn workflow_receipt() -> WorkflowReceipt {
+    WorkflowReceipt {
+        workflow: workflow_digest(),
+        operation: operation_digest(),
+        outcome: EvaluationDecision::Authorized,
+        provenance: workflow_provenance_digest(),
+    }
+}
+
+fn object_co_signature() -> ObjectCoSignature {
+    ObjectCoSignature {
+        object: authorized_object_reference(),
+        signer: cluster("prometheus"),
+        signature: stamped_envelope(),
+    }
 }
 
 fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
@@ -325,6 +356,15 @@ where
 
     let recovered = NotaSource::new(&encoded).parse::<T>().expect("decode nota");
     assert_eq!(recovered, value);
+}
+
+fn assert_nota_round_trip<T>(value: T)
+where
+    T: NotaEncode + NotaDecode + PartialEq + std::fmt::Debug,
+{
+    let encoded = value.to_nota();
+    let recovered = NotaSource::new(&encoded).parse::<T>().expect("decode nota");
+    assert_eq!(recovered, value, "NOTA did not round-trip: {encoded}");
 }
 
 #[test]
@@ -656,6 +696,87 @@ fn authorization_denial_distinguishes_policy_from_signer_refusal() {
         round_trip_reply(CriomeReply::AuthorizationDenied(signer_denial.clone())),
         CriomeReply::AuthorizationDenied(signer_denial)
     );
+}
+
+#[test]
+fn workflow_guard_contract_round_trips_through_frame_and_nota() {
+    let contract = Contract::new(Rule::workflow(WorkflowGuard {
+        workflow: workflow_digest(),
+        executor: agent("guardian-runner"),
+    }));
+    let request = CriomeRequest::AdmitContract(contract.clone());
+
+    assert_eq!(round_trip_request(request.clone()), request);
+    assert_nota_round_trip(contract);
+}
+
+#[test]
+fn composition_rule_uses_content_addressed_children() {
+    let composition = Composition::all_of(vec![
+        composition_digest("guardian-workflow-step"),
+        composition_digest("psyche-escalation-step"),
+    ]);
+    let contract = Contract::new(Rule::composition(composition.clone()));
+
+    assert_eq!(
+        round_trip_request(CriomeRequest::AdmitContract(contract.clone())),
+        CriomeRequest::AdmitContract(contract),
+    );
+    assert_nota_round_trip(composition);
+}
+
+#[test]
+fn full_guard_decision_outcomes_round_trip() {
+    for decision in [
+        EvaluationDecision::Authorized,
+        EvaluationDecision::Deferred,
+        EvaluationDecision::NonJudgement,
+        EvaluationDecision::escalate(EscalationTarget::Psyche),
+        EvaluationDecision::escalate(EscalationTarget::Workflow(workflow_digest())),
+        EvaluationDecision::escalate(EscalationTarget::smarter_agent(agent("guardian"))),
+    ] {
+        let reply = CriomeReply::AuthorizationEvaluated(AuthorizationEvaluated {
+            contract: contract_digest(),
+            decision,
+        });
+        assert_eq!(round_trip_reply(reply.clone()), reply);
+    }
+}
+
+#[test]
+fn workflow_receipts_and_peer_cosignatures_ride_evidence() {
+    let evidence = evidence()
+        .with_workflow_receipts(vec![workflow_receipt()])
+        .with_object_co_signatures(vec![object_co_signature()]);
+
+    assert_eq!(evidence.workflow_receipts(), &[workflow_receipt()]);
+    assert_eq!(evidence.object_co_signatures(), &[object_co_signature()]);
+
+    let evaluation = AuthorizationEvaluation {
+        contract: contract_digest(),
+        object: authorized_object_reference(),
+        evidence,
+    };
+    let request = CriomeRequest::EvaluateAuthorization(evaluation.clone());
+
+    assert_eq!(round_trip_request(request.clone()), request);
+    assert_nota_round_trip(evaluation);
+}
+
+#[test]
+fn co_signature_expectation_tracks_expected_and_observed_peer_signers() {
+    let expectation = CoSignatureExpectation::new(
+        authorized_object_reference(),
+        vec![cluster("local"), cluster("prometheus")],
+        vec![cluster("local")],
+    );
+
+    assert_eq!(
+        expectation.expected_signers(),
+        &[cluster("local"), cluster("prometheus")],
+    );
+    assert_eq!(expectation.observed_signers(), &[cluster("local")]);
+    assert_nota_round_trip(expectation);
 }
 
 #[test]

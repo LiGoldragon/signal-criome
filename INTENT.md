@@ -35,12 +35,29 @@ avoids the name `AuthProof` — it uses specific records:
 `DelegationGrant`, `ComponentRelease`, `SignedPersonaRequest`,
 `SignalCallAuthorization`, and `AuthorizationGrant`.
 
+Criome also owns the typed guard-contract vocabulary for cognitive
+adjudication. A contract can name a `WorkflowGuard`; local workflow
+execution is represented by a content-addressed `WorkflowReceipt` carried
+inside `Evidence`, while criome still verifies/adopts facts rather than
+running LLM workflows itself. Recursive guard composition is
+content-addressed through `CompositionDigest` children, keeping large
+workflow/psyche/agent combinations as referenced objects rather than
+inline payloads on the authorization wire.
+
 Quorum-bearing signed surfaces carry crystallized time. Policy evidence,
 adjudicator agreement facts, routed signature submissions, and authorization
 grants use `StampedSignatureEnvelope`: a bare cryptographic envelope paired
 with the `AttestedMoment` that places the signature in time. The root exception
 is `TimeSignature` inside `AttestedMoment` itself; those bare envelopes create
 the crystallized moment and therefore cannot recursively contain one.
+
+The local trust plane and multi-node trust plane are deliberately distinct.
+In the local execution chamber, co-resident orchestrate/agent components can
+return workflow receipts for criome to adopt as evidence. Independent
+authority is represented at the criome quorum layer: `ObjectCoSignature` and
+`CoSignatureExpectation` let the system observe which peer criomes were
+expected to co-sign a content-addressed object and which signatures have
+actually arrived.
 
 ## The channel shape
 

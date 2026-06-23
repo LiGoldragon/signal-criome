@@ -48,11 +48,15 @@ string_accessor!(
     ObjectDigest,
     ContractDigest,
     OperationDigest,
+    CompositionDigest,
+    WorkflowDigest,
+    WorkflowProvenanceDigest,
     ReplayNonce,
     ContractName,
     AuthorizationRequestSlot,
     AuthorizationScope,
     ContractOperationHead,
+    WorkflowStepName,
 );
 
 impl ObjectDigest {
@@ -76,6 +80,36 @@ impl ContractDigest {
 }
 
 impl OperationDigest {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        Self::new(ObjectDigest::from_bytes(bytes))
+    }
+
+    pub fn object_digest(&self) -> &ObjectDigest {
+        self.payload()
+    }
+}
+
+impl CompositionDigest {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        Self::new(ObjectDigest::from_bytes(bytes))
+    }
+
+    pub fn object_digest(&self) -> &ObjectDigest {
+        self.payload()
+    }
+}
+
+impl WorkflowDigest {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        Self::new(ObjectDigest::from_bytes(bytes))
+    }
+
+    pub fn object_digest(&self) -> &ObjectDigest {
+        self.payload()
+    }
+}
+
+impl WorkflowProvenanceDigest {
     pub fn from_bytes(bytes: &[u8]) -> Self {
         Self::new(ObjectDigest::from_bytes(bytes))
     }
@@ -272,7 +306,22 @@ impl Evidence {
             stamp,
             evidence_signatures: EvidenceSignatures::new(evidence_signatures),
             agreements: Agreements::new(agreements),
+            workflow_receipts: WorkflowReceipts::new(Vec::new()),
+            object_co_signatures: ObjectCoSignatures::new(Vec::new()),
         }
+    }
+
+    pub fn with_workflow_receipts(mut self, workflow_receipts: Vec<WorkflowReceipt>) -> Self {
+        self.workflow_receipts = WorkflowReceipts::new(workflow_receipts);
+        self
+    }
+
+    pub fn with_object_co_signatures(
+        mut self,
+        object_co_signatures: Vec<ObjectCoSignature>,
+    ) -> Self {
+        self.object_co_signatures = ObjectCoSignatures::new(object_co_signatures);
+        self
     }
 
     pub fn signatures(&self) -> &[StampedSignatureEnvelope] {
@@ -281,6 +330,36 @@ impl Evidence {
 
     pub fn agreements(&self) -> &[AgreementFact] {
         self.agreements.payload().as_slice()
+    }
+
+    pub fn workflow_receipts(&self) -> &[WorkflowReceipt] {
+        self.workflow_receipts.payload().as_slice()
+    }
+
+    pub fn object_co_signatures(&self) -> &[ObjectCoSignature] {
+        self.object_co_signatures.payload().as_slice()
+    }
+}
+
+impl CoSignatureExpectation {
+    pub fn new(
+        object: AuthorizedObjectReference,
+        expected_signers: Vec<Identity>,
+        observed_signers: Vec<Identity>,
+    ) -> Self {
+        Self {
+            object,
+            expected_signers: ExpectedSigners::new(expected_signers),
+            observed_signers: ObservedSigners::new(observed_signers),
+        }
+    }
+
+    pub fn expected_signers(&self) -> &[Identity] {
+        self.expected_signers.payload().as_slice()
+    }
+
+    pub fn observed_signers(&self) -> &[Identity] {
+        self.observed_signers.payload().as_slice()
     }
 }
 
@@ -448,6 +527,12 @@ impl AuthorizationStateRecord {
 impl ParkedAuthorizationObservation {
     pub fn new() -> Self {
         Self {}
+    }
+}
+
+impl Default for ParkedAuthorizationObservation {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

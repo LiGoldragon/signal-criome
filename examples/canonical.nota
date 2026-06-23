@@ -64,7 +64,7 @@
 (LookupContract contract-digest-1)
 
 ;; CriomeRequest::EvaluateAuthorization
-(EvaluateAuthorization (contract-digest-1 (Spirit operation-digest-1 Head) (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [])))
+(EvaluateAuthorization (contract-digest-1 (Spirit operation-digest-1 Head) (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] [])))
 
 ;; CriomeRequest::ObserveAuthorizedObjects
 (ObserveAuthorizedObjects ((Persona alice) (Component Spirit)))
@@ -117,7 +117,7 @@
 (AuthorizationObservationSnapshot [(authorization-request-1 digest-lojix-request Pending [(Developer reviewer)] None None None None)])
 
 ;; CriomeReply::ParkedAuthorizationSnapshot
-(ParkedAuthorizationSnapshot [(authorization-request-1 (Some (contract-digest-1 (Spirit operation-digest-1 Head) (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] []))) None)])
+(ParkedAuthorizationSnapshot [(authorization-request-1 (Some (contract-digest-1 (Spirit operation-digest-1 Head) (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))) None)])
 
 ;; CriomeReply::SignatureRouteReceipt
 (SignatureRouteReceipt (authorization-request-1 (Host balboa)))
