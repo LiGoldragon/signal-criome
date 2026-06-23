@@ -471,7 +471,8 @@
 
   ParkedAuthorization {
     request_slot.AuthorizationRequestSlot
-    evaluation.AuthorizationEvaluation
+    (ParkedAuthorizationEvaluation (Optional AuthorizationEvaluation))
+    (ParkedSignalAuthorization (Optional SignalCallAuthorization))
   }
 
   ParkedAuthorizationObservation { }

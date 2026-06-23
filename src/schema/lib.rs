@@ -1038,9 +1038,20 @@ pub struct AuthorizationObservationSnapshot(States);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ParkedAuthorizationEvaluation(Option<AuthorizationEvaluation>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ParkedSignalAuthorization(Option<SignalCallAuthorization>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ParkedAuthorization {
     pub request_slot: AuthorizationRequestSlot,
-    pub evaluation: AuthorizationEvaluation,
+    pub(crate) parked_authorization_evaluation: ParkedAuthorizationEvaluation,
+    pub(crate) parked_signal_authorization: ParkedSignalAuthorization,
 }
 
 #[rustfmt::skip]
@@ -2275,6 +2286,44 @@ impl AuthorizationObservationSnapshot {
 #[rustfmt::skip]
 impl From<States> for AuthorizationObservationSnapshot {
     fn from(payload: States) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ParkedAuthorizationEvaluation {
+    pub fn new(payload: Option<AuthorizationEvaluation>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<AuthorizationEvaluation> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<AuthorizationEvaluation> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<AuthorizationEvaluation>> for ParkedAuthorizationEvaluation {
+    fn from(payload: Option<AuthorizationEvaluation>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ParkedSignalAuthorization {
+    pub fn new(payload: Option<SignalCallAuthorization>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<SignalCallAuthorization> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<SignalCallAuthorization> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<SignalCallAuthorization>> for ParkedSignalAuthorization {
+    fn from(payload: Option<SignalCallAuthorization>) -> Self {
         Self::new(payload)
     }
 }

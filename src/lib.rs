@@ -451,6 +451,38 @@ impl ParkedAuthorizationObservation {
     }
 }
 
+impl ParkedAuthorization {
+    pub fn from_evaluation(
+        request_slot: AuthorizationRequestSlot,
+        evaluation: AuthorizationEvaluation,
+    ) -> Self {
+        Self {
+            request_slot,
+            parked_authorization_evaluation: ParkedAuthorizationEvaluation::new(Some(evaluation)),
+            parked_signal_authorization: ParkedSignalAuthorization::new(None),
+        }
+    }
+
+    pub fn from_signal_authorization(
+        request_slot: AuthorizationRequestSlot,
+        authorization: SignalCallAuthorization,
+    ) -> Self {
+        Self {
+            request_slot,
+            parked_authorization_evaluation: ParkedAuthorizationEvaluation::new(None),
+            parked_signal_authorization: ParkedSignalAuthorization::new(Some(authorization)),
+        }
+    }
+
+    pub fn evaluation(&self) -> Option<&AuthorizationEvaluation> {
+        self.parked_authorization_evaluation.payload().as_ref()
+    }
+
+    pub fn signal_authorization(&self) -> Option<&SignalCallAuthorization> {
+        self.parked_signal_authorization.payload().as_ref()
+    }
+}
+
 impl ParkedAuthorizationSnapshot {
     pub fn from_parked(parked: Vec<ParkedAuthorization>) -> Self {
         Self::new(ParkedAuthorizations::new(parked))
