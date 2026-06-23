@@ -1009,6 +1009,11 @@ pub(crate) struct ParkedEvaluation(Option<AuthorizationEvaluation>);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct SignalAuthorization(Option<SignalCallAuthorization>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationStateRecord {
     pub request_slot: AuthorizationRequestSlot,
     pub request_digest: ObjectDigest,
@@ -1017,6 +1022,7 @@ pub struct AuthorizationStateRecord {
     pub(crate) grant: Grant,
     pub(crate) denial: Denial,
     pub(crate) parked_evaluation: ParkedEvaluation,
+    pub(crate) signal_authorization: SignalAuthorization,
 }
 
 #[rustfmt::skip]
@@ -2212,6 +2218,25 @@ impl ParkedEvaluation {
 #[rustfmt::skip]
 impl From<Option<AuthorizationEvaluation>> for ParkedEvaluation {
     fn from(payload: Option<AuthorizationEvaluation>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl SignalAuthorization {
+    pub fn new(payload: Option<SignalCallAuthorization>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<SignalCallAuthorization> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<SignalCallAuthorization> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<SignalCallAuthorization>> for SignalAuthorization {
+    fn from(payload: Option<SignalCallAuthorization>) -> Self {
         Self::new(payload)
     }
 }

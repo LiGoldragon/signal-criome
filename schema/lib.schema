@@ -462,6 +462,7 @@
     (Grant (Optional AuthorizationGrant))
     (Denial (Optional AuthorizationDenial))
     (ParkedEvaluation (Optional AuthorizationEvaluation))
+    (SignalAuthorization (Optional SignalCallAuthorization))
   }
 
   AuthorizationObservationSnapshot {

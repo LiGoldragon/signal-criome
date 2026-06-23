@@ -410,11 +410,17 @@ impl AuthorizationStateRecord {
             grant: Grant::new(grant),
             denial: Denial::new(denial),
             parked_evaluation: ParkedEvaluation::new(None),
+            signal_authorization: SignalAuthorization::new(None),
         }
     }
 
     pub fn with_parked_evaluation(mut self, evaluation: AuthorizationEvaluation) -> Self {
         self.parked_evaluation = ParkedEvaluation::new(Some(evaluation));
+        self
+    }
+
+    pub fn with_signal_authorization(mut self, authorization: SignalCallAuthorization) -> Self {
+        self.signal_authorization = SignalAuthorization::new(Some(authorization));
         self
     }
 
@@ -432,6 +438,10 @@ impl AuthorizationStateRecord {
 
     pub fn parked_evaluation(&self) -> Option<&AuthorizationEvaluation> {
         self.parked_evaluation.payload().as_ref()
+    }
+
+    pub fn signal_authorization(&self) -> Option<&SignalCallAuthorization> {
+        self.signal_authorization.payload().as_ref()
     }
 }
 
