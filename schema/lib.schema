@@ -75,7 +75,16 @@
   AuthorizationScope String
   ContractOperationHead String
   WorkflowStepName String
+  InterceptPolicyIdentifier String
+  MentciSessionSlot String
+  SpiritProcessKey String
+  SpiritOperationName String
+  SpiritOperationNames (Vector SpiritOperationName)
+  RawSpiritOperationPayload String
+  ParkedRequestIdentifier String
   TimestampNanos Integer
+  PolicyDurationNanos Integer
+  PolicyPriority Integer
   RequiredSignatureThreshold Integer
   CompositionThreshold Integer
 
@@ -90,6 +99,11 @@
   AuthorizationStatus [Pending Signing Parked Granted Denied Expired Unavailable]
   AuthorizationDenialReason [PolicyRefused RequiredSignatureMissing SignatureRejected SignerThresholdRejected SignatureExpired RequestDigestMismatch SignatureScopeMismatch SignerUnavailable]
   AuthorizationDenialSource [Policy Signers]
+  ExpiryAction [AutoApprove AutoReject LeaveParked]
+  PolicyOverlapMode [RejectSamePriorityOverlap ReplaceSamePriorityOverlap]
+  ParkedRequestDecision [Approve Reject]
+  ParkedRequestOutcome [Approved Rejected LeftParked]
+  ApprovalAuditSource [Manual Automatic]
   RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration]
   ComponentKind [Spirit Criome Router Mirror Lojix Persona Agent]
   ContractAdmissionRejectionReason [
@@ -192,6 +206,87 @@
   TimeWindow {
     opens_at.TimestampNanos
     closes_at.TimestampNanos
+  }
+
+  ;; The MVP process key is a simple Spirit stream/process selector, not a
+  ;; cryptographic or durable identity binding. Authority-binding remains a
+  ;; later design surface; criome meta-socket possession is the MVP authority
+  ;; boundary for policy mutation.
+  InterceptTargetSelector {
+    process_key.SpiritProcessKey
+  }
+
+  InterceptPolicyWindow {
+    starts_at.TimestampNanos
+    expires_at.TimestampNanos
+  }
+
+  InterceptPolicyProposal {
+    session_slot.MentciSessionSlot
+    target.InterceptTargetSelector
+    SpiritOperationNames
+    duration.PolicyDurationNanos
+    ExpiryAction
+    priority.PolicyPriority
+    overlap_mode.PolicyOverlapMode
+  }
+
+  InterceptPolicy {
+    identifier.InterceptPolicyIdentifier
+    session_slot.MentciSessionSlot
+    target.InterceptTargetSelector
+    SpiritOperationNames
+    window.InterceptPolicyWindow
+    ExpiryAction
+    priority.PolicyPriority
+  }
+
+  InterceptPolicies (Vector InterceptPolicy)
+  ActiveInterceptPolicies {
+    InterceptPolicies
+  }
+
+  InterceptPolicyCancellation {
+    identifier.InterceptPolicyIdentifier
+  }
+
+  SpiritAuthorizationContext {
+    operation_name.SpiritOperationName
+    raw_payload.RawSpiritOperationPayload
+    target_key.SpiritProcessKey
+  }
+
+  ParkedSpiritRequest {
+    identifier.ParkedRequestIdentifier
+    matched_policy.InterceptPolicyIdentifier
+    session_slot.MentciSessionSlot
+    context.SpiritAuthorizationContext
+    parked_at.TimestampNanos
+    expires_at.TimestampNanos
+    ExpiryAction
+  }
+
+  ParkedRequestQuery {
+    session_slot.(Optional MentciSessionSlot)
+    target.(Optional InterceptTargetSelector)
+  }
+
+  ParkedSpiritRequests (Vector ParkedSpiritRequest)
+  ParkedRequestSnapshot {
+    ParkedSpiritRequests
+  }
+
+  ParkedRequestAnswer {
+    identifier.ParkedRequestIdentifier
+    decision.ParkedRequestDecision
+  }
+
+  ParkedRequestResolution {
+    identifier.ParkedRequestIdentifier
+    matched_policy.InterceptPolicyIdentifier
+    outcome.ParkedRequestOutcome
+    audit_source.ApprovalAuditSource
+    resolved_at.TimestampNanos
   }
 
   AttestedMomentProposition {

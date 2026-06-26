@@ -57,6 +57,12 @@ string_accessor!(
     AuthorizationScope,
     ContractOperationHead,
     WorkflowStepName,
+    InterceptPolicyIdentifier,
+    MentciSessionSlot,
+    SpiritProcessKey,
+    SpiritOperationName,
+    RawSpiritOperationPayload,
+    ParkedRequestIdentifier,
 );
 
 impl ObjectDigest {
@@ -152,11 +158,67 @@ impl AttestedMomentProposition {
 }
 
 impl Copy for TimestampNanos {}
+impl Copy for PolicyDurationNanos {}
+impl Copy for PolicyPriority {}
 impl Copy for RequiredSignatureThreshold {}
 
 impl TimestampNanos {
     pub fn into_u64(self) -> u64 {
         self.into_payload()
+    }
+}
+
+impl PolicyDurationNanos {
+    pub fn into_u64(self) -> u64 {
+        self.into_payload()
+    }
+}
+
+impl PolicyPriority {
+    pub fn into_u64(self) -> u64 {
+        self.into_payload()
+    }
+}
+
+impl SpiritOperationNames {
+    pub fn from_names(names: Vec<SpiritOperationName>) -> Self {
+        Self::new(names)
+    }
+
+    pub fn names(&self) -> &[SpiritOperationName] {
+        self.payload().as_slice()
+    }
+
+    pub fn into_names(self) -> Vec<SpiritOperationName> {
+        self.into_payload()
+    }
+}
+
+impl ActiveInterceptPolicies {
+    pub fn from_policies(policies: Vec<InterceptPolicy>) -> Self {
+        Self::new(InterceptPolicies::new(policies))
+    }
+
+    pub fn policies(&self) -> &[InterceptPolicy] {
+        self.payload().payload().as_slice()
+    }
+
+    pub fn into_policies(self) -> Vec<InterceptPolicy> {
+        self.into_payload().into_payload()
+    }
+}
+
+impl ParkedRequestSnapshot {
+    pub fn from_requests(requests: Vec<ParkedSpiritRequest>) -> Self {
+        Self::new(ParkedSpiritRequests::new(requests))
+    }
+
+    pub fn requests(&self) -> &[ParkedSpiritRequest] {
+        self.payload().payload().as_slice()
+    }
+
+    pub fn into_requests(self) -> Vec<ParkedSpiritRequest> {
+        self.into_payload().into_payload()
     }
 }
 

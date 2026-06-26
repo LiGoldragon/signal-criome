@@ -171,7 +171,79 @@ pub struct WorkflowStepName(String);
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct InterceptPolicyIdentifier(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct MentciSessionSlot(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SpiritProcessKey(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SpiritOperationName(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SpiritOperationNames(Vec<SpiritOperationName>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RawSpiritOperationPayload(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ParkedRequestIdentifier(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimestampNanos(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct PolicyDurationNanos(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct PolicyPriority(Integer);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -451,6 +523,108 @@ pub enum AuthorizationDenialSource {
     PartialEq,
     Eq,
 )]
+pub enum ExpiryAction {
+    AutoApprove,
+    AutoReject,
+    LeaveParked,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum PolicyOverlapMode {
+    RejectSamePriorityOverlap,
+    ReplaceSamePriorityOverlap,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum ParkedRequestDecision {
+    Approve,
+    Reject,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum ParkedRequestOutcome {
+    Approved,
+    Rejected,
+    LeftParked,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum ApprovalAuditSource {
+    Manual,
+    Automatic,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum RejectionReason {
     MalformedRequest,
     UnsupportedSignatureScheme,
@@ -674,6 +848,161 @@ pub struct AgreementFact {
 pub struct TimeWindow {
     pub opens_at: TimestampNanos,
     pub closes_at: TimestampNanos,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct InterceptTargetSelector(SpiritProcessKey);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct InterceptPolicyWindow {
+    pub starts_at: TimestampNanos,
+    pub expires_at: TimestampNanos,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct InterceptPolicyProposal {
+    pub session_slot: MentciSessionSlot,
+    pub target: InterceptTargetSelector,
+    pub spirit_operation_names: SpiritOperationNames,
+    pub duration: PolicyDurationNanos,
+    pub expiry_action: ExpiryAction,
+    pub priority: PolicyPriority,
+    pub overlap_mode: PolicyOverlapMode,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct InterceptPolicy {
+    pub identifier: InterceptPolicyIdentifier,
+    pub session_slot: MentciSessionSlot,
+    pub target: InterceptTargetSelector,
+    pub spirit_operation_names: SpiritOperationNames,
+    pub window: InterceptPolicyWindow,
+    pub expiry_action: ExpiryAction,
+    pub priority: PolicyPriority,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct InterceptPolicies(Vec<InterceptPolicy>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ActiveInterceptPolicies(InterceptPolicies);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct InterceptPolicyCancellation(InterceptPolicyIdentifier);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SpiritAuthorizationContext {
+    pub operation_name: SpiritOperationName,
+    pub raw_payload: RawSpiritOperationPayload,
+    pub target_key: SpiritProcessKey,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ParkedSpiritRequest {
+    pub identifier: ParkedRequestIdentifier,
+    pub matched_policy: InterceptPolicyIdentifier,
+    pub session_slot: MentciSessionSlot,
+    pub context: SpiritAuthorizationContext,
+    pub parked_at: TimestampNanos,
+    pub expires_at: TimestampNanos,
+    pub expiry_action: ExpiryAction,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ParkedRequestQuery {
+    pub session_slot: Option<MentciSessionSlot>,
+    pub target: Option<InterceptTargetSelector>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ParkedSpiritRequests(Vec<ParkedSpiritRequest>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ParkedRequestSnapshot(ParkedSpiritRequests);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ParkedRequestAnswer {
+    pub identifier: ParkedRequestIdentifier,
+    pub decision: ParkedRequestDecision,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ParkedRequestResolution {
+    pub identifier: ParkedRequestIdentifier,
+    pub matched_policy: InterceptPolicyIdentifier,
+    pub outcome: ParkedRequestOutcome,
+    pub audit_source: ApprovalAuditSource,
+    pub resolved_at: TimestampNanos,
 }
 
 #[rustfmt::skip]
@@ -2012,6 +2341,139 @@ impl From<String> for WorkflowStepName {
 }
 
 #[rustfmt::skip]
+impl InterceptPolicyIdentifier {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for InterceptPolicyIdentifier {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl MentciSessionSlot {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for MentciSessionSlot {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl SpiritProcessKey {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for SpiritProcessKey {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl SpiritOperationName {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for SpiritOperationName {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl SpiritOperationNames {
+    pub fn new(payload: Vec<SpiritOperationName>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<SpiritOperationName> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<SpiritOperationName> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<SpiritOperationName>> for SpiritOperationNames {
+    fn from(payload: Vec<SpiritOperationName>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl RawSpiritOperationPayload {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for RawSpiritOperationPayload {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ParkedRequestIdentifier {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for ParkedRequestIdentifier {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl TimestampNanos {
     pub fn new(payload: Integer) -> Self {
         Self(payload)
@@ -2025,6 +2487,44 @@ impl TimestampNanos {
 }
 #[rustfmt::skip]
 impl From<Integer> for TimestampNanos {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl PolicyDurationNanos {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for PolicyDurationNanos {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl PolicyPriority {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for PolicyPriority {
     fn from(payload: Integer) -> Self {
         Self::new(payload)
     }
@@ -2083,6 +2583,120 @@ impl Contract {
 #[rustfmt::skip]
 impl From<Rule> for Contract {
     fn from(payload: Rule) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl InterceptTargetSelector {
+    pub fn new(payload: SpiritProcessKey) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &SpiritProcessKey {
+        &self.0
+    }
+    pub fn into_payload(self) -> SpiritProcessKey {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<SpiritProcessKey> for InterceptTargetSelector {
+    fn from(payload: SpiritProcessKey) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl InterceptPolicies {
+    pub fn new(payload: Vec<InterceptPolicy>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<InterceptPolicy> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<InterceptPolicy> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<InterceptPolicy>> for InterceptPolicies {
+    fn from(payload: Vec<InterceptPolicy>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ActiveInterceptPolicies {
+    pub fn new(payload: InterceptPolicies) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &InterceptPolicies {
+        &self.0
+    }
+    pub fn into_payload(self) -> InterceptPolicies {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<InterceptPolicies> for ActiveInterceptPolicies {
+    fn from(payload: InterceptPolicies) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl InterceptPolicyCancellation {
+    pub fn new(payload: InterceptPolicyIdentifier) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &InterceptPolicyIdentifier {
+        &self.0
+    }
+    pub fn into_payload(self) -> InterceptPolicyIdentifier {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<InterceptPolicyIdentifier> for InterceptPolicyCancellation {
+    fn from(payload: InterceptPolicyIdentifier) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ParkedSpiritRequests {
+    pub fn new(payload: Vec<ParkedSpiritRequest>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<ParkedSpiritRequest> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<ParkedSpiritRequest> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<ParkedSpiritRequest>> for ParkedSpiritRequests {
+    fn from(payload: Vec<ParkedSpiritRequest>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ParkedRequestSnapshot {
+    pub fn new(payload: ParkedSpiritRequests) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &ParkedSpiritRequests {
+        &self.0
+    }
+    pub fn into_payload(self) -> ParkedSpiritRequests {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<ParkedSpiritRequests> for ParkedRequestSnapshot {
+    fn from(payload: ParkedSpiritRequests) -> Self {
         Self::new(payload)
     }
 }

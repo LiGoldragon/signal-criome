@@ -1,10 +1,10 @@
 use nota::{NotaDecode, NotaEncode, NotaSource};
 use signal_criome::{
-    ArchiveAttestationRequest, Attestation, AttestationReceipt, AttestedMoment,
-    AttestedMomentProposition, AuditContext, AuthorizationDenial, AuthorizationDenialReason,
-    AuthorizationDenialSource, AuthorizationDenied, AuthorizationEvaluated,
-    AuthorizationEvaluation, AuthorizationExpired, AuthorizationGrant, AuthorizationObservation,
-    AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
+    ActiveInterceptPolicies, ApprovalAuditSource, ArchiveAttestationRequest, Attestation,
+    AttestationReceipt, AttestedMoment, AttestedMomentProposition, AuditContext,
+    AuthorizationDenial, AuthorizationDenialReason, AuthorizationDenialSource, AuthorizationDenied,
+    AuthorizationEvaluated, AuthorizationEvaluation, AuthorizationExpired, AuthorizationGrant,
+    AuthorizationObservation, AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
     AuthorizationObservationToken, AuthorizationPending, AuthorizationPolicyClass,
     AuthorizationPolicySatisfaction, AuthorizationRejection, AuthorizationRequestSlot,
     AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus, AuthorizationUnavailable,
@@ -17,15 +17,20 @@ use signal_criome::{
     ContractAdmitted, ContractDigest, ContractFound, ContractMissing, ContractName,
     ContractOperationHead, CriomeEvent, CriomeFrame as Frame, CriomeFrameBody as FrameBody,
     CriomeReply, CriomeRequest, EscalationTarget, EvaluationDecision, EvaluationRejectionReason,
-    Evidence, Identity, IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation,
-    IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose,
+    Evidence, ExpiryAction, Identity, IdentityLookup, IdentityReceipt, IdentityRegistration,
+    IdentityRevocation, IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken,
+    IdentityUpdate, InterceptPolicy, InterceptPolicyIdentifier, InterceptPolicyProposal,
+    InterceptPolicyWindow, InterceptTargetSelector, KeyPurpose, MentciSessionSlot,
     ObjectCoSignature, ObjectDigest, OperationDigest, ParkedAuthorization,
-    ParkedAuthorizationObservation, ParkedAuthorizationSnapshot, PolicyMember, PrincipalName,
-    PrincipalStatus, PublicKeyFingerprint, QuorumShortfall, Rejection, RejectionReason,
-    ReplayNonce, RequiredSignatureThreshold, Rule, SignReceipt, SignRequest,
+    ParkedAuthorizationObservation, ParkedAuthorizationSnapshot, ParkedRequestIdentifier,
+    ParkedRequestOutcome, ParkedRequestResolution, ParkedRequestSnapshot, ParkedSpiritRequest,
+    PolicyDurationNanos, PolicyMember, PolicyOverlapMode, PolicyPriority, PrincipalName,
+    PrincipalStatus, PublicKeyFingerprint, QuorumShortfall, RawSpiritOperationPayload, Rejection,
+    RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule, SignReceipt, SignRequest,
     SignalCallAuthorization, SignatureAuthorizationResult, SignatureEnvelope,
     SignatureRouteReceipt, SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute,
-    SignatureSubmission, SignatureSubmissionReceipt, StampedSignatureEnvelope,
+    SignatureSubmission, SignatureSubmissionReceipt, SpiritAuthorizationContext,
+    SpiritOperationName, SpiritOperationNames, SpiritProcessKey, StampedSignatureEnvelope,
     SubscriptionRetracted, Threshold, TimeSignature, TimeWindow, TimestampNanos,
     VerificationDecision, VerificationResult, VerifyRequest, WorkflowDigest, WorkflowGuard,
     WorkflowProvenanceDigest, WorkflowReceipt,
@@ -279,6 +284,66 @@ fn authorization_evaluation() -> AuthorizationEvaluation {
         contract: contract_digest(),
         object: authorized_object_reference(),
         evidence: evidence(),
+    }
+}
+
+fn mentci_session_slot() -> MentciSessionSlot {
+    MentciSessionSlot::new("mentci-session-1")
+}
+
+fn intercept_policy_identifier() -> InterceptPolicyIdentifier {
+    InterceptPolicyIdentifier::new("intercept-policy-1")
+}
+
+fn spirit_process_key() -> SpiritProcessKey {
+    SpiritProcessKey::new("spirit-process-main")
+}
+
+fn intercept_target() -> InterceptTargetSelector {
+    InterceptTargetSelector::new(spirit_process_key())
+}
+
+fn spirit_operation_names() -> SpiritOperationNames {
+    SpiritOperationNames::from_names(vec![
+        SpiritOperationName::new("Record"),
+        SpiritOperationName::new("ChangeRecord"),
+    ])
+}
+
+fn intercept_policy() -> InterceptPolicy {
+    InterceptPolicy {
+        identifier: intercept_policy_identifier(),
+        session_slot: mentci_session_slot(),
+        target: intercept_target(),
+        spirit_operation_names: spirit_operation_names(),
+        window: InterceptPolicyWindow {
+            starts_at: TimestampNanos::new(100),
+            expires_at: TimestampNanos::new(200),
+        },
+        expiry_action: ExpiryAction::AutoApprove,
+        priority: PolicyPriority::new(50),
+    }
+}
+
+fn spirit_authorization_context() -> SpiritAuthorizationContext {
+    SpiritAuthorizationContext {
+        operation_name: SpiritOperationName::new("Record"),
+        raw_payload: RawSpiritOperationPayload::new(
+            "(Record (([(Technology Software)] Decision [policy text] High High Zero [])))",
+        ),
+        target_key: spirit_process_key(),
+    }
+}
+
+fn parked_spirit_request() -> ParkedSpiritRequest {
+    ParkedSpiritRequest {
+        identifier: ParkedRequestIdentifier::new("parked-request-1"),
+        matched_policy: intercept_policy_identifier(),
+        session_slot: mentci_session_slot(),
+        context: spirit_authorization_context(),
+        parked_at: TimestampNanos::new(120),
+        expires_at: TimestampNanos::new(200),
+        expiry_action: ExpiryAction::AutoApprove,
     }
 }
 
@@ -695,6 +760,52 @@ fn authorization_denial_distinguishes_policy_from_signer_refusal() {
     assert_eq!(
         round_trip_reply(CriomeReply::AuthorizationDenied(signer_denial.clone())),
         CriomeReply::AuthorizationDenied(signer_denial)
+    );
+}
+
+#[test]
+fn intercept_policy_and_parked_spirit_request_model_round_trips() {
+    let proposal = InterceptPolicyProposal {
+        session_slot: mentci_session_slot(),
+        target: intercept_target(),
+        spirit_operation_names: spirit_operation_names(),
+        duration: PolicyDurationNanos::new(100),
+        expiry_action: ExpiryAction::AutoApprove,
+        priority: PolicyPriority::new(50),
+        overlap_mode: PolicyOverlapMode::RejectSamePriorityOverlap,
+    };
+    let policies = ActiveInterceptPolicies::from_policies(vec![intercept_policy()]);
+    let parked_requests = ParkedRequestSnapshot::from_requests(vec![parked_spirit_request()]);
+    let manual_rejection = ParkedRequestResolution {
+        identifier: ParkedRequestIdentifier::new("parked-request-1"),
+        matched_policy: intercept_policy_identifier(),
+        outcome: ParkedRequestOutcome::Rejected,
+        audit_source: ApprovalAuditSource::Manual,
+        resolved_at: TimestampNanos::new(130),
+    };
+    let automatic_approval = ParkedRequestResolution {
+        identifier: ParkedRequestIdentifier::new("parked-request-1"),
+        matched_policy: intercept_policy_identifier(),
+        outcome: ParkedRequestOutcome::Approved,
+        audit_source: ApprovalAuditSource::Automatic,
+        resolved_at: TimestampNanos::new(200),
+    };
+
+    assert_eq!(proposal.spirit_operation_names.names().len(), 2);
+    assert_eq!(policies.policies(), &[intercept_policy()]);
+    assert_eq!(parked_requests.requests(), &[parked_spirit_request()]);
+    assert_nota_round_trip(proposal);
+    assert_nota_round_trip(policies);
+    assert_nota_round_trip(parked_requests);
+    assert_nota_round_trip(manual_rejection);
+    assert_nota_round_trip(automatic_approval);
+
+    let source = std::fs::read_to_string("schema/lib.schema").expect("read schema");
+    assert!(
+        source.contains("not a")
+            && source.contains("cryptographic or durable identity binding")
+            && source.contains("Authority-binding remains"),
+        "schema must keep the MVP target-key identity deferral explicit"
     );
 }
 
