@@ -467,11 +467,21 @@ impl SignalCallAuthorization {
             requester,
             nonce,
             signal_call_expires_at: expires_at,
+            spirit_context: None,
         }
     }
 
     pub fn expires_at(&self) -> Option<TimestampNanos> {
         self.signal_call_expires_at
+    }
+
+    pub fn with_spirit_context(mut self, context: SpiritAuthorizationContext) -> Self {
+        self.spirit_context = Some(context);
+        self
+    }
+
+    pub fn spirit_context(&self) -> Option<&SpiritAuthorizationContext> {
+        self.spirit_context.as_ref()
     }
 }
 

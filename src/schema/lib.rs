@@ -1478,6 +1478,7 @@ pub struct SignalCallAuthorization {
     pub requester: Identity,
     pub nonce: ReplayNonce,
     pub signal_call_expires_at: Option<TimestampNanos>,
+    pub spirit_context: Option<SpiritAuthorizationContext>,
 }
 
 #[rustfmt::skip]

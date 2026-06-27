@@ -37,7 +37,7 @@
 (AttestAuthorization ((digest-auth Authorization schema-1) (Persona alice) (Authorization audience-bob policy-1 nonce-10)))
 
 ;; CriomeRequest::AuthorizeSignalCall
-(AuthorizeSignalCall (digest-lojix-request signal-lojix Deploy deploy-zeus-full-os (Persona alice) authorization-nonce-1 None))
+(AuthorizeSignalCall (digest-lojix-request signal-lojix Deploy deploy-zeus-full-os (Persona alice) authorization-nonce-1 None None))
 
 ;; CriomeRequest::ObserveAuthorization
 (ObserveAuthorization authorization-request-1)

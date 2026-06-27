@@ -521,6 +521,7 @@
     requester.Identity
     nonce.ReplayNonce
     signal_call_expires_at.(Optional TimestampNanos)
+    spirit_context.(Optional SpiritAuthorizationContext)
   }
 
   AuthorizationObservation {
