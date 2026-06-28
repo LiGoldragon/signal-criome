@@ -701,6 +701,7 @@ pub struct CriomeDaemonConfiguration {
     pub meta_socket_path: Option<DaemonPath>,
     pub cluster_root: Option<BlsPublicKey>,
     pub authorization_mode: AuthorizationMode,
+    pub node_identity: Option<Identity>,
 }
 
 #[rustfmt::skip]

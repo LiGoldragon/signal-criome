@@ -129,6 +129,7 @@
     meta_socket_path.(Optional DaemonPath)
     cluster_root.(Optional BlsPublicKey)
     AuthorizationMode
+    node_identity.(Optional Identity)
   }
 
   AuthorizationPolicySatisfaction {

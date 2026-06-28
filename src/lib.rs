@@ -236,6 +236,7 @@ impl CriomeDaemonConfiguration {
             meta_socket_path: None,
             cluster_root: None,
             authorization_mode: AuthorizationMode::Quorum,
+            node_identity: None,
         }
     }
 
@@ -272,6 +273,21 @@ impl CriomeDaemonConfiguration {
 
     pub fn cluster_root(&self) -> Option<&BlsPublicKey> {
         self.cluster_root.as_ref()
+    }
+
+    /// Set the identity this criome signs attestations as. Absent by default,
+    /// in which case the daemon falls back to its historical `Host("criome")`
+    /// identity. A multi-node cluster gives each node a distinct identity (for
+    /// example `Host("node-a")`) so a peer criome that has registered this
+    /// node's public key under that identity can verify its attestations, while
+    /// an unregistered identity is refused fail-closed.
+    pub fn with_node_identity(mut self, node_identity: Identity) -> Self {
+        self.node_identity = Some(node_identity);
+        self
+    }
+
+    pub fn node_identity(&self) -> Option<&Identity> {
+        self.node_identity.as_ref()
     }
 
     pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, CriomeDaemonConfigurationArchiveError> {
