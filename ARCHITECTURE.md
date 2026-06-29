@@ -177,11 +177,12 @@ escalation-to-approve prompt.
   signatures to consumers, and the *solicitation traffic* between
   peer criome daemons.
 - The contract vocabulary is signature-solicitation shaped:
-  `AuthorizeSignalCall` starts the authorization relation,
+  `AuthorizeSignalCall` starts the authorization relation and opens a
+  request-scoped `AuthorizationObservationStream`,
   `RouteSignatureRequest` presents work to a peer criome daemon,
   `SubmitSignature` and `RejectAuthorization` close a peer's
-  decision, and `ObserveAuthorization` pushes pending/granted/denied
-  state.
+  decision, and `ObserveAuthorization` remains the broader
+  observe-by-slot surface for clients that already hold a slot.
 - `signal-criome` does **not** carry meta-class operations on
   criome itself (master-key passphrase, policy mutation, peer-route
   mutation, escalation-approval prompts and replies). Those live on
@@ -213,10 +214,12 @@ children instead of embedding arbitrary recursive trees directly in the
 rkyv wire object.
 
 Authorization observation follows the same subscription discipline as
-identity updates: `ObserveAuthorization` opens
-`AuthorizationObservationStream`; `AuthorizationObservationRetraction`
-is the request-side close carrying the stream token; the
-reply-side `AuthorizationObservationRetracted` echoes the token.
+identity updates: `AuthorizeSignalCall` opens a request-scoped
+`AuthorizationObservationStream` for the submitted request,
+`ObserveAuthorization` can open the same stream for a known slot, and
+`AuthorizationObservationRetraction` is the request-side close carrying
+the stream token. The reply-side `AuthorizationObservationRetracted`
+echoes the token.
 
 Authorized object observation is the reference-only pulse surface:
 `ObserveAuthorizedObjects` opens `AuthorizedObjectUpdateStream`, and each
