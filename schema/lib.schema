@@ -12,7 +12,7 @@
  (AttestArchive ArchiveAttestationRequest)
  (AttestChannelGrant ChannelGrantAttestationRequest)
  (AttestAuthorization AuthorizationAttestationRequest)
- (AuthorizeSignalCall SignalCallAuthorization)
+ (AuthorizeSignalCall SignalCallAuthorization opens AuthorizationObservationStream)
  (ObserveAuthorization AuthorizationObservation opens AuthorizationObservationStream)
  (VerifyAuthorization AuthorizationVerification)
  (RouteSignatureRequest SignatureSolicitationRoute)
