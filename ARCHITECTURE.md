@@ -138,6 +138,11 @@ the resulting signatures, and returns one of:
 - `AuthorizationDenied`, `AuthorizationExpired`, or
   `AuthorizationUnavailable` — closed terminal or temporary outcomes.
 
+Parked authorization snapshots are the approver-facing queue behind
+`AuthorizationPending`. A parked entry carries either a policy
+`AuthorizationEvaluation` or the original `SignalCallAuthorization` that
+becomes a signed `AuthorizationGrant` when a meta approver answers the slot.
+
 `AuthorizationGrant` is the permission surface visible to consumers:
 permission is constituted by *signatures over the exact request
 digest that satisfy criome's policy*. Lojix consumes only the
@@ -204,13 +209,18 @@ orchestrate returns a content-addressed `WorkflowReceipt` naming:
 - the resulting `EvaluationDecision`;
 - the provenance digest for the execution log.
 
-Those receipts ride inside `Evidence.workflow_receipts`. The evidence object
+The local trust plane and the multi-node trust plane are deliberately
+distinct. In the local execution chamber, co-resident orchestrate/agent
+components return workflow receipts for criome to adopt as evidence;
+independent authority is represented at the criome quorum layer. Those
+receipts ride inside `Evidence.workflow_receipts`. The evidence object
 also carries `object_co_signatures`, which are peer-criome signatures over
-the same authorized object. `CoSignatureExpectation` is the observation shape
-for the second trust plane: expected peer signers versus observed peer
-signers. Recursive combinations are referenced by `CompositionDigest`
-children instead of embedding arbitrary recursive trees directly in the
-rkyv wire object.
+the same authorized object. `ObjectCoSignature` and `CoSignatureExpectation`
+are the observation shape for the multi-node trust plane: which peer criomes
+were expected to co-sign a content-addressed object versus which signatures
+have actually arrived. Recursive combinations are referenced by
+`CompositionDigest` children instead of embedding arbitrary recursive trees
+directly in the rkyv wire object.
 
 Authorization observation follows the same subscription discipline as
 identity updates: `ObserveAuthorization` opens
