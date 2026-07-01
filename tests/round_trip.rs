@@ -113,7 +113,7 @@ fn authorization_request_slot() -> AuthorizationRequestSlot {
 }
 
 fn authorization_scope() -> AuthorizationScope {
-    AuthorizationScope::new("deploy:zeus:FullOs")
+    AuthorizationScope::new("deploy:zeus:CompleteHost")
 }
 
 fn contract_name() -> ContractName {
