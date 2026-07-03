@@ -1906,6 +1906,97 @@ pub struct Rejection(RejectionReason);
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct QuorumRoundIdentifier(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum QuorumRoundStatus {
+    Gathering,
+    Authorized,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct QuorumProposal {
+    pub round: QuorumRoundIdentifier,
+    pub contract: ContractDigest,
+    pub object: AuthorizedObjectReference,
+    pub window: TimeWindow,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct QuorumVoteSolicitation {
+    pub round: QuorumRoundIdentifier,
+    pub contract: ContractDigest,
+    pub object: AuthorizedObjectReference,
+    pub proposition: AttestedMomentProposition,
+    pub originator: Identity,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct QuorumVote {
+    pub round: QuorumRoundIdentifier,
+    pub voter: Identity,
+    pub operation_signature: SignatureEnvelope,
+    pub time_signature: SignatureEnvelope,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct QuorumRoundQuery(QuorumRoundIdentifier);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct QuorumRoundState {
+    pub round: QuorumRoundIdentifier,
+    pub contract: ContractDigest,
+    pub status: QuorumRoundStatus,
+    pub gathered: RequiredSignatureThreshold,
+    pub required: RequiredSignatureThreshold,
+    pub authorized_evidence: Option<Evidence>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum CriomeEvent {
     IdentityUpdate(IdentityUpdate),
     AuthorizationUpdate(AuthorizationUpdate),
@@ -1944,6 +2035,10 @@ pub enum Input {
     SubscribeIdentityUpdates(IdentitySubscription),
     IdentitySubscriptionRetraction(IdentitySubscriptionToken),
     AuthorizationObservationRetraction(AuthorizationObservationToken),
+    ProposeQuorumAuthorization(QuorumProposal),
+    SolicitQuorumVote(QuorumVoteSolicitation),
+    SubmitQuorumVote(QuorumVote),
+    ObserveQuorumRound(QuorumRoundQuery),
 }
 
 #[rustfmt::skip]
@@ -1979,6 +2074,10 @@ pub enum Output {
     AuthorizationObservationRetracted(AuthorizationObservationRetracted),
     SubscriptionRetracted(SubscriptionRetracted),
     Rejection(Rejection),
+    QuorumRoundOpened(QuorumRoundState),
+    QuorumVoteSolicited(QuorumRoundState),
+    QuorumVoteAccepted(QuorumRoundState),
+    QuorumRoundObserved(QuorumRoundState),
 }
 
 #[rustfmt::skip]
@@ -3103,6 +3202,44 @@ impl From<RejectionReason> for Rejection {
 }
 
 #[rustfmt::skip]
+impl QuorumRoundIdentifier {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for QuorumRoundIdentifier {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl QuorumRoundQuery {
+    pub fn new(payload: QuorumRoundIdentifier) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &QuorumRoundIdentifier {
+        &self.0
+    }
+    pub fn into_payload(self) -> QuorumRoundIdentifier {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<QuorumRoundIdentifier> for QuorumRoundQuery {
+    fn from(payload: QuorumRoundIdentifier) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl ContractAdmissionRejectionReason {
     pub fn dangling_reference(payload: ObjectDigest) -> Self {
         Self::DanglingReference(ContractDigest::new(payload))
@@ -3335,6 +3472,18 @@ impl Input {
             AuthorizationObservationToken::new(payload),
         )
     }
+    pub fn propose_quorum_authorization(payload: QuorumProposal) -> Self {
+        Self::ProposeQuorumAuthorization(payload)
+    }
+    pub fn solicit_quorum_vote(payload: QuorumVoteSolicitation) -> Self {
+        Self::SolicitQuorumVote(payload)
+    }
+    pub fn submit_quorum_vote(payload: QuorumVote) -> Self {
+        Self::SubmitQuorumVote(payload)
+    }
+    pub fn observe_quorum_round(payload: QuorumRoundIdentifier) -> Self {
+        Self::ObserveQuorumRound(QuorumRoundQuery::new(payload))
+    }
 }
 
 #[rustfmt::skip]
@@ -3434,6 +3583,18 @@ impl Output {
     }
     pub fn rejection(payload: RejectionReason) -> Self {
         Self::Rejection(Rejection::new(payload))
+    }
+    pub fn quorum_round_opened(payload: QuorumRoundState) -> Self {
+        Self::QuorumRoundOpened(payload)
+    }
+    pub fn quorum_vote_solicited(payload: QuorumRoundState) -> Self {
+        Self::QuorumVoteSolicited(payload)
+    }
+    pub fn quorum_vote_accepted(payload: QuorumRoundState) -> Self {
+        Self::QuorumVoteAccepted(payload)
+    }
+    pub fn quorum_round_observed(payload: QuorumRoundState) -> Self {
+        Self::QuorumRoundObserved(payload)
     }
 }
 
@@ -3788,6 +3949,34 @@ impl From<AuthorizationObservationToken> for Input {
 }
 
 #[rustfmt::skip]
+impl From<QuorumProposal> for Input {
+    fn from(payload: QuorumProposal) -> Self {
+        Self::ProposeQuorumAuthorization(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<QuorumVoteSolicitation> for Input {
+    fn from(payload: QuorumVoteSolicitation) -> Self {
+        Self::SolicitQuorumVote(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<QuorumVote> for Input {
+    fn from(payload: QuorumVote) -> Self {
+        Self::SubmitQuorumVote(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<QuorumRoundQuery> for Input {
+    fn from(payload: QuorumRoundQuery) -> Self {
+        Self::ObserveQuorumRound(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<SignReceipt> for Output {
     fn from(payload: SignReceipt) -> Self {
         Self::SignReceipt(payload)
@@ -4028,6 +4217,10 @@ pub mod short_header {
     pub const INPUT_SUBSCRIBE_IDENTITY_UPDATES: u64 = 0x0016000000000000;
     pub const INPUT_IDENTITY_SUBSCRIPTION_RETRACTION: u64 = 0x0017000000000000;
     pub const INPUT_AUTHORIZATION_OBSERVATION_RETRACTION: u64 = 0x0018000000000000;
+    pub const INPUT_PROPOSE_QUORUM_AUTHORIZATION: u64 = 0x0019000000000000;
+    pub const INPUT_SOLICIT_QUORUM_VOTE: u64 = 0x001A000000000000;
+    pub const INPUT_SUBMIT_QUORUM_VOTE: u64 = 0x001B000000000000;
+    pub const INPUT_OBSERVE_QUORUM_ROUND: u64 = 0x001C000000000000;
     pub const OUTPUT_SIGN_RECEIPT: u64 = 0x0100000000000000;
     pub const OUTPUT_VERIFICATION_RESULT: u64 = 0x0101000000000000;
     pub const OUTPUT_IDENTITY_RECEIPT: u64 = 0x0102000000000000;
@@ -4054,6 +4247,10 @@ pub mod short_header {
     pub const OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED: u64 = 0x0117000000000000;
     pub const OUTPUT_SUBSCRIPTION_RETRACTED: u64 = 0x0118000000000000;
     pub const OUTPUT_REJECTION: u64 = 0x0119000000000000;
+    pub const OUTPUT_QUORUM_ROUND_OPENED: u64 = 0x011A000000000000;
+    pub const OUTPUT_QUORUM_VOTE_SOLICITED: u64 = 0x011B000000000000;
+    pub const OUTPUT_QUORUM_VOTE_ACCEPTED: u64 = 0x011C000000000000;
+    pub const OUTPUT_QUORUM_ROUND_OBSERVED: u64 = 0x011D000000000000;
 }
 
 #[rustfmt::skip]
@@ -4132,6 +4329,10 @@ pub enum InputRoute {
     SubscribeIdentityUpdates,
     IdentitySubscriptionRetraction,
     AuthorizationObservationRetraction,
+    ProposeQuorumAuthorization,
+    SolicitQuorumVote,
+    SubmitQuorumVote,
+    ObserveQuorumRound,
 }
 
 #[rustfmt::skip]
@@ -4176,6 +4377,10 @@ pub enum OutputRoute {
     AuthorizationObservationRetracted,
     SubscriptionRetracted,
     Rejection,
+    QuorumRoundOpened,
+    QuorumVoteSolicited,
+    QuorumVoteAccepted,
+    QuorumRoundObserved,
 }
 
 #[rustfmt::skip]
@@ -4215,6 +4420,10 @@ impl Input {
             Self::AuthorizationObservationRetraction(_) => {
                 InputRoute::AuthorizationObservationRetraction
             }
+            Self::ProposeQuorumAuthorization(_) => InputRoute::ProposeQuorumAuthorization,
+            Self::SolicitQuorumVote(_) => InputRoute::SolicitQuorumVote,
+            Self::SubmitQuorumVote(_) => InputRoute::SubmitQuorumVote,
+            Self::ObserveQuorumRound(_) => InputRoute::ObserveQuorumRound,
         }
     }
     pub fn short_header(&self) -> u64 {
@@ -4258,6 +4467,12 @@ impl Input {
             Self::AuthorizationObservationRetraction(_) => {
                 short_header::INPUT_AUTHORIZATION_OBSERVATION_RETRACTION
             }
+            Self::ProposeQuorumAuthorization(_) => {
+                short_header::INPUT_PROPOSE_QUORUM_AUTHORIZATION
+            }
+            Self::SolicitQuorumVote(_) => short_header::INPUT_SOLICIT_QUORUM_VOTE,
+            Self::SubmitQuorumVote(_) => short_header::INPUT_SUBMIT_QUORUM_VOTE,
+            Self::ObserveQuorumRound(_) => short_header::INPUT_OBSERVE_QUORUM_ROUND,
         }
     }
     pub fn route_from_short_header(header: u64) -> Result<InputRoute, SignalFrameError> {
@@ -4318,6 +4533,14 @@ impl Input {
             }
             short_header::INPUT_AUTHORIZATION_OBSERVATION_RETRACTION => {
                 Ok(InputRoute::AuthorizationObservationRetraction)
+            }
+            short_header::INPUT_PROPOSE_QUORUM_AUTHORIZATION => {
+                Ok(InputRoute::ProposeQuorumAuthorization)
+            }
+            short_header::INPUT_SOLICIT_QUORUM_VOTE => Ok(InputRoute::SolicitQuorumVote),
+            short_header::INPUT_SUBMIT_QUORUM_VOTE => Ok(InputRoute::SubmitQuorumVote),
+            short_header::INPUT_OBSERVE_QUORUM_ROUND => {
+                Ok(InputRoute::ObserveQuorumRound)
             }
             _ => {
                 Err(SignalFrameError::UnknownHeader {
@@ -4411,6 +4634,10 @@ impl Output {
             }
             Self::SubscriptionRetracted(_) => OutputRoute::SubscriptionRetracted,
             Self::Rejection(_) => OutputRoute::Rejection,
+            Self::QuorumRoundOpened(_) => OutputRoute::QuorumRoundOpened,
+            Self::QuorumVoteSolicited(_) => OutputRoute::QuorumVoteSolicited,
+            Self::QuorumVoteAccepted(_) => OutputRoute::QuorumVoteAccepted,
+            Self::QuorumRoundObserved(_) => OutputRoute::QuorumRoundObserved,
         }
     }
     pub fn short_header(&self) -> u64 {
@@ -4465,6 +4692,10 @@ impl Output {
             }
             Self::SubscriptionRetracted(_) => short_header::OUTPUT_SUBSCRIPTION_RETRACTED,
             Self::Rejection(_) => short_header::OUTPUT_REJECTION,
+            Self::QuorumRoundOpened(_) => short_header::OUTPUT_QUORUM_ROUND_OPENED,
+            Self::QuorumVoteSolicited(_) => short_header::OUTPUT_QUORUM_VOTE_SOLICITED,
+            Self::QuorumVoteAccepted(_) => short_header::OUTPUT_QUORUM_VOTE_ACCEPTED,
+            Self::QuorumRoundObserved(_) => short_header::OUTPUT_QUORUM_ROUND_OBSERVED,
         }
     }
     pub fn route_from_short_header(
@@ -4535,6 +4766,18 @@ impl Output {
                 Ok(OutputRoute::SubscriptionRetracted)
             }
             short_header::OUTPUT_REJECTION => Ok(OutputRoute::Rejection),
+            short_header::OUTPUT_QUORUM_ROUND_OPENED => {
+                Ok(OutputRoute::QuorumRoundOpened)
+            }
+            short_header::OUTPUT_QUORUM_VOTE_SOLICITED => {
+                Ok(OutputRoute::QuorumVoteSolicited)
+            }
+            short_header::OUTPUT_QUORUM_VOTE_ACCEPTED => {
+                Ok(OutputRoute::QuorumVoteAccepted)
+            }
+            short_header::OUTPUT_QUORUM_ROUND_OBSERVED => {
+                Ok(OutputRoute::QuorumRoundObserved)
+            }
             _ => {
                 Err(SignalFrameError::UnknownHeader {
                     root_enum: "Output",
@@ -4611,6 +4854,10 @@ impl signal_frame::SignalOperationHeads for Input {
         "SubscribeIdentityUpdates",
         "IdentitySubscriptionRetraction",
         "AuthorizationObservationRetraction",
+        "ProposeQuorumAuthorization",
+        "SolicitQuorumVote",
+        "SubmitQuorumVote",
+        "ObserveQuorumRound",
     ];
 }
 #[rustfmt::skip]

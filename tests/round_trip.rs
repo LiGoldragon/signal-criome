@@ -25,8 +25,10 @@ use signal_criome::{
     ParkedAuthorizationObservation, ParkedAuthorizationSnapshot, ParkedRequestIdentifier,
     ParkedRequestOutcome, ParkedRequestResolution, ParkedRequestSnapshot, ParkedSpiritRequest,
     PolicyDurationNanos, PolicyMember, PolicyOverlapMode, PolicyPriority, PrincipalName,
-    PrincipalStatus, PublicKeyFingerprint, QuorumShortfall, RawSpiritOperationPayload, Rejection,
-    RejectionReason, ReplayNonce, RequiredSignatureThreshold, Rule, SignReceipt, SignRequest,
+    PrincipalStatus, PublicKeyFingerprint, QuorumProposal, QuorumRoundIdentifier, QuorumRoundState,
+    QuorumRoundStatus, QuorumShortfall, QuorumVote, QuorumVoteSolicitation,
+    RawSpiritOperationPayload, Rejection, RejectionReason, ReplayNonce, RequiredSignatureThreshold,
+    Rule, SignReceipt, SignRequest,
     SignalCallAuthorization, SignatureAuthorizationResult, SignatureEnvelope,
     SignatureRouteReceipt, SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute,
     SignatureSubmission, SignatureSubmissionReceipt, SpiritAuthorizationContext,
@@ -216,6 +218,63 @@ fn attested_moment() -> AttestedMoment {
             envelope: envelope(),
         }],
     )
+}
+
+fn quorum_round_identifier() -> QuorumRoundIdentifier {
+    QuorumRoundIdentifier::new("quorum-round-1")
+}
+
+fn attested_moment_proposition() -> AttestedMomentProposition {
+    AttestedMomentProposition::new(
+        TimeWindow {
+            opens_at: TimestampNanos::new(10),
+            closes_at: TimestampNanos::new(20),
+        },
+        RequiredSignatureThreshold::new(2),
+        vec![host("mirror-alpha"), host("mirror-beta")],
+    )
+}
+
+fn quorum_proposal() -> QuorumProposal {
+    QuorumProposal {
+        round: quorum_round_identifier(),
+        contract: contract_digest(),
+        object: authorized_object_reference(),
+        window: TimeWindow {
+            opens_at: TimestampNanos::new(10),
+            closes_at: TimestampNanos::new(20),
+        },
+    }
+}
+
+fn quorum_vote_solicitation() -> QuorumVoteSolicitation {
+    QuorumVoteSolicitation {
+        round: quorum_round_identifier(),
+        contract: contract_digest(),
+        object: authorized_object_reference(),
+        proposition: attested_moment_proposition(),
+        originator: host("mirror-alpha"),
+    }
+}
+
+fn quorum_vote() -> QuorumVote {
+    QuorumVote {
+        round: quorum_round_identifier(),
+        voter: host("mirror-beta"),
+        operation_signature: envelope(),
+        time_signature: envelope(),
+    }
+}
+
+fn quorum_round_state() -> QuorumRoundState {
+    QuorumRoundState {
+        round: quorum_round_identifier(),
+        contract: contract_digest(),
+        status: QuorumRoundStatus::Authorized,
+        gathered: RequiredSignatureThreshold::new(2),
+        required: RequiredSignatureThreshold::new(2),
+        authorized_evidence: Some(evidence()),
+    }
 }
 
 fn policy_contract() -> Contract {
@@ -512,6 +571,12 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
             "operator",
         ))),
         CriomeRequest::AuthorizationObservationRetraction(authorization_observation_token()),
+        CriomeRequest::ProposeQuorumAuthorization(quorum_proposal()),
+        CriomeRequest::SolicitQuorumVote(quorum_vote_solicitation()),
+        CriomeRequest::SubmitQuorumVote(quorum_vote()),
+        CriomeRequest::ObserveQuorumRound(signal_criome::QuorumRoundQuery::new(
+            quorum_round_identifier(),
+        )),
     ];
 
     for request in requests {
@@ -549,6 +614,10 @@ fn request_variants_declare_contract_local_operation_heads() {
             "SubscribeIdentityUpdates",
             "IdentitySubscriptionRetraction",
             "AuthorizationObservationRetraction",
+            "ProposeQuorumAuthorization",
+            "SolicitQuorumVote",
+            "SubmitQuorumVote",
+            "ObserveQuorumRound",
         ]
     );
 }
@@ -646,6 +715,10 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
             IdentitySubscriptionToken::new(agent("operator")),
         )),
         CriomeReply::Rejection(Rejection::new(RejectionReason::ReplayAttempted)),
+        CriomeReply::QuorumRoundOpened(quorum_round_state()),
+        CriomeReply::QuorumVoteSolicited(quorum_round_state()),
+        CriomeReply::QuorumVoteAccepted(quorum_round_state()),
+        CriomeReply::QuorumRoundObserved(quorum_round_state()),
     ];
 
     for reply in replies {

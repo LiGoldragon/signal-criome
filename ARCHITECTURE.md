@@ -115,7 +115,11 @@ CriomeRequest                             CriomeReply
 ├─ AuthorizedObjectUpdateRetraction       ├─ AuthorizedObjectUpdateRetracted
 ├─ SubscribeIdentityUpdates               ├─ SubscriptionRetracted
 ├─ IdentitySubscriptionRetraction(token)  └─ Rejection
-└─ AuthorizationObservationRetraction(token)
+├─ AuthorizationObservationRetraction(token)
+├─ ProposeQuorumAuthorization             ├─ QuorumRoundOpened
+├─ SolicitQuorumVote                      ├─ QuorumVoteSolicited
+├─ SubmitQuorumVote                       ├─ QuorumVoteAccepted
+└─ ObserveQuorumRound                     └─ QuorumRoundObserved
 
 CriomeEvent
 ├─ IdentityUpdate         (on IdentityUpdateStream)
@@ -167,6 +171,23 @@ daemons (peer routing for quorum policies). The route from criome to
 its own Unix-user meta authority — *"may I sign this with my master key?"* —
 is **not** on this contract; it is on `meta-signal-criome` as an
 escalation-to-approve prompt.
+
+### Quorum collection (contract-quorum gathering)
+
+`ProposeQuorumAuthorization` / `SolicitQuorumVote` / `SubmitQuorumVote` /
+`ObserveQuorumRound` are the gathered-quorum path: the vocabulary by which an
+originating node's criome proposes an operation under an admitted `Threshold`
+contract, self-votes, solicits each peer member's vote across the router (the
+voice, as opaque routed objects), collects the stamped BLS signatures, and feeds
+them to the existing majority-judge. A `QuorumProposal` names the contract
+digest, the `AuthorizedObjectReference` being authorized, and the attested-moment
+`TimeWindow`; a `QuorumVoteSolicitation` carries the shared
+`AttestedMomentProposition` so every member signs the same moment plus the
+originator identity so the peer routes its `QuorumVote` (its operation- and
+time-signature) back. A `QuorumRoundState` is **withheld** (`Gathering`) until a
+true majority co-sign — only then does it carry an `Authorized` `Evidence`. This
+is deliberately distinct from the 1-of-1 `RouteSignatureRequest` /
+`SubmitSignature` signal-call surface, which does not gather a majority.
 
 ### Current authorization model
 

@@ -28,7 +28,11 @@
  (RunDueContractChecks AttestedMoment)
  (SubscribeIdentityUpdates IdentitySubscription opens IdentityUpdateStream)
  (IdentitySubscriptionRetraction IdentitySubscriptionToken)
- (AuthorizationObservationRetraction AuthorizationObservationToken)]
+ (AuthorizationObservationRetraction AuthorizationObservationToken)
+ (ProposeQuorumAuthorization QuorumProposal)
+ (SolicitQuorumVote QuorumVoteSolicitation)
+ (SubmitQuorumVote QuorumVote)
+ (ObserveQuorumRound QuorumRoundQuery)]
 [(SignReceipt SignReceipt)
  (VerificationResult VerificationResult)
  (IdentityReceipt IdentityReceipt)
@@ -54,7 +58,11 @@
  (DueContractChecksEvaluated DueContractChecksEvaluated)
  (AuthorizationObservationRetracted AuthorizationObservationRetracted)
  (SubscriptionRetracted SubscriptionRetracted)
- (Rejection Rejection)]
+ (Rejection Rejection)
+ (QuorumRoundOpened QuorumRoundState)
+ (QuorumVoteSolicited QuorumRoundState)
+ (QuorumVoteAccepted QuorumRoundState)
+ (QuorumRoundObserved QuorumRoundState)]
 {
   DaemonPath String
   PrincipalName String
@@ -735,6 +743,68 @@
 
   Rejection {
     reason.RejectionReason
+  }
+
+  ;; ─── Quorum collection (propose → gather → judge → commit) ─────────
+  ;;
+  ;; The contract-quorum path. An originating node's criome proposes an
+  ;; operation under an admitted Threshold contract, self-votes, solicits
+  ;; each peer member's vote across the router (the voice), collects the
+  ;; stamped BLS signatures, and feeds them to the existing majority-judge
+  ;; (Evidence + evaluate_authorization). A round is WITHHELD (Gathering)
+  ;; until a true majority co-sign; only then does it carry an Authorized
+  ;; Evidence. This is the gathered-quorum path, distinct from the 1-of-1
+  ;; signal-call skeleton (RouteSignatureRequest / SubmitSignature), which
+  ;; it must not be confused with.
+  QuorumRoundIdentifier String
+  QuorumRoundStatus [Gathering Authorized]
+
+  ;; Propose (originator ← Spirit): open a round to authorize `object`
+  ;; under the admitted `contract`, opening an attested-moment `window`
+  ;; whose authorities and threshold are the contract's own members.
+  QuorumProposal {
+    round.QuorumRoundIdentifier
+    contract.ContractDigest
+    object.AuthorizedObjectReference
+    window.TimeWindow
+  }
+
+  ;; Solicit (originator → peer, across the voice): the proposal the peer
+  ;; criome independently re-validates before casting vote #2. It carries
+  ;; the shared moment proposition so every member signs the same moment,
+  ;; and the originator identity so the peer routes its vote back.
+  QuorumVoteSolicitation {
+    round.QuorumRoundIdentifier
+    contract.ContractDigest
+    object.AuthorizedObjectReference
+    proposition.AttestedMomentProposition
+    originator.Identity
+  }
+
+  ;; Vote (peer → originator, across the voice): one member's two BLS
+  ;; signatures — over the operation statement and over the moment. The
+  ;; originator wraps these into the assembled Evidence.
+  QuorumVote {
+    round.QuorumRoundIdentifier
+    voter.Identity
+    operation_signature.SignatureEnvelope
+    time_signature.SignatureEnvelope
+  }
+
+  QuorumRoundQuery {
+    round.QuorumRoundIdentifier
+  }
+
+  ;; The durable round projection. `authorized_evidence` is present only
+  ;; when `status` is Authorized — the withheld round exposes no valid
+  ;; evidence until a true majority co-sign.
+  QuorumRoundState {
+    round.QuorumRoundIdentifier
+    contract.ContractDigest
+    status.QuorumRoundStatus
+    gathered.RequiredSignatureThreshold
+    required.RequiredSignatureThreshold
+    authorized_evidence.(Optional Evidence)
   }
 
   CriomeEvent [

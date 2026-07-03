@@ -81,6 +81,18 @@
 ;; CriomeRequest::AuthorizationObservationRetraction
 (AuthorizationObservationRetraction authorization-request-1)
 
+;; CriomeRequest::ProposeQuorumAuthorization
+(ProposeQuorumAuthorization (quorum-round-1 contract-digest-1 (Spirit operation-digest-1 Head) (10 20)))
+
+;; CriomeRequest::SolicitQuorumVote
+(SolicitQuorumVote (quorum-round-1 contract-digest-1 (Spirit operation-digest-1 Head) ((10 20) 2 [(Host mirror-alpha) (Host mirror-beta)]) (Host mirror-alpha)))
+
+;; CriomeRequest::SubmitQuorumVote
+(SubmitQuorumVote (quorum-round-1 (Host mirror-beta) (Bls12_381MinPk public-key-1 signature-1) (Bls12_381MinPk public-key-1 signature-1)))
+
+;; CriomeRequest::ObserveQuorumRound
+(ObserveQuorumRound quorum-round-1)
+
 ;; ─── Replies ──────────────────────────────────────────────────────
 
 ;; CriomeReply::SignReceipt
@@ -154,6 +166,18 @@
 
 ;; CriomeReply::Rejection — positive rejection cause
 (Rejection UnknownIdentity)
+
+;; CriomeReply::QuorumRoundOpened
+(QuorumRoundOpened (quorum-round-1 contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
+
+;; CriomeReply::QuorumVoteSolicited
+(QuorumVoteSolicited (quorum-round-1 contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
+
+;; CriomeReply::QuorumVoteAccepted
+(QuorumVoteAccepted (quorum-round-1 contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
+
+;; CriomeReply::QuorumRoundObserved
+(QuorumRoundObserved (quorum-round-1 contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
 
 ;; ─── Stream events on IdentityUpdateStream ────────────────────────
 

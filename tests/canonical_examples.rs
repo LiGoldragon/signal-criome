@@ -28,7 +28,9 @@ use signal_criome::{
     IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
     OperationDigest, ParkedAuthorization, ParkedAuthorizationObservation,
     ParkedAuthorizationSnapshot, PolicyMember, PrincipalName, PrincipalStatus,
-    PublicKeyFingerprint, QuorumShortfall, Rejection, RejectionReason, ReplayNonce,
+    PublicKeyFingerprint, QuorumProposal, QuorumRoundIdentifier, QuorumRoundQuery, QuorumRoundState,
+    QuorumRoundStatus, QuorumShortfall, QuorumVote, QuorumVoteSolicitation, Rejection,
+    RejectionReason, ReplayNonce,
     RequiredSignatureThreshold, Rule, SignReceipt, SignRequest, SignalCallAuthorization,
     SignatureAuthorizationResult, SignatureEnvelope, SignatureRouteReceipt, SignatureScheme,
     SignatureSolicitation, SignatureSolicitationRoute, SignatureSubmission,
@@ -230,6 +232,66 @@ fn authorization_evaluation() -> AuthorizationEvaluation {
     }
 }
 
+fn quorum_round_identifier() -> QuorumRoundIdentifier {
+    QuorumRoundIdentifier::new("quorum-round-1")
+}
+
+fn quorum_moment_proposition() -> AttestedMomentProposition {
+    AttestedMomentProposition::new(
+        TimeWindow {
+            opens_at: TimestampNanos::new(10),
+            closes_at: TimestampNanos::new(20),
+        },
+        RequiredSignatureThreshold::new(2),
+        vec![
+            Identity::Host(PrincipalName::new("mirror-alpha")),
+            Identity::Host(PrincipalName::new("mirror-beta")),
+        ],
+    )
+}
+
+fn quorum_proposal() -> QuorumProposal {
+    QuorumProposal {
+        round: quorum_round_identifier(),
+        contract: contract_digest(),
+        object: authorized_object_reference(),
+        window: TimeWindow {
+            opens_at: TimestampNanos::new(10),
+            closes_at: TimestampNanos::new(20),
+        },
+    }
+}
+
+fn quorum_vote_solicitation() -> QuorumVoteSolicitation {
+    QuorumVoteSolicitation {
+        round: quorum_round_identifier(),
+        contract: contract_digest(),
+        object: authorized_object_reference(),
+        proposition: quorum_moment_proposition(),
+        originator: Identity::Host(PrincipalName::new("mirror-alpha")),
+    }
+}
+
+fn quorum_vote() -> QuorumVote {
+    QuorumVote {
+        round: quorum_round_identifier(),
+        voter: Identity::Host(PrincipalName::new("mirror-beta")),
+        operation_signature: envelope(),
+        time_signature: envelope(),
+    }
+}
+
+fn quorum_round_state() -> QuorumRoundState {
+    QuorumRoundState {
+        round: quorum_round_identifier(),
+        contract: contract_digest(),
+        status: QuorumRoundStatus::Authorized,
+        gathered: RequiredSignatureThreshold::new(2),
+        required: RequiredSignatureThreshold::new(2),
+        authorized_evidence: Some(evidence()),
+    }
+}
+
 fn round_trip<T>(value: T)
 where
     T: NotaEncode + NotaDecode + PartialEq + std::fmt::Debug,
@@ -374,6 +436,12 @@ fn canonical_request_examples_round_trip() {
     round_trip(CriomeRequest::AuthorizationObservationRetraction(
         authorization_observation_token(),
     ));
+    round_trip(CriomeRequest::ProposeQuorumAuthorization(quorum_proposal()));
+    round_trip(CriomeRequest::SolicitQuorumVote(quorum_vote_solicitation()));
+    round_trip(CriomeRequest::SubmitQuorumVote(quorum_vote()));
+    round_trip(CriomeRequest::ObserveQuorumRound(QuorumRoundQuery::new(
+        quorum_round_identifier(),
+    )));
 }
 
 #[test]
@@ -484,6 +552,10 @@ fn canonical_reply_examples_round_trip() {
     round_trip(CriomeReply::Rejection(Rejection::new(
         RejectionReason::UnknownIdentity,
     )));
+    round_trip(CriomeReply::QuorumRoundOpened(quorum_round_state()));
+    round_trip(CriomeReply::QuorumVoteSolicited(quorum_round_state()));
+    round_trip(CriomeReply::QuorumVoteAccepted(quorum_round_state()));
+    round_trip(CriomeReply::QuorumRoundObserved(quorum_round_state()));
 }
 
 #[test]

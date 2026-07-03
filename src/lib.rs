@@ -63,6 +63,7 @@ string_accessor!(
     SpiritOperationName,
     RawSpiritOperationPayload,
     ParkedRequestIdentifier,
+    QuorumRoundIdentifier,
 );
 
 impl ObjectDigest {
