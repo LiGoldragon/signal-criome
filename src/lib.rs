@@ -96,6 +96,20 @@ impl OperationDigest {
     }
 }
 
+impl QuorumRoundIdentifier {
+    /// Bind a quorum round to the fingerprint of the change it authorizes — the
+    /// content-addressed operation (object) digest. Deriving the round identifier
+    /// from the operation digest makes a round-id collision across two distinct
+    /// operations impossible by construction, so a second proposal can never
+    /// clobber an unrelated in-flight round (the liveness lever the security
+    /// audit flagged). The originator and each peer derive the SAME identifier
+    /// from the SAME object, and the criome ingress enforces the binding, so the
+    /// round key carries no free-form caller choice.
+    pub fn for_operation(operation: &ObjectDigest) -> Self {
+        Self::new(format!("quorum-round-{}", operation.as_str()))
+    }
+}
+
 impl CompositionDigest {
     pub fn from_bytes(bytes: &[u8]) -> Self {
         Self::new(ObjectDigest::from_bytes(bytes))

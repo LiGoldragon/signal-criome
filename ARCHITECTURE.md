@@ -189,6 +189,14 @@ true majority co-sign — only then does it carry an `Authorized` `Evidence`. Th
 is deliberately distinct from the 1-of-1 `RouteSignatureRequest` /
 `SubmitSignature` signal-call surface, which does not gather a majority.
 
+The `QuorumRoundIdentifier` is **bound to the change's fingerprint**:
+`QuorumRoundIdentifier::for_operation(&object.digest)` derives the round key
+deterministically from the content-addressed operation digest. Originator and
+peers derive the same identifier from the same object, and the criome ingress
+enforces the binding, so a round-id collision across two distinct operations is
+impossible by construction — a colliding round can never clobber an unrelated
+in-flight round.
+
 ### Current authorization model
 
 - This contract is published as the public GitHub repository
