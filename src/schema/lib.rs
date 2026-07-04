@@ -818,6 +818,84 @@ pub struct RootFoundingStatement {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct FoundingProposal {
+    pub genesis: RootGenesis,
+    pub initiator: Identity,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct FoundingSignatureReturn {
+    pub anchor: RootAnchorDigest,
+    pub signature: FoundingSignature,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct FoundedRoot {
+    pub genesis: RootGenesis,
+    pub signatures: Vec<FoundingSignature>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum FoundingConveyance {
+    Proposal(FoundingProposal),
+    Signature(FoundingSignatureReturn),
+    Founded(FoundedRoot),
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum FoundingConveyanceOutcome {
+    ProposalPending,
+    SignatureAccumulated,
+    RootFounded,
+    Refused,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct FoundingConveyanceReceipt {
+    pub anchor: RootAnchorDigest,
+    pub outcome: FoundingConveyanceOutcome,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct NodePublicKeyObservation {}
 
 #[rustfmt::skip]
@@ -2180,6 +2258,7 @@ pub enum Input {
     SubmitQuorumVote(QuorumVote),
     ObserveQuorumRound(QuorumRoundQuery),
     ObserveNodePublicKey(NodePublicKeyObservation),
+    ConveyFounding(FoundingConveyance),
 }
 
 #[rustfmt::skip]
@@ -2221,6 +2300,7 @@ pub enum Output {
     QuorumRoundObserved(QuorumRoundState),
     NodePublicKey(NodePublicKey),
     QuorumConflict(QuorumConflict),
+    FoundingConveyed(FoundingConveyanceReceipt),
 }
 
 #[rustfmt::skip]
@@ -3435,6 +3515,19 @@ impl ContractParent {
 }
 
 #[rustfmt::skip]
+impl FoundingConveyance {
+    pub fn proposal(payload: FoundingProposal) -> Self {
+        Self::Proposal(payload)
+    }
+    pub fn signature(payload: FoundingSignatureReturn) -> Self {
+        Self::Signature(payload)
+    }
+    pub fn founded(payload: FoundedRoot) -> Self {
+        Self::Founded(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl Rule {
     pub fn signed_by(payload: Identity) -> Self {
         Self::SignedBy(payload)
@@ -3656,6 +3749,9 @@ impl Input {
     pub fn observe_node_public_key(payload: NodePublicKeyObservation) -> Self {
         Self::ObserveNodePublicKey(payload)
     }
+    pub fn convey_founding(payload: FoundingConveyance) -> Self {
+        Self::ConveyFounding(payload)
+    }
 }
 
 #[rustfmt::skip]
@@ -3774,6 +3870,9 @@ impl Output {
     pub fn quorum_conflict(payload: QuorumConflict) -> Self {
         Self::QuorumConflict(payload)
     }
+    pub fn founding_conveyed(payload: FoundingConveyanceReceipt) -> Self {
+        Self::FoundingConveyed(payload)
+    }
 }
 
 #[rustfmt::skip]
@@ -3787,6 +3886,27 @@ impl From<ContractDigest> for ContractAdmissionRejectionReason {
 impl From<ContractDigest> for ContractParent {
     fn from(payload: ContractDigest) -> Self {
         Self::Parent(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<FoundingProposal> for FoundingConveyance {
+    fn from(payload: FoundingProposal) -> Self {
+        Self::Proposal(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<FoundingSignatureReturn> for FoundingConveyance {
+    fn from(payload: FoundingSignatureReturn) -> Self {
+        Self::Signature(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<FoundedRoot> for FoundingConveyance {
+    fn from(payload: FoundedRoot) -> Self {
+        Self::Founded(payload)
     }
 }
 
@@ -4169,6 +4289,13 @@ impl From<NodePublicKeyObservation> for Input {
 }
 
 #[rustfmt::skip]
+impl From<FoundingConveyance> for Input {
+    fn from(payload: FoundingConveyance) -> Self {
+        Self::ConveyFounding(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<SignReceipt> for Output {
     fn from(payload: SignReceipt) -> Self {
         Self::SignReceipt(payload)
@@ -4365,6 +4492,13 @@ impl From<QuorumConflict> for Output {
 }
 
 #[rustfmt::skip]
+impl From<FoundingConveyanceReceipt> for Output {
+    fn from(payload: FoundingConveyanceReceipt) -> Self {
+        Self::FoundingConveyed(payload)
+    }
+}
+
+#[rustfmt::skip]
 #[cfg(feature = "nota-text")]
 impl std::str::FromStr for Input {
     type Err = NotaDecodeError;
@@ -4428,6 +4562,7 @@ pub mod short_header {
     pub const INPUT_SUBMIT_QUORUM_VOTE: u64 = 0x001B000000000000;
     pub const INPUT_OBSERVE_QUORUM_ROUND: u64 = 0x001C000000000000;
     pub const INPUT_OBSERVE_NODE_PUBLIC_KEY: u64 = 0x001D000000000000;
+    pub const INPUT_CONVEY_FOUNDING: u64 = 0x001E000000000000;
     pub const OUTPUT_SIGN_RECEIPT: u64 = 0x0100000000000000;
     pub const OUTPUT_VERIFICATION_RESULT: u64 = 0x0101000000000000;
     pub const OUTPUT_IDENTITY_RECEIPT: u64 = 0x0102000000000000;
@@ -4460,6 +4595,7 @@ pub mod short_header {
     pub const OUTPUT_QUORUM_ROUND_OBSERVED: u64 = 0x011D000000000000;
     pub const OUTPUT_NODE_PUBLIC_KEY: u64 = 0x011E000000000000;
     pub const OUTPUT_QUORUM_CONFLICT: u64 = 0x011F000000000000;
+    pub const OUTPUT_FOUNDING_CONVEYED: u64 = 0x0120000000000000;
 }
 
 #[rustfmt::skip]
@@ -4543,6 +4679,7 @@ pub enum InputRoute {
     SubmitQuorumVote,
     ObserveQuorumRound,
     ObserveNodePublicKey,
+    ConveyFounding,
 }
 
 #[rustfmt::skip]
@@ -4593,6 +4730,7 @@ pub enum OutputRoute {
     QuorumRoundObserved,
     NodePublicKey,
     QuorumConflict,
+    FoundingConveyed,
 }
 
 #[rustfmt::skip]
@@ -4637,6 +4775,7 @@ impl Input {
             Self::SubmitQuorumVote(_) => InputRoute::SubmitQuorumVote,
             Self::ObserveQuorumRound(_) => InputRoute::ObserveQuorumRound,
             Self::ObserveNodePublicKey(_) => InputRoute::ObserveNodePublicKey,
+            Self::ConveyFounding(_) => InputRoute::ConveyFounding,
         }
     }
     pub fn short_header(&self) -> u64 {
@@ -4687,6 +4826,7 @@ impl Input {
             Self::SubmitQuorumVote(_) => short_header::INPUT_SUBMIT_QUORUM_VOTE,
             Self::ObserveQuorumRound(_) => short_header::INPUT_OBSERVE_QUORUM_ROUND,
             Self::ObserveNodePublicKey(_) => short_header::INPUT_OBSERVE_NODE_PUBLIC_KEY,
+            Self::ConveyFounding(_) => short_header::INPUT_CONVEY_FOUNDING,
         }
     }
     pub fn route_from_short_header(header: u64) -> Result<InputRoute, SignalFrameError> {
@@ -4759,6 +4899,7 @@ impl Input {
             short_header::INPUT_OBSERVE_NODE_PUBLIC_KEY => {
                 Ok(InputRoute::ObserveNodePublicKey)
             }
+            short_header::INPUT_CONVEY_FOUNDING => Ok(InputRoute::ConveyFounding),
             _ => {
                 Err(SignalFrameError::UnknownHeader {
                     root_enum: "Input",
@@ -4857,6 +4998,7 @@ impl Output {
             Self::QuorumRoundObserved(_) => OutputRoute::QuorumRoundObserved,
             Self::NodePublicKey(_) => OutputRoute::NodePublicKey,
             Self::QuorumConflict(_) => OutputRoute::QuorumConflict,
+            Self::FoundingConveyed(_) => OutputRoute::FoundingConveyed,
         }
     }
     pub fn short_header(&self) -> u64 {
@@ -4917,6 +5059,7 @@ impl Output {
             Self::QuorumRoundObserved(_) => short_header::OUTPUT_QUORUM_ROUND_OBSERVED,
             Self::NodePublicKey(_) => short_header::OUTPUT_NODE_PUBLIC_KEY,
             Self::QuorumConflict(_) => short_header::OUTPUT_QUORUM_CONFLICT,
+            Self::FoundingConveyed(_) => short_header::OUTPUT_FOUNDING_CONVEYED,
         }
     }
     pub fn route_from_short_header(
@@ -5001,6 +5144,7 @@ impl Output {
             }
             short_header::OUTPUT_NODE_PUBLIC_KEY => Ok(OutputRoute::NodePublicKey),
             short_header::OUTPUT_QUORUM_CONFLICT => Ok(OutputRoute::QuorumConflict),
+            short_header::OUTPUT_FOUNDING_CONVEYED => Ok(OutputRoute::FoundingConveyed),
             _ => {
                 Err(SignalFrameError::UnknownHeader {
                     root_enum: "Output",
@@ -5082,6 +5226,7 @@ impl signal_frame::SignalOperationHeads for Input {
         "SubmitQuorumVote",
         "ObserveQuorumRound",
         "ObserveNodePublicKey",
+        "ConveyFounding",
     ];
 }
 #[rustfmt::skip]

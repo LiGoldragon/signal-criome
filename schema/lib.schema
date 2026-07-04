@@ -33,7 +33,8 @@
  (SolicitQuorumVote QuorumVoteSolicitation)
  (SubmitQuorumVote QuorumVote)
  (ObserveQuorumRound QuorumRoundQuery)
- (ObserveNodePublicKey NodePublicKeyObservation)]
+ (ObserveNodePublicKey NodePublicKeyObservation)
+ (ConveyFounding FoundingConveyance)]
 [(SignReceipt SignReceipt)
  (VerificationResult VerificationResult)
  (IdentityReceipt IdentityReceipt)
@@ -65,7 +66,8 @@
  (QuorumVoteAccepted QuorumRoundState)
  (QuorumRoundObserved QuorumRoundState)
  (NodePublicKey NodePublicKey)
- (QuorumConflict QuorumConflict)]
+ (QuorumConflict QuorumConflict)
+ (FoundingConveyed FoundingConveyanceReceipt)]
 {
   DaemonPath String
   PrincipalName String
@@ -204,6 +206,59 @@
   RootFoundingStatement {
     anchor.RootAnchorDigest
     domain.GenesisDomainTag
+  }
+
+  ;; ─── Founding conveyance (node-to-node, over the router voice) ─────
+  ;;
+  ;; The wire that lets a multi-node cohort assemble a UNANIMOUS root
+  ;; across peers' working sockets. `ConveyFounding` carries one of three
+  ;; founding movements between cohort criomes; the frozen ordinary ops
+  ;; never carried a founding proposal to a peer, a peer's signature back,
+  ;; or a finished root out — so a unanimous multi-node root could never
+  ;; be gathered and persisted without it.
+  ;;
+  ;;   Proposal   initiator → peer: found this exact cohort. The peer
+  ;;              stores it pending an explicit owner accept; it does NOT
+  ;;              sign on receipt (no auto-approval).
+  ;;   Signature  peer → initiator: this peer's accepted FoundingSignature,
+  ;;              returned so the initiator accumulates it toward unanimity.
+  ;;   Founded    initiator → peer: the finished unanimous root, so every
+  ;;              cohort node verifies and persists the SAME anchor.
+  FoundingProposal {
+    genesis.RootGenesis
+    initiator.Identity
+  }
+
+  FoundingSignatureReturn {
+    anchor.RootAnchorDigest
+    signature.FoundingSignature
+  }
+
+  FoundedRoot {
+    genesis.RootGenesis
+    signatures.(Vector FoundingSignature)
+  }
+
+  FoundingConveyance [
+    (Proposal FoundingProposal)
+    (Signature FoundingSignatureReturn)
+    (Founded FoundedRoot)
+  ]
+
+  ;; What the receiving node did with a conveyed founding movement. The
+  ;; receipt names the anchor it pertains to and the domain outcome, so a
+  ;; caller that conveys synchronously can act on the result instead of a
+  ;; bare Success/Error shell.
+  FoundingConveyanceOutcome [
+    ProposalPending
+    SignatureAccumulated
+    RootFounded
+    Refused
+  ]
+
+  FoundingConveyanceReceipt {
+    anchor.RootAnchorDigest
+    outcome.FoundingConveyanceOutcome
   }
 
   ;; ─── Node public-key observation (public socket) ──────────────────

@@ -96,6 +96,9 @@
 ;; CriomeRequest::ObserveNodePublicKey
 (ObserveNodePublicKey ())
 
+;; CriomeRequest::ConveyFounding — a founding proposal conveyed to a peer
+(ConveyFounding (Proposal ((((Threshold (2 [(KeyMember (Host mirror-alpha)) (KeyMember (Host mirror-beta))])) Root) [((Host mirror-alpha) mirror-alpha-master-pubkey) ((Host mirror-beta) mirror-beta-master-pubkey)] CriomeRootFoundingV1 genesis-nonce-1) (Host mirror-alpha))))
+
 ;; ─── Replies ──────────────────────────────────────────────────────
 
 ;; CriomeReply::SignReceipt
@@ -187,6 +190,9 @@
 
 ;; CriomeReply::QuorumConflict
 (QuorumConflict (contract-digest-1 head-1 (Spirit operation-digest-1 Head)))
+
+;; CriomeReply::FoundingConveyed — the founded-root adoption receipt
+(FoundingConveyed (root-anchor-1 RootFounded))
 
 ;; ─── Stream events on IdentityUpdateStream ────────────────────────
 

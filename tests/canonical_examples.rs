@@ -23,16 +23,17 @@ use signal_criome::{
     ContentPurpose, ContentReference, Contract, ContractAdmissionRejected,
     ContractAdmissionRejectionReason, ContractAdmitted, ContractDigest, ContractFound,
     ContractMissing, ContractName, ContractOperationHead, CriomeEvent, CriomeReply, CriomeRequest,
-    EvaluationDecision, EvaluationRejectionReason, Evidence, Identity, IdentityLookup,
-    IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
-    IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, NodePublicKey,
-    NodePublicKeyObservation, ObjectDigest,
+    EvaluationDecision, EvaluationRejectionReason, Evidence, FoundingConveyance,
+    FoundingConveyanceOutcome, FoundingConveyanceReceipt, FoundingMember, FoundingProposal,
+    GenesisDomainTag, Identity, IdentityLookup, IdentityReceipt, IdentityRegistration,
+    IdentityRevocation, IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken,
+    IdentityUpdate, KeyPurpose, NodePublicKey, NodePublicKeyObservation, ObjectDigest,
     OperationDigest, ParkedAuthorization, ParkedAuthorizationObservation,
     ParkedAuthorizationSnapshot, PolicyMember, PrincipalName, PrincipalStatus,
     PublicKeyFingerprint, QuorumConflict, QuorumProposal, QuorumRoundIdentifier, QuorumRoundQuery,
     QuorumRoundState, QuorumRoundStatus, QuorumShortfall, QuorumVote, QuorumVoteSolicitation,
-    Rejection, RejectionReason, ReplayNonce, RoundPhase,
-    RequiredSignatureThreshold, Rule, SignReceipt, SignRequest, SignalCallAuthorization,
+    Rejection, RejectionReason, ReplayNonce, RequiredSignatureThreshold, RootAnchorDigest,
+    RootGenesis, RoundPhase, Rule, SignReceipt, SignRequest, SignalCallAuthorization,
     SignatureAuthorizationResult, SignatureEnvelope, SignatureRouteReceipt, SignatureScheme,
     SignatureSolicitation, SignatureSolicitationRoute, SignatureSubmission,
     SignatureSubmissionReceipt, StampedSignatureEnvelope, SubscriptionRetracted, Threshold,
@@ -193,6 +194,49 @@ fn policy_contract() -> Contract {
 
 fn node_public_key() -> NodePublicKey {
     NodePublicKey::new(BlsPublicKey::new("node-master-pubkey"))
+}
+
+fn founding_member(name: &str) -> FoundingMember {
+    FoundingMember::new(
+        Identity::Host(PrincipalName::new(name)),
+        BlsPublicKey::new(format!("{name}-master-pubkey")),
+    )
+}
+
+fn root_genesis() -> RootGenesis {
+    RootGenesis::new(
+        Contract::root(Rule::threshold(Threshold::new(
+            RequiredSignatureThreshold::new(2),
+            vec![
+                PolicyMember::key_member(Identity::Host(PrincipalName::new("mirror-alpha"))),
+                PolicyMember::key_member(Identity::Host(PrincipalName::new("mirror-beta"))),
+            ],
+        ))),
+        vec![
+            founding_member("mirror-alpha"),
+            founding_member("mirror-beta"),
+        ],
+        GenesisDomainTag::CriomeRootFoundingV1,
+        ReplayNonce::new("genesis-nonce-1"),
+    )
+}
+
+fn root_anchor() -> RootAnchorDigest {
+    RootAnchorDigest::new(ObjectDigest::new("root-anchor-1"))
+}
+
+fn founding_conveyance_proposal() -> FoundingConveyance {
+    FoundingConveyance::Proposal(FoundingProposal {
+        genesis: root_genesis(),
+        initiator: Identity::Host(PrincipalName::new("mirror-alpha")),
+    })
+}
+
+fn founding_conveyance_receipt() -> FoundingConveyanceReceipt {
+    FoundingConveyanceReceipt {
+        anchor: root_anchor(),
+        outcome: FoundingConveyanceOutcome::RootFounded,
+    }
 }
 
 fn quorum_conflict() -> QuorumConflict {
@@ -462,6 +506,7 @@ fn canonical_request_examples_round_trip() {
     round_trip(CriomeRequest::ObserveNodePublicKey(
         NodePublicKeyObservation::new(),
     ));
+    round_trip(CriomeRequest::ConveyFounding(founding_conveyance_proposal()));
 }
 
 #[test]
@@ -578,6 +623,7 @@ fn canonical_reply_examples_round_trip() {
     round_trip(CriomeReply::QuorumRoundObserved(quorum_round_state()));
     round_trip(CriomeReply::NodePublicKey(node_public_key()));
     round_trip(CriomeReply::QuorumConflict(quorum_conflict()));
+    round_trip(CriomeReply::FoundingConveyed(founding_conveyance_receipt()));
 }
 
 #[test]

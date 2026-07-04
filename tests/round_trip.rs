@@ -16,29 +16,29 @@ use signal_criome::{
     ContentReference, Contract, ContractAdmissionRejected, ContractAdmissionRejectionReason,
     ContractAdmitted, ContractDigest, ContractFound, ContractMissing, ContractName,
     ContractOperationHead, ContractParent, CriomeEvent, CriomeFrame as Frame,
-    CriomeFrameBody as FrameBody,
-    CriomeReply, CriomeRequest, EscalationTarget, EvaluationDecision, EvaluationRejectionReason,
-    Evidence, ExpiryAction, Identity, IdentityLookup, IdentityReceipt, IdentityRegistration,
-    IdentityRevocation, IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken,
-    IdentityUpdate, InterceptPolicy, InterceptPolicyIdentifier, InterceptPolicyProposal,
-    InterceptPolicyWindow, InterceptTargetSelector, KeyPurpose, MentciSessionSlot,
-    ObjectCoSignature, ObjectDigest, OperationDigest, ParkedAuthorization,
-    ParkedAuthorizationObservation, ParkedAuthorizationSnapshot, ParkedRequestIdentifier,
-    ParkedRequestOutcome, ParkedRequestResolution, ParkedRequestSnapshot, ParkedSpiritRequest,
-    PolicyDurationNanos, PolicyMember, PolicyOverlapMode, PolicyPriority, PrincipalName,
-    PrincipalStatus, PublicKeyFingerprint, QuorumProposal, QuorumRoundIdentifier, QuorumRoundState,
-    QuorumRoundStatus, QuorumShortfall, QuorumVote, QuorumVoteSolicitation,
-    RawSpiritOperationPayload, Rejection, RejectionReason, ReplayNonce, RequiredSignatureThreshold,
-    FoundingMember, FoundingSignature, GenesisDomainTag, NodePublicKey, NodePublicKeyObservation,
-    QuorumConflict, RootAnchorDigest, RootFoundingStatement, RootGenesis, RoundPhase,
-    Rule, SignReceipt, SignRequest,
-    SignalCallAuthorization, SignatureAuthorizationResult, SignatureEnvelope,
-    SignatureRouteReceipt, SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute,
-    SignatureSubmission, SignatureSubmissionReceipt, SpiritAuthorizationContext,
-    SpiritOperationName, SpiritOperationNames, SpiritProcessKey, StampedSignatureEnvelope,
-    SubscriptionRetracted, Threshold, TimeSignature, TimeWindow, TimestampNanos,
-    VerificationDecision, VerificationResult, VerifyRequest, WorkflowDigest, WorkflowGuard,
-    WorkflowProvenanceDigest, WorkflowReceipt,
+    CriomeFrameBody as FrameBody, CriomeReply, CriomeRequest, EscalationTarget, EvaluationDecision,
+    EvaluationRejectionReason, Evidence, ExpiryAction, FoundedRoot, FoundingConveyance,
+    FoundingConveyanceOutcome, FoundingConveyanceReceipt, FoundingMember, FoundingProposal,
+    FoundingSignature, FoundingSignatureReturn, GenesisDomainTag, Identity, IdentityLookup,
+    IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
+    IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, InterceptPolicy,
+    InterceptPolicyIdentifier, InterceptPolicyProposal, InterceptPolicyWindow,
+    InterceptTargetSelector, KeyPurpose, MentciSessionSlot, NodePublicKey,
+    NodePublicKeyObservation, ObjectCoSignature, ObjectDigest, OperationDigest,
+    ParkedAuthorization, ParkedAuthorizationObservation, ParkedAuthorizationSnapshot,
+    ParkedRequestIdentifier, ParkedRequestOutcome, ParkedRequestResolution, ParkedRequestSnapshot,
+    ParkedSpiritRequest, PolicyDurationNanos, PolicyMember, PolicyOverlapMode, PolicyPriority,
+    PrincipalName, PrincipalStatus, PublicKeyFingerprint, QuorumConflict, QuorumProposal,
+    QuorumRoundIdentifier, QuorumRoundState, QuorumRoundStatus, QuorumShortfall, QuorumVote,
+    QuorumVoteSolicitation, RawSpiritOperationPayload, Rejection, RejectionReason, ReplayNonce,
+    RequiredSignatureThreshold, RootAnchorDigest, RootFoundingStatement, RootGenesis, RoundPhase,
+    Rule, SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
+    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
+    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
+    SpiritAuthorizationContext, SpiritOperationName, SpiritOperationNames, SpiritProcessKey,
+    StampedSignatureEnvelope, SubscriptionRetracted, Threshold, TimeSignature, TimeWindow,
+    TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest, WorkflowDigest,
+    WorkflowGuard, WorkflowProvenanceDigest, WorkflowReceipt,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -297,7 +297,10 @@ fn node_public_key() -> NodePublicKey {
 }
 
 fn founding_member(name: &str) -> FoundingMember {
-    FoundingMember::new(host(name), BlsPublicKey::new(format!("{name}-master-pubkey")))
+    FoundingMember::new(
+        host(name),
+        BlsPublicKey::new(format!("{name}-master-pubkey")),
+    )
 }
 
 fn root_genesis() -> RootGenesis {
@@ -309,10 +312,48 @@ fn root_genesis() -> RootGenesis {
                 PolicyMember::key_member(host("mirror-beta")),
             ],
         ))),
-        vec![founding_member("mirror-alpha"), founding_member("mirror-beta")],
+        vec![
+            founding_member("mirror-alpha"),
+            founding_member("mirror-beta"),
+        ],
         GenesisDomainTag::CriomeRootFoundingV1,
         ReplayNonce::new("genesis-nonce-1"),
     )
+}
+
+fn founding_anchor() -> RootAnchorDigest {
+    root_genesis().anchor().expect("genesis anchor")
+}
+
+fn founding_proposal() -> FoundingProposal {
+    FoundingProposal {
+        genesis: root_genesis(),
+        initiator: host("mirror-alpha"),
+    }
+}
+
+fn founding_signature_return() -> FoundingSignatureReturn {
+    FoundingSignatureReturn {
+        anchor: founding_anchor(),
+        signature: FoundingSignature::new(host("mirror-beta"), envelope()),
+    }
+}
+
+fn founded_root() -> FoundedRoot {
+    FoundedRoot {
+        genesis: root_genesis(),
+        signatures: vec![
+            FoundingSignature::new(host("mirror-alpha"), envelope()),
+            FoundingSignature::new(host("mirror-beta"), envelope()),
+        ],
+    }
+}
+
+fn founding_conveyance_receipt() -> FoundingConveyanceReceipt {
+    FoundingConveyanceReceipt {
+        anchor: founding_anchor(),
+        outcome: FoundingConveyanceOutcome::RootFounded,
+    }
 }
 
 fn policy_contract() -> Contract {
@@ -616,6 +657,7 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
             quorum_round_identifier(),
         )),
         CriomeRequest::ObserveNodePublicKey(NodePublicKeyObservation::new()),
+        CriomeRequest::ConveyFounding(FoundingConveyance::Proposal(founding_proposal())),
     ];
 
     for request in requests {
@@ -658,6 +700,7 @@ fn request_variants_declare_contract_local_operation_heads() {
             "SubmitQuorumVote",
             "ObserveQuorumRound",
             "ObserveNodePublicKey",
+            "ConveyFounding",
         ]
     );
 }
@@ -761,6 +804,7 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
         CriomeReply::QuorumRoundObserved(quorum_round_state()),
         CriomeReply::NodePublicKey(node_public_key()),
         CriomeReply::QuorumConflict(quorum_conflict()),
+        CriomeReply::FoundingConveyed(founding_conveyance_receipt()),
     ];
 
     for reply in replies {
@@ -1063,6 +1107,14 @@ fn parent_link_and_root_founding_surfaces_round_trip() {
     assert_nota_round_trip(node_public_key());
     assert_nota_round_trip(quorum_conflict());
     assert_nota_round_trip(Rejection::new(RejectionReason::OutsideTimeWindow));
+
+    // Founding conveyance: each of the three movements (proposal out, signature
+    // back, finished root out) and the receipt round-trip on the wire, so a
+    // multi-node cohort can gather a unanimous root across peers.
+    assert_nota_round_trip(FoundingConveyance::Proposal(founding_proposal()));
+    assert_nota_round_trip(FoundingConveyance::Signature(founding_signature_return()));
+    assert_nota_round_trip(FoundingConveyance::Founded(founded_root()));
+    assert_nota_round_trip(founding_conveyance_receipt());
 }
 
 #[test]
