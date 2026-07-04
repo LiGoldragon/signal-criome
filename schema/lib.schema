@@ -32,7 +32,8 @@
  (ProposeQuorumAuthorization QuorumProposal)
  (SolicitQuorumVote QuorumVoteSolicitation)
  (SubmitQuorumVote QuorumVote)
- (ObserveQuorumRound QuorumRoundQuery)]
+ (ObserveQuorumRound QuorumRoundQuery)
+ (ObserveNodePublicKey NodePublicKeyObservation)]
 [(SignReceipt SignReceipt)
  (VerificationResult VerificationResult)
  (IdentityReceipt IdentityReceipt)
@@ -62,7 +63,9 @@
  (QuorumRoundOpened QuorumRoundState)
  (QuorumVoteSolicited QuorumRoundState)
  (QuorumVoteAccepted QuorumRoundState)
- (QuorumRoundObserved QuorumRoundState)]
+ (QuorumRoundObserved QuorumRoundState)
+ (NodePublicKey NodePublicKey)
+ (QuorumConflict QuorumConflict)]
 {
   DaemonPath String
   PrincipalName String
@@ -77,6 +80,7 @@
   WorkflowDigest ObjectDigest
   WorkflowProvenanceDigest ObjectDigest
   AttestedMomentDigest ObjectDigest
+  RootAnchorDigest ObjectDigest
   ReplayNonce String
   ContractName String
   AuthorizationRequestSlot String
@@ -112,7 +116,7 @@
   ParkedRequestDecision [Approve Reject]
   ParkedRequestOutcome [Approved Rejected LeftParked]
   ApprovalAuditSource [Manual Automatic]
-  RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration]
+  RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration OutsideTimeWindow]
   ComponentKind [Spirit Criome Router Mirror Lojix Persona Agent]
   ContractAdmissionRejectionReason [
     (DanglingReference ContractDigest)
@@ -146,8 +150,70 @@
     satisfied_signers.(Vec Identity)
   }
 
+  ;; ─── The Criome unit, its parent link, and the founded root ───────
+  ;;
+  ;; A Criome unit is a content-addressed Contract. `parent` is the
+  ;; provenance / authority-derivation link: `Root` is the distinguished
+  ;; self-grounding sentinel (its own origin, NOT a self-reference, so no
+  ;; self-referential digest), and `Parent` chains authority upward to
+  ;; the contract whose digest it names. Adding `parent` re-serialises
+  ;; and therefore re-digests every Contract; this is a clean-genesis
+  ;; schema change, not a migration.
+  ContractParent [
+    Root
+    (Parent ContractDigest)
+  ]
+
   Contract {
     Rule
+    parent.ContractParent
+  }
+
+  ;; ─── Root founding certificate (attached, scheme-tagged signatures) ─
+  ;;
+  ;; RootGenesis is the accepted initial state hashed to the anchor
+  ;; (RootAnchorDigest = blake3(rkyv(RootGenesis))). Because it embeds the
+  ;; ordered founding_keys, the hashed anchor COMMITS to the founding
+  ;; quorum's public keys (self-certifying identity). Founding signatures
+  ;; ride ATTACHED to the anchor as a separate accumulating collection —
+  ;; never folded into the hash — and stay scheme-tagged through
+  ;; SignatureEnvelope.scheme, the seam for later cold/hardware keys on a
+  ;; non-BLS scheme. RootFoundingStatement is the preimage each founder
+  ;; signs.
+  GenesisDomainTag [
+    CriomeRootFoundingV1
+  ]
+
+  FoundingMember {
+    Identity
+    public_key.BlsPublicKey
+  }
+
+  RootGenesis {
+    root_contract.Contract
+    founding_keys.(Vector FoundingMember)
+    domain.GenesisDomainTag
+    genesis_nonce.ReplayNonce
+  }
+
+  FoundingSignature {
+    signer.Identity
+    envelope.SignatureEnvelope
+  }
+
+  RootFoundingStatement {
+    anchor.RootAnchorDigest
+    domain.GenesisDomainTag
+  }
+
+  ;; ─── Node public-key observation (public socket) ──────────────────
+  ;;
+  ;; A public read-op so a founding client can display and exchange a
+  ;; node's Criome master public key out-of-band before founding.
+  NodePublicKeyObservation { }
+
+  NodePublicKey {
+    public_key.BlsPublicKey
   }
 
   Rule [
@@ -759,11 +825,21 @@
   QuorumRoundIdentifier String
   QuorumRoundStatus [Gathering Authorized]
 
+  ;; Round phase: the two-round commit dimension. Round 1 (Request)
+  ;; gathers a majority over the request object; round 2 (Commit) gathers
+  ;; an independently verified majority over the commit object. Appended
+  ;; append-only — Request first, Commit second. The QuorumRoundIdentifier
+  ;; is derived phase-aware (QuorumRoundIdentifier::for_phase) so round-1
+  ;; and round-2 signatures over the same object occupy distinct durable
+  ;; rounds and can never collide.
+  RoundPhase [Request Commit]
+
   ;; Propose (originator ← Spirit): open a round to authorize `object`
   ;; under the admitted `contract`, opening an attested-moment `window`
   ;; whose authorities and threshold are the contract's own members.
   QuorumProposal {
     round.QuorumRoundIdentifier
+    phase.RoundPhase
     contract.ContractDigest
     object.AuthorizedObjectReference
     window.TimeWindow
@@ -775,6 +851,7 @@
   ;; and the originator identity so the peer routes its vote back.
   QuorumVoteSolicitation {
     round.QuorumRoundIdentifier
+    phase.RoundPhase
     contract.ContractDigest
     object.AuthorizedObjectReference
     proposition.AttestedMomentProposition
@@ -786,6 +863,7 @@
   ;; originator wraps these into the assembled Evidence.
   QuorumVote {
     round.QuorumRoundIdentifier
+    phase.RoundPhase
     voter.Identity
     operation_signature.SignatureEnvelope
     time_signature.SignatureEnvelope
@@ -800,11 +878,26 @@
   ;; evidence until a true majority co-sign.
   QuorumRoundState {
     round.QuorumRoundIdentifier
+    phase.RoundPhase
     contract.ContractDigest
     status.QuorumRoundStatus
     gathered.RequiredSignatureThreshold
     required.RequiredSignatureThreshold
     authorized_evidence.(Optional Evidence)
+  }
+
+  ;; ─── Non-double-signing refusal (single successor per state-point) ─
+  ;;
+  ;; An honest node co-signs at most one successor per (Criome, head).
+  ;; Having co-signed `existing_successor` from `at_head` on `contract`,
+  ;; it refuses any different successor from the same head and answers the
+  ;; loser with this typed "refused, resubmit" reply. The conflict
+  ;; predicate (a different successor from the same head) is enforced in
+  ;; the daemon and kept pluggable for a later commutative-merge predicate.
+  QuorumConflict {
+    contract.ContractDigest
+    at_head.ContractOperationHead
+    existing_successor.AuthorizedObjectReference
   }
 
   CriomeEvent [

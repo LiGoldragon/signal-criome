@@ -189,13 +189,52 @@ true majority co-sign — only then does it carry an `Authorized` `Evidence`. Th
 is deliberately distinct from the 1-of-1 `RouteSignatureRequest` /
 `SubmitSignature` signal-call surface, which does not gather a majority.
 
-The `QuorumRoundIdentifier` is **bound to the change's fingerprint**:
-`QuorumRoundIdentifier::for_operation(&object.digest)` derives the round key
-deterministically from the content-addressed operation digest. Originator and
-peers derive the same identifier from the same object, and the criome ingress
-enforces the binding, so a round-id collision across two distinct operations is
-impossible by construction — a colliding round can never clobber an unrelated
-in-flight round.
+The `QuorumRoundIdentifier` is **bound to the change's fingerprint and its round
+phase**: `QuorumRoundIdentifier::for_phase(&object.digest, phase)` derives the
+round key deterministically from the content-addressed operation digest and the
+`RoundPhase`. Originator and peers derive the same identifier from the same
+object and phase, and the criome ingress enforces the binding, so a round-id
+collision across two distinct operations is impossible by construction, and
+round 1 (`Request`) and round 2 (`Commit`) over the same object occupy distinct
+durable rounds whose signatures are never interchangeable. `for_operation` is the
+round-1 (`Request`) convenience and the single-gather fallback key.
+
+### Operational-Criome surface
+
+The net-new vocabulary that lets a `Contract` become the deployment-authorization
+authority. All of it is wire-only; the driver, judge, signer, and durable stores
+stay in the `criome` daemon.
+
+- **Parent link + root sentinel (`Contract`, `ContractParent`).** `Contract` is
+  now `{ rule, parent }`. `parent` is a provenance / authority-derivation link:
+  `Root` is the distinguished self-grounding sentinel (its own origin, not a
+  self-reference — no self-referential digest), `Parent(ContractDigest)` chains
+  authority upward. `Threshold::decide` does not read it; it is walked only to
+  confirm a child descends from the founded anchor. Because the digest covers
+  `rkyv(Contract)`, adding `parent` re-digests every contract — a **clean-genesis**
+  schema change, not a migration.
+- **Founding certificate (`RootGenesis`, `FoundingMember`, `FoundingSignature`,
+  `RootFoundingStatement`, `RootAnchorDigest`, `GenesisDomainTag`).** `RootGenesis`
+  is the accepted initial state; `RootGenesis::anchor()` = `blake3(rkyv(RootGenesis))`.
+  Because the ordered `founding_keys` are embedded, the hashed anchor **commits to
+  the founding quorum's public keys** (self-certifying identity). Founding
+  signatures ride **attached** to the anchor as a separate collection — never
+  folded into the hash — and stay **scheme-tagged** through
+  `SignatureEnvelope.scheme`, the seam for later non-BLS cold/hardware keys.
+  `RootFoundingStatement` is the domain-separated preimage each founder signs.
+- **Node public key (`ObserveNodePublicKey` → `NodePublicKey`).** A public-socket
+  read-op so a founding client can display and exchange a node's Criome master
+  public key out-of-band before founding.
+- **Two-round commit (`RoundPhase`, `phase` on the quorum messages).**
+  `RoundPhase { Request, Commit }` (append-only) threads through `QuorumProposal`,
+  `QuorumVoteSolicitation`, `QuorumVote`, and `QuorumRoundState` so round-1 and
+  round-2 signatures are distinguishable on the same object.
+- **Non-double-signing refusal (`QuorumConflict`).** The typed "refused, resubmit"
+  reply naming the `contract`, the `at_head` state-point, and the
+  `existing_successor` already co-signed — one honest successor per state-point.
+- **Window refusal (`RejectionReason::OutsideTimeWindow`).** Appended last so a
+  peer's per-signer clock-gate refusal names its reason on the propose/solicit
+  reply path instead of collapsing to the generic `MalformedRequest`.
 
 ### Current authorization model
 

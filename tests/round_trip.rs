@@ -15,7 +15,8 @@ use signal_criome::{
     ComponentKind, ComponentRelease, Composition, CompositionDigest, ContentPurpose,
     ContentReference, Contract, ContractAdmissionRejected, ContractAdmissionRejectionReason,
     ContractAdmitted, ContractDigest, ContractFound, ContractMissing, ContractName,
-    ContractOperationHead, CriomeEvent, CriomeFrame as Frame, CriomeFrameBody as FrameBody,
+    ContractOperationHead, ContractParent, CriomeEvent, CriomeFrame as Frame,
+    CriomeFrameBody as FrameBody,
     CriomeReply, CriomeRequest, EscalationTarget, EvaluationDecision, EvaluationRejectionReason,
     Evidence, ExpiryAction, Identity, IdentityLookup, IdentityReceipt, IdentityRegistration,
     IdentityRevocation, IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken,
@@ -28,6 +29,8 @@ use signal_criome::{
     PrincipalStatus, PublicKeyFingerprint, QuorumProposal, QuorumRoundIdentifier, QuorumRoundState,
     QuorumRoundStatus, QuorumShortfall, QuorumVote, QuorumVoteSolicitation,
     RawSpiritOperationPayload, Rejection, RejectionReason, ReplayNonce, RequiredSignatureThreshold,
+    FoundingMember, FoundingSignature, GenesisDomainTag, NodePublicKey, NodePublicKeyObservation,
+    QuorumConflict, RootAnchorDigest, RootFoundingStatement, RootGenesis, RoundPhase,
     Rule, SignReceipt, SignRequest,
     SignalCallAuthorization, SignatureAuthorizationResult, SignatureEnvelope,
     SignatureRouteReceipt, SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute,
@@ -238,6 +241,7 @@ fn attested_moment_proposition() -> AttestedMomentProposition {
 fn quorum_proposal() -> QuorumProposal {
     QuorumProposal {
         round: quorum_round_identifier(),
+        phase: RoundPhase::Request,
         contract: contract_digest(),
         object: authorized_object_reference(),
         window: TimeWindow {
@@ -250,6 +254,7 @@ fn quorum_proposal() -> QuorumProposal {
 fn quorum_vote_solicitation() -> QuorumVoteSolicitation {
     QuorumVoteSolicitation {
         round: quorum_round_identifier(),
+        phase: RoundPhase::Request,
         contract: contract_digest(),
         object: authorized_object_reference(),
         proposition: attested_moment_proposition(),
@@ -260,6 +265,7 @@ fn quorum_vote_solicitation() -> QuorumVoteSolicitation {
 fn quorum_vote() -> QuorumVote {
     QuorumVote {
         round: quorum_round_identifier(),
+        phase: RoundPhase::Request,
         voter: host("mirror-beta"),
         operation_signature: envelope(),
         time_signature: envelope(),
@@ -269,6 +275,7 @@ fn quorum_vote() -> QuorumVote {
 fn quorum_round_state() -> QuorumRoundState {
     QuorumRoundState {
         round: quorum_round_identifier(),
+        phase: RoundPhase::Request,
         contract: contract_digest(),
         status: QuorumRoundStatus::Authorized,
         gathered: RequiredSignatureThreshold::new(2),
@@ -277,8 +284,39 @@ fn quorum_round_state() -> QuorumRoundState {
     }
 }
 
+fn quorum_conflict() -> QuorumConflict {
+    QuorumConflict::new(
+        contract_digest(),
+        ContractOperationHead::new("head-1"),
+        authorized_object_reference(),
+    )
+}
+
+fn node_public_key() -> NodePublicKey {
+    NodePublicKey::new(BlsPublicKey::new("node-master-pubkey"))
+}
+
+fn founding_member(name: &str) -> FoundingMember {
+    FoundingMember::new(host(name), BlsPublicKey::new(format!("{name}-master-pubkey")))
+}
+
+fn root_genesis() -> RootGenesis {
+    RootGenesis::new(
+        Contract::root(Rule::threshold(Threshold::new(
+            RequiredSignatureThreshold::new(2),
+            vec![
+                PolicyMember::key_member(host("mirror-alpha")),
+                PolicyMember::key_member(host("mirror-beta")),
+            ],
+        ))),
+        vec![founding_member("mirror-alpha"), founding_member("mirror-beta")],
+        GenesisDomainTag::CriomeRootFoundingV1,
+        ReplayNonce::new("genesis-nonce-1"),
+    )
+}
+
 fn policy_contract() -> Contract {
-    Contract::new(Rule::threshold(Threshold::new(
+    Contract::root(Rule::threshold(Threshold::new(
         RequiredSignatureThreshold::new(2),
         vec![
             PolicyMember::key_member(developer("operator")),
@@ -577,6 +615,7 @@ fn request_variants_round_trip_through_length_prefixed_frame() {
         CriomeRequest::ObserveQuorumRound(signal_criome::QuorumRoundQuery::new(
             quorum_round_identifier(),
         )),
+        CriomeRequest::ObserveNodePublicKey(NodePublicKeyObservation::new()),
     ];
 
     for request in requests {
@@ -618,6 +657,7 @@ fn request_variants_declare_contract_local_operation_heads() {
             "SolicitQuorumVote",
             "SubmitQuorumVote",
             "ObserveQuorumRound",
+            "ObserveNodePublicKey",
         ]
     );
 }
@@ -719,6 +759,8 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
         CriomeReply::QuorumVoteSolicited(quorum_round_state()),
         CriomeReply::QuorumVoteAccepted(quorum_round_state()),
         CriomeReply::QuorumRoundObserved(quorum_round_state()),
+        CriomeReply::NodePublicKey(node_public_key()),
+        CriomeReply::QuorumConflict(quorum_conflict()),
     ];
 
     for reply in replies {
@@ -884,7 +926,7 @@ fn intercept_policy_and_parked_spirit_request_model_round_trips() {
 
 #[test]
 fn workflow_guard_contract_round_trips_through_frame_and_nota() {
-    let contract = Contract::new(Rule::workflow(WorkflowGuard {
+    let contract = Contract::root(Rule::workflow(WorkflowGuard {
         workflow: workflow_digest(),
         executor: agent("guardian-runner"),
     }));
@@ -900,7 +942,7 @@ fn composition_rule_uses_content_addressed_children() {
         composition_digest("guardian-workflow-step"),
         composition_digest("psyche-escalation-step"),
     ]);
-    let contract = Contract::new(Rule::composition(composition.clone()));
+    let contract = Contract::root(Rule::composition(composition.clone()));
 
     assert_eq!(
         round_trip_request(CriomeRequest::AdmitContract(contract.clone())),
@@ -980,6 +1022,61 @@ fn root_reply_round_trips_through_nota_text() {
             None,
         )),
         "(VerificationResult (UnknownSigner None None))",
+    );
+}
+
+#[test]
+fn parent_link_and_root_founding_surfaces_round_trip() {
+    // The parent link re-digests the contract: a Root sentinel and a child from
+    // the same rule are different content addresses, and both survive the wire.
+    let root = Contract::root(Rule::EscalateToPsyche);
+    let child = Contract::child(Rule::EscalateToPsyche, contract_digest());
+    assert_eq!(root.parent(), &ContractParent::Root);
+    assert_ne!(
+        root.digest().expect("root digest"),
+        child.digest().expect("child digest"),
+        "the parent link must be part of the content address",
+    );
+    assert_nota_round_trip(root);
+    assert_nota_round_trip(child);
+
+    // The founding certificate: the anchor commits to the founding key-set, and
+    // the attached founding signature + its preimage statement round-trip.
+    let genesis = root_genesis();
+    assert_eq!(genesis.founding_keys().len(), 2);
+    let anchor = genesis.anchor().expect("anchor");
+    let statement =
+        RootFoundingStatement::new(anchor.clone(), GenesisDomainTag::CriomeRootFoundingV1);
+    statement.preimage_digest().expect("preimage digest");
+    assert_eq!(
+        GenesisDomainTag::CriomeRootFoundingV1.domain_separator(),
+        "CRIOME-ROOT-FOUNDING-V1",
+    );
+
+    assert_nota_round_trip(genesis);
+    assert_nota_round_trip(statement);
+    assert_nota_round_trip(FoundingSignature::new(host("mirror-alpha"), envelope()));
+    assert_nota_round_trip(anchor);
+    assert_nota_round_trip(RootAnchorDigest::from_bytes(b"anchor fixture"));
+
+    // Node public-key observation + the refusal reply.
+    assert_nota_round_trip(node_public_key());
+    assert_nota_round_trip(quorum_conflict());
+    assert_nota_round_trip(Rejection::new(RejectionReason::OutsideTimeWindow));
+}
+
+#[test]
+fn quorum_round_key_is_phase_aware() {
+    // Round 1 (Request) and round 2 (Commit) over the SAME object get distinct
+    // durable round keys, so their signatures are never interchangeable.
+    let object = operation_digest().object_digest().clone();
+    let request = QuorumRoundIdentifier::for_phase(&object, RoundPhase::Request);
+    let commit = QuorumRoundIdentifier::for_phase(&object, RoundPhase::Commit);
+    assert_ne!(request, commit);
+    assert_eq!(
+        QuorumRoundIdentifier::for_operation(&object),
+        request,
+        "for_operation is the round-1 (Request) convenience",
     );
 }
 

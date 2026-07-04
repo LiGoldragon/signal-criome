@@ -58,7 +58,7 @@
 (RejectAuthorization (authorization-request-1 (Developer reviewer) SignatureRejected))
 
 ;; CriomeRequest::AdmitContract
-(AdmitContract (Threshold (2 [(KeyMember (Developer operator)) (KeyMember (Developer reviewer))])))
+(AdmitContract ((Threshold (2 [(KeyMember (Developer operator)) (KeyMember (Developer reviewer))])) Root))
 
 ;; CriomeRequest::LookupContract
 (LookupContract contract-digest-1)
@@ -82,16 +82,19 @@
 (AuthorizationObservationRetraction authorization-request-1)
 
 ;; CriomeRequest::ProposeQuorumAuthorization
-(ProposeQuorumAuthorization (quorum-round-1 contract-digest-1 (Spirit operation-digest-1 Head) (10 20)))
+(ProposeQuorumAuthorization (quorum-round-1 Request contract-digest-1 (Spirit operation-digest-1 Head) (10 20)))
 
 ;; CriomeRequest::SolicitQuorumVote
-(SolicitQuorumVote (quorum-round-1 contract-digest-1 (Spirit operation-digest-1 Head) ((10 20) 2 [(Host mirror-alpha) (Host mirror-beta)]) (Host mirror-alpha)))
+(SolicitQuorumVote (quorum-round-1 Request contract-digest-1 (Spirit operation-digest-1 Head) ((10 20) 2 [(Host mirror-alpha) (Host mirror-beta)]) (Host mirror-alpha)))
 
 ;; CriomeRequest::SubmitQuorumVote
-(SubmitQuorumVote (quorum-round-1 (Host mirror-beta) (Bls12_381MinPk public-key-1 signature-1) (Bls12_381MinPk public-key-1 signature-1)))
+(SubmitQuorumVote (quorum-round-1 Request (Host mirror-beta) (Bls12_381MinPk public-key-1 signature-1) (Bls12_381MinPk public-key-1 signature-1)))
 
 ;; CriomeRequest::ObserveQuorumRound
 (ObserveQuorumRound quorum-round-1)
+
+;; CriomeRequest::ObserveNodePublicKey
+(ObserveNodePublicKey ())
 
 ;; ─── Replies ──────────────────────────────────────────────────────
 
@@ -141,7 +144,7 @@
 (ContractAdmitted contract-digest-1)
 
 ;; CriomeReply::ContractFound
-(ContractFound (contract-digest-1 (Threshold (2 [(KeyMember (Developer operator)) (KeyMember (Developer reviewer))]))))
+(ContractFound (contract-digest-1 ((Threshold (2 [(KeyMember (Developer operator)) (KeyMember (Developer reviewer))])) Root)))
 
 ;; CriomeReply::ContractMissing
 (ContractMissing contract-digest-1)
@@ -168,16 +171,22 @@
 (Rejection UnknownIdentity)
 
 ;; CriomeReply::QuorumRoundOpened
-(QuorumRoundOpened (quorum-round-1 contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
+(QuorumRoundOpened (quorum-round-1 Request contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
 
 ;; CriomeReply::QuorumVoteSolicited
-(QuorumVoteSolicited (quorum-round-1 contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
+(QuorumVoteSolicited (quorum-round-1 Request contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
 
 ;; CriomeReply::QuorumVoteAccepted
-(QuorumVoteAccepted (quorum-round-1 contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
+(QuorumVoteAccepted (quorum-round-1 Request contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
 
 ;; CriomeReply::QuorumRoundObserved
-(QuorumRoundObserved (quorum-round-1 contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
+(QuorumRoundObserved (quorum-round-1 Request contract-digest-1 Authorized 2 2 (Some (Spirit operation-digest-1 (((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) [((((10 20) 1 [(Developer timekeeper)]) [((Developer timekeeper) (Bls12_381MinPk public-key-1 signature-1))]) (Bls12_381MinPk public-key-1 signature-1))] [] [] []))))
+
+;; CriomeReply::NodePublicKey
+(NodePublicKey node-master-pubkey)
+
+;; CriomeReply::QuorumConflict
+(QuorumConflict (contract-digest-1 head-1 (Spirit operation-digest-1 Head)))
 
 ;; ─── Stream events on IdentityUpdateStream ────────────────────────
 

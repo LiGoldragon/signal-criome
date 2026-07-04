@@ -25,12 +25,13 @@ use signal_criome::{
     ContractMissing, ContractName, ContractOperationHead, CriomeEvent, CriomeReply, CriomeRequest,
     EvaluationDecision, EvaluationRejectionReason, Evidence, Identity, IdentityLookup,
     IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
-    IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, ObjectDigest,
+    IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, KeyPurpose, NodePublicKey,
+    NodePublicKeyObservation, ObjectDigest,
     OperationDigest, ParkedAuthorization, ParkedAuthorizationObservation,
     ParkedAuthorizationSnapshot, PolicyMember, PrincipalName, PrincipalStatus,
-    PublicKeyFingerprint, QuorumProposal, QuorumRoundIdentifier, QuorumRoundQuery, QuorumRoundState,
-    QuorumRoundStatus, QuorumShortfall, QuorumVote, QuorumVoteSolicitation, Rejection,
-    RejectionReason, ReplayNonce,
+    PublicKeyFingerprint, QuorumConflict, QuorumProposal, QuorumRoundIdentifier, QuorumRoundQuery,
+    QuorumRoundState, QuorumRoundStatus, QuorumShortfall, QuorumVote, QuorumVoteSolicitation,
+    Rejection, RejectionReason, ReplayNonce, RoundPhase,
     RequiredSignatureThreshold, Rule, SignReceipt, SignRequest, SignalCallAuthorization,
     SignatureAuthorizationResult, SignatureEnvelope, SignatureRouteReceipt, SignatureScheme,
     SignatureSolicitation, SignatureSolicitationRoute, SignatureSubmission,
@@ -181,13 +182,25 @@ fn attested_moment() -> AttestedMoment {
 }
 
 fn policy_contract() -> Contract {
-    Contract::new(Rule::threshold(Threshold::new(
+    Contract::root(Rule::threshold(Threshold::new(
         RequiredSignatureThreshold::new(2),
         vec![
             PolicyMember::key_member(Identity::Developer(PrincipalName::new("operator"))),
             PolicyMember::key_member(Identity::Developer(PrincipalName::new("reviewer"))),
         ],
     )))
+}
+
+fn node_public_key() -> NodePublicKey {
+    NodePublicKey::new(BlsPublicKey::new("node-master-pubkey"))
+}
+
+fn quorum_conflict() -> QuorumConflict {
+    QuorumConflict::new(
+        contract_digest(),
+        ContractOperationHead::new("head-1"),
+        authorized_object_reference(),
+    )
 }
 
 fn evidence() -> Evidence {
@@ -253,6 +266,7 @@ fn quorum_moment_proposition() -> AttestedMomentProposition {
 fn quorum_proposal() -> QuorumProposal {
     QuorumProposal {
         round: quorum_round_identifier(),
+        phase: RoundPhase::Request,
         contract: contract_digest(),
         object: authorized_object_reference(),
         window: TimeWindow {
@@ -265,6 +279,7 @@ fn quorum_proposal() -> QuorumProposal {
 fn quorum_vote_solicitation() -> QuorumVoteSolicitation {
     QuorumVoteSolicitation {
         round: quorum_round_identifier(),
+        phase: RoundPhase::Request,
         contract: contract_digest(),
         object: authorized_object_reference(),
         proposition: quorum_moment_proposition(),
@@ -275,6 +290,7 @@ fn quorum_vote_solicitation() -> QuorumVoteSolicitation {
 fn quorum_vote() -> QuorumVote {
     QuorumVote {
         round: quorum_round_identifier(),
+        phase: RoundPhase::Request,
         voter: Identity::Host(PrincipalName::new("mirror-beta")),
         operation_signature: envelope(),
         time_signature: envelope(),
@@ -284,6 +300,7 @@ fn quorum_vote() -> QuorumVote {
 fn quorum_round_state() -> QuorumRoundState {
     QuorumRoundState {
         round: quorum_round_identifier(),
+        phase: RoundPhase::Request,
         contract: contract_digest(),
         status: QuorumRoundStatus::Authorized,
         gathered: RequiredSignatureThreshold::new(2),
@@ -442,6 +459,9 @@ fn canonical_request_examples_round_trip() {
     round_trip(CriomeRequest::ObserveQuorumRound(QuorumRoundQuery::new(
         quorum_round_identifier(),
     )));
+    round_trip(CriomeRequest::ObserveNodePublicKey(
+        NodePublicKeyObservation::new(),
+    ));
 }
 
 #[test]
@@ -556,6 +576,8 @@ fn canonical_reply_examples_round_trip() {
     round_trip(CriomeReply::QuorumVoteSolicited(quorum_round_state()));
     round_trip(CriomeReply::QuorumVoteAccepted(quorum_round_state()));
     round_trip(CriomeReply::QuorumRoundObserved(quorum_round_state()));
+    round_trip(CriomeReply::NodePublicKey(node_public_key()));
+    round_trip(CriomeReply::QuorumConflict(quorum_conflict()));
 }
 
 #[test]

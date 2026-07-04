@@ -64,6 +64,7 @@ string_accessor!(
     RawSpiritOperationPayload,
     ParkedRequestIdentifier,
     QuorumRoundIdentifier,
+    RootAnchorDigest,
 );
 
 impl ObjectDigest {
@@ -98,15 +99,40 @@ impl OperationDigest {
 
 impl QuorumRoundIdentifier {
     /// Bind a quorum round to the fingerprint of the change it authorizes — the
-    /// content-addressed operation (object) digest. Deriving the round identifier
-    /// from the operation digest makes a round-id collision across two distinct
-    /// operations impossible by construction, so a second proposal can never
-    /// clobber an unrelated in-flight round (the liveness lever the security
-    /// audit flagged). The originator and each peer derive the SAME identifier
-    /// from the SAME object, and the criome ingress enforces the binding, so the
-    /// round key carries no free-form caller choice.
+    /// content-addressed operation (object) digest — AND to the round phase, so
+    /// round 1 (Request) and round 2 (Commit) over the SAME object occupy
+    /// distinct durable rounds and their signatures are never interchangeable.
+    /// Deriving the round identifier from the operation digest makes a round-id
+    /// collision across two distinct operations impossible by construction, so a
+    /// second proposal can never clobber an unrelated in-flight round (the
+    /// liveness lever the security audit flagged). The originator and each peer
+    /// derive the SAME identifier from the SAME object and phase, and the criome
+    /// ingress enforces the binding, so the round key carries no free-form caller
+    /// choice.
+    pub fn for_phase(operation: &ObjectDigest, phase: RoundPhase) -> Self {
+        Self::new(format!(
+            "quorum-round-{}-{}",
+            phase.as_str(),
+            operation.as_str()
+        ))
+    }
+
+    /// The round-1 (Request phase) key for `operation`. Convenience over
+    /// `for_phase(operation, RoundPhase::Request)` for the gather round and the
+    /// single-gather fallback path.
     pub fn for_operation(operation: &ObjectDigest) -> Self {
-        Self::new(format!("quorum-round-{}", operation.as_str()))
+        Self::for_phase(operation, RoundPhase::Request)
+    }
+}
+
+impl RoundPhase {
+    /// The canonical phase token woven into the phase-aware round key. Stable
+    /// wire text — both peers derive the same round identifier from it.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            RoundPhase::Request => "request",
+            RoundPhase::Commit => "commit",
+        }
     }
 }
 
@@ -157,6 +183,35 @@ impl AttestedMomentDigest {
 }
 
 impl Contract {
+    /// Build a Criome unit from its policy rule and its parent link. The
+    /// parent is provenance/authority derivation only — `Threshold::decide`
+    /// evaluation does not read it — so a fresh contract must still name
+    /// where it descends from: `ContractParent::Root` for a founded root,
+    /// `ContractParent::Parent(digest)` for a child.
+    pub fn new(rule: Rule, parent: ContractParent) -> Self {
+        Self { rule, parent }
+    }
+
+    /// A root Criome unit: its own origin, no parent. `Root` is a
+    /// distinguished sentinel, not a self-reference, so the digest never
+    /// depends on a digest of itself.
+    pub fn root(rule: Rule) -> Self {
+        Self::new(rule, ContractParent::Root)
+    }
+
+    /// A child Criome unit whose authority derives from `parent`.
+    pub fn child(rule: Rule, parent: ContractDigest) -> Self {
+        Self::new(rule, ContractParent::Parent(parent))
+    }
+
+    pub fn rule(&self) -> &Rule {
+        &self.rule
+    }
+
+    pub fn parent(&self) -> &ContractParent {
+        &self.parent
+    }
+
     pub fn digest(&self) -> Result<ContractDigest, ContractDigestError> {
         rkyv::to_bytes::<rkyv::rancor::Error>(self)
             .map(|bytes| ContractDigest::from_bytes(bytes.as_ref()))
@@ -795,6 +850,132 @@ impl DueContractChecksEvaluated {
     pub fn into_triggered(self) -> Vec<AuthorizedObjectUpdate> {
         self.into_payload()
     }
+}
+
+impl RootAnchorDigest {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        Self::new(ObjectDigest::from_bytes(bytes))
+    }
+
+    pub fn object_digest(&self) -> &ObjectDigest {
+        self.payload()
+    }
+}
+
+impl GenesisDomainTag {
+    /// The canonical domain-separation label the founding path is tagged with.
+    /// Kept in the shared contract so signer and verifier agree byte-for-byte;
+    /// a future scheme/curve split adds a variant rather than rewriting this.
+    pub fn domain_separator(&self) -> &'static str {
+        match self {
+            GenesisDomainTag::CriomeRootFoundingV1 => "CRIOME-ROOT-FOUNDING-V1",
+        }
+    }
+}
+
+impl FoundingMember {
+    pub fn new(identity: Identity, public_key: BlsPublicKey) -> Self {
+        Self {
+            identity,
+            public_key,
+        }
+    }
+}
+
+impl RootGenesis {
+    pub fn new(
+        root_contract: Contract,
+        founding_keys: Vec<FoundingMember>,
+        domain: GenesisDomainTag,
+        genesis_nonce: ReplayNonce,
+    ) -> Self {
+        Self {
+            root_contract,
+            founding_keys,
+            domain,
+            genesis_nonce,
+        }
+    }
+
+    pub fn founding_keys(&self) -> &[FoundingMember] {
+        self.founding_keys.as_slice()
+    }
+
+    /// The anchor every node bakes in: `blake3(rkyv(RootGenesis))`. Because the
+    /// ordered `founding_keys` are embedded, the anchor COMMITS to the founding
+    /// quorum's public keys — the self-certifying identity. Identity therefore
+    /// exists the instant the genesis is built; founding only accumulates the
+    /// attached signatures over it, it does not create identity.
+    pub fn anchor(&self) -> Result<RootAnchorDigest, RootFoundingDigestError> {
+        rkyv::to_bytes::<rkyv::rancor::Error>(self)
+            .map(|bytes| RootAnchorDigest::from_bytes(bytes.as_ref()))
+            .map_err(|_| RootFoundingDigestError::Encode)
+    }
+}
+
+impl FoundingSignature {
+    pub fn new(signer: Identity, envelope: SignatureEnvelope) -> Self {
+        Self { signer, envelope }
+    }
+}
+
+impl RootFoundingStatement {
+    pub fn new(anchor: RootAnchorDigest, domain: GenesisDomainTag) -> Self {
+        Self { anchor, domain }
+    }
+
+    /// The canonical preimage digest each founder's master key signs:
+    /// `blake3(rkyv(RootFoundingStatement))`. The statement carries the anchor
+    /// and the domain tag, so the signature is domain-separated and bound to the
+    /// exact cohort. Signatures ride ATTACHED to the anchor — this digest is
+    /// never folded back into the anchor hash.
+    pub fn preimage_digest(&self) -> Result<ObjectDigest, RootFoundingDigestError> {
+        rkyv::to_bytes::<rkyv::rancor::Error>(self)
+            .map(|bytes| ObjectDigest::from_bytes(bytes.as_ref()))
+            .map_err(|_| RootFoundingDigestError::Encode)
+    }
+}
+
+impl NodePublicKey {
+    pub fn public_key(&self) -> &BlsPublicKey {
+        self.payload()
+    }
+}
+
+impl NodePublicKeyObservation {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Default for NodePublicKeyObservation {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl QuorumConflict {
+    /// The typed "refused, resubmit" reply: this node already co-signed
+    /// `existing_successor` from `at_head` on `contract`, so a different
+    /// successor from the same head is refused (one honest successor per
+    /// state-point).
+    pub fn new(
+        contract: ContractDigest,
+        at_head: ContractOperationHead,
+        existing_successor: AuthorizedObjectReference,
+    ) -> Self {
+        Self {
+            contract,
+            at_head,
+            existing_successor,
+        }
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum RootFoundingDigestError {
+    #[error("failed to encode criome root-founding record before digesting it")]
+    Encode,
 }
 
 #[derive(Debug, thiserror::Error)]
