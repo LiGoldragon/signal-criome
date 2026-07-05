@@ -27,6 +27,14 @@ pub struct DaemonPath(String);
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ActorIdentifier(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PrincipalName(String);
 
 #[rustfmt::skip]
@@ -704,6 +712,29 @@ pub enum Identity {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct PeerActorRoute {
+    pub peer: Identity,
+    pub destination: ActorIdentifier,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RouterVoiceConfiguration {
+    pub router_socket_path: DaemonPath,
+    pub source_actor: ActorIdentifier,
+    pub peer_routes: Vec<PeerActorRoute>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CriomeDaemonConfiguration {
     pub socket_path: DaemonPath,
     pub store_path: DaemonPath,
@@ -711,6 +742,7 @@ pub struct CriomeDaemonConfiguration {
     pub cluster_root: Option<BlsPublicKey>,
     pub authorization_mode: AuthorizationMode,
     pub node_identity: Option<Identity>,
+    pub router_voice: Option<RouterVoiceConfiguration>,
 }
 
 #[rustfmt::skip]
@@ -2317,6 +2349,25 @@ impl DaemonPath {
 }
 #[rustfmt::skip]
 impl From<String> for DaemonPath {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ActorIdentifier {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for ActorIdentifier {
     fn from(payload: String) -> Self {
         Self::new(payload)
     }

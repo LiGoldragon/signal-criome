@@ -40,6 +40,7 @@ macro_rules! string_accessor {
 
 string_accessor!(
     DaemonPath,
+    ActorIdentifier,
     PrincipalName,
     PrincipalId,
     PublicKeyFingerprint,
@@ -298,6 +299,51 @@ impl RequiredSignatureThreshold {
     }
 }
 
+impl PeerActorRoute {
+    /// One peer member mapped to the router destination-actor its conveyance
+    /// is addressed to.
+    pub fn new(peer: Identity, destination: ActorIdentifier) -> Self {
+        Self { peer, destination }
+    }
+
+    pub fn peer(&self) -> &Identity {
+        &self.peer
+    }
+
+    pub fn destination(&self) -> &ActorIdentifier {
+        &self.destination
+    }
+}
+
+impl RouterVoiceConfiguration {
+    /// Arm the router-mediated production voice: the local router socket this
+    /// daemon originates conveyance over, the source actor it originates as,
+    /// and the peer-to-destination route table.
+    pub fn new(
+        router_socket_path: impl Into<String>,
+        source_actor: ActorIdentifier,
+        peer_routes: Vec<PeerActorRoute>,
+    ) -> Self {
+        Self {
+            router_socket_path: DaemonPath::new(router_socket_path.into()),
+            source_actor,
+            peer_routes,
+        }
+    }
+
+    pub fn router_socket_path(&self) -> &DaemonPath {
+        &self.router_socket_path
+    }
+
+    pub fn source_actor(&self) -> &ActorIdentifier {
+        &self.source_actor
+    }
+
+    pub fn peer_routes(&self) -> &[PeerActorRoute] {
+        self.peer_routes.as_slice()
+    }
+}
+
 impl CriomeDaemonConfiguration {
     pub fn new(socket_path: impl Into<String>, store_path: impl Into<String>) -> Self {
         Self {
@@ -307,6 +353,7 @@ impl CriomeDaemonConfiguration {
             cluster_root: None,
             authorization_mode: AuthorizationMode::Quorum,
             node_identity: None,
+            router_voice: None,
         }
     }
 
@@ -358,6 +405,19 @@ impl CriomeDaemonConfiguration {
 
     pub fn node_identity(&self) -> Option<&Identity> {
         self.node_identity.as_ref()
+    }
+
+    /// Arm the router-mediated production voice. Absent by default, in which
+    /// case the daemon stays on `SilentVoice` (single-node / unconfigured).
+    /// Present, the daemon originates quorum conveyance over the configured
+    /// router socket instead.
+    pub fn with_router_voice(mut self, router_voice: RouterVoiceConfiguration) -> Self {
+        self.router_voice = Some(router_voice);
+        self
+    }
+
+    pub fn router_voice(&self) -> Option<&RouterVoiceConfiguration> {
+        self.router_voice.as_ref()
     }
 
     pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, CriomeDaemonConfigurationArchiveError> {

@@ -70,6 +70,10 @@
  (FoundingConveyed FoundingConveyanceReceipt)]
 {
   DaemonPath String
+  ;; The router destination-actor identifier a peer's conveyance is addressed
+  ;; to (the criome-side twin of signal-router's own `ActorIdentifier`; kept
+  ;; local so signal-criome stays a self-contained vocabulary).
+  ActorIdentifier String
   PrincipalName String
   PrincipalId String
   PublicKeyFingerprint String
@@ -137,6 +141,25 @@
     (Cluster PrincipalName)
   ]
 
+  ;; One peer member mapped to the router destination-actor the local router
+  ;; resolves a remote route for. The wire twin of criome's in-memory
+  ;; `PeerActorRoute` (routing table entry); this one round-trips through the
+  ;; daemon configuration file.
+  PeerActorRoute {
+    peer.Identity
+    destination.ActorIdentifier
+  }
+
+  ;; Arms the non-silent, router-mediated production voice: when present, the
+  ;; daemon originates quorum conveyance over its local router instead of
+  ;; staying silent. Typed record, not a flag -- absence keeps the daemon on
+  ;; `SilentVoice`.
+  RouterVoiceConfiguration {
+    router_socket_path.DaemonPath
+    source_actor.ActorIdentifier
+    peer_routes.(Vector PeerActorRoute)
+  }
+
   CriomeDaemonConfiguration {
     socket_path.DaemonPath
     store_path.DaemonPath
@@ -144,6 +167,7 @@
     cluster_root.(Optional BlsPublicKey)
     AuthorizationMode
     node_identity.(Optional Identity)
+    router_voice.(Optional RouterVoiceConfiguration)
   }
 
   AuthorizationPolicySatisfaction {

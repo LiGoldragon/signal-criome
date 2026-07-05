@@ -1,7 +1,7 @@
 use nota::{NotaDecode, NotaEncode, NotaSource};
 use signal_criome::{
-    ActiveInterceptPolicies, ApprovalAuditSource, ArchiveAttestationRequest, Attestation,
-    AttestationReceipt, AttestedMoment, AttestedMomentProposition, AuditContext,
+    ActiveInterceptPolicies, ActorIdentifier, ApprovalAuditSource, ArchiveAttestationRequest,
+    Attestation, AttestationReceipt, AttestedMoment, AttestedMomentProposition, AuditContext,
     AuthorizationDenial, AuthorizationDenialReason, AuthorizationDenialSource, AuthorizationDenied,
     AuthorizationEvaluated, AuthorizationEvaluation, AuthorizationExpired, AuthorizationGrant,
     AuthorizationObservation, AuthorizationObservationRetracted, AuthorizationObservationSnapshot,
@@ -15,30 +15,30 @@ use signal_criome::{
     ComponentKind, ComponentRelease, Composition, CompositionDigest, ContentPurpose,
     ContentReference, Contract, ContractAdmissionRejected, ContractAdmissionRejectionReason,
     ContractAdmitted, ContractDigest, ContractFound, ContractMissing, ContractName,
-    ContractOperationHead, ContractParent, CriomeEvent, CriomeFrame as Frame,
-    CriomeFrameBody as FrameBody, CriomeReply, CriomeRequest, EscalationTarget, EvaluationDecision,
-    EvaluationRejectionReason, Evidence, ExpiryAction, FoundedRoot, FoundingConveyance,
-    FoundingConveyanceOutcome, FoundingConveyanceReceipt, FoundingMember, FoundingProposal,
-    FoundingSignature, FoundingSignatureReturn, GenesisDomainTag, Identity, IdentityLookup,
-    IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
-    IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate, InterceptPolicy,
-    InterceptPolicyIdentifier, InterceptPolicyProposal, InterceptPolicyWindow,
+    ContractOperationHead, ContractParent, CriomeDaemonConfiguration, CriomeEvent,
+    CriomeFrame as Frame, CriomeFrameBody as FrameBody, CriomeReply, CriomeRequest, DaemonPath,
+    EscalationTarget, EvaluationDecision, EvaluationRejectionReason, Evidence, ExpiryAction,
+    FoundedRoot, FoundingConveyance, FoundingConveyanceOutcome, FoundingConveyanceReceipt,
+    FoundingMember, FoundingProposal, FoundingSignature, FoundingSignatureReturn, GenesisDomainTag,
+    Identity, IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation,
+    IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate,
+    InterceptPolicy, InterceptPolicyIdentifier, InterceptPolicyProposal, InterceptPolicyWindow,
     InterceptTargetSelector, KeyPurpose, MentciSessionSlot, NodePublicKey,
     NodePublicKeyObservation, ObjectCoSignature, ObjectDigest, OperationDigest,
     ParkedAuthorization, ParkedAuthorizationObservation, ParkedAuthorizationSnapshot,
     ParkedRequestIdentifier, ParkedRequestOutcome, ParkedRequestResolution, ParkedRequestSnapshot,
-    ParkedSpiritRequest, PolicyDurationNanos, PolicyMember, PolicyOverlapMode, PolicyPriority,
-    PrincipalName, PrincipalStatus, PublicKeyFingerprint, QuorumConflict, QuorumProposal,
-    QuorumRoundIdentifier, QuorumRoundState, QuorumRoundStatus, QuorumShortfall, QuorumVote,
-    QuorumVoteSolicitation, RawSpiritOperationPayload, Rejection, RejectionReason, ReplayNonce,
-    RequiredSignatureThreshold, RootAnchorDigest, RootFoundingStatement, RootGenesis, RoundPhase,
-    Rule, SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
-    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
-    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
-    SpiritAuthorizationContext, SpiritOperationName, SpiritOperationNames, SpiritProcessKey,
-    StampedSignatureEnvelope, SubscriptionRetracted, Threshold, TimeSignature, TimeWindow,
-    TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest, WorkflowDigest,
-    WorkflowGuard, WorkflowProvenanceDigest, WorkflowReceipt,
+    ParkedSpiritRequest, PeerActorRoute, PolicyDurationNanos, PolicyMember, PolicyOverlapMode,
+    PolicyPriority, PrincipalName, PrincipalStatus, PublicKeyFingerprint, QuorumConflict,
+    QuorumProposal, QuorumRoundIdentifier, QuorumRoundState, QuorumRoundStatus, QuorumShortfall,
+    QuorumVote, QuorumVoteSolicitation, RawSpiritOperationPayload, Rejection, RejectionReason,
+    ReplayNonce, RequiredSignatureThreshold, RootAnchorDigest, RootFoundingStatement, RootGenesis,
+    RoundPhase, RouterVoiceConfiguration, Rule, SignReceipt, SignRequest, SignalCallAuthorization,
+    SignatureAuthorizationResult, SignatureEnvelope, SignatureRouteReceipt, SignatureScheme,
+    SignatureSolicitation, SignatureSolicitationRoute, SignatureSubmission,
+    SignatureSubmissionReceipt, SpiritAuthorizationContext, SpiritOperationName,
+    SpiritOperationNames, SpiritProcessKey, StampedSignatureEnvelope, SubscriptionRetracted,
+    Threshold, TimeSignature, TimeWindow, TimestampNanos, VerificationDecision, VerificationResult,
+    VerifyRequest, WorkflowDigest, WorkflowGuard, WorkflowProvenanceDigest, WorkflowReceipt,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -1047,6 +1047,34 @@ fn co_signature_expectation_tracks_expected_and_observed_peer_signers() {
     );
     assert_eq!(expectation.observed_signers(), &[cluster("local")]);
     assert_nota_round_trip(expectation);
+}
+
+/// `RouterVoiceConfiguration` arms the non-silent, router-mediated production
+/// voice on `CriomeDaemonConfiguration` (primary-79z1.21, Slice C). Absent, the
+/// daemon stays on `SilentVoice`; present, `from_configuration` reads exactly
+/// this record back out. Proves the accessor-projected route table and the
+/// whole configuration round-trip through NOTA text unchanged.
+#[test]
+fn router_voice_configuration_arms_the_daemon_configuration() {
+    let route = PeerActorRoute::new(host("node-b"), ActorIdentifier::new("criome-b-inbox"));
+    let router_voice = RouterVoiceConfiguration::new(
+        "/run/criome/router.sock",
+        ActorIdentifier::new("criome-a-outbox"),
+        vec![route.clone()],
+    );
+
+    assert_eq!(
+        router_voice.router_socket_path(),
+        &DaemonPath::new("/run/criome/router.sock")
+    );
+    assert_eq!(router_voice.peer_routes(), &[route]);
+
+    let configuration =
+        CriomeDaemonConfiguration::new("/run/criome/criome.sock", "/var/lib/criome")
+            .with_router_voice(router_voice.clone());
+    assert_eq!(configuration.router_voice(), Some(&router_voice));
+
+    assert_nota_round_trip(configuration);
 }
 
 #[test]
