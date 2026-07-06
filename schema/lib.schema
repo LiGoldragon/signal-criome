@@ -123,7 +123,7 @@
   ParkedRequestDecision [Approve Reject]
   ParkedRequestOutcome [Approved Rejected LeftParked]
   ApprovalAuditSource [Manual Automatic]
-  RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration OutsideTimeWindow]
+  RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration OutsideTimeWindow SelfLoopSuccessor ForgedVote StaleVote]
   ComponentKind [Spirit Criome Router Mirror Lojix Persona Agent]
   ContractAdmissionRejectionReason [
     (DanglingReference ContractDigest)

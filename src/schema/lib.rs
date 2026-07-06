@@ -658,6 +658,9 @@ pub enum RejectionReason {
     ReplayAttempted,
     UnauthorizedRegistration,
     OutsideTimeWindow,
+    SelfLoopSuccessor,
+    ForgedVote,
+    StaleVote,
 }
 
 #[rustfmt::skip]
