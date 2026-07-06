@@ -723,7 +723,7 @@ pub struct PeerActorRoute {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct RouterVoiceConfiguration {
+pub struct RouterSubmissionConfiguration {
     pub router_socket_path: DaemonPath,
     pub source_actor: ActorIdentifier,
     pub peer_routes: Vec<PeerActorRoute>,
@@ -742,7 +742,7 @@ pub struct CriomeDaemonConfiguration {
     pub cluster_root: Option<BlsPublicKey>,
     pub authorization_mode: AuthorizationMode,
     pub node_identity: Option<Identity>,
-    pub router_voice: Option<RouterVoiceConfiguration>,
+    pub router_submission: Option<RouterSubmissionConfiguration>,
 }
 
 #[rustfmt::skip]

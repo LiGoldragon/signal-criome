@@ -150,11 +150,10 @@
     destination.ActorIdentifier
   }
 
-  ;; Arms the non-silent, router-mediated production voice: when present, the
-  ;; daemon originates quorum conveyance over its local router instead of
-  ;; staying silent. Typed record, not a flag -- absence keeps the daemon on
-  ;; `SilentVoice`.
-  RouterVoiceConfiguration {
+  ;; Criome's router submission path: when present, the daemon conveys peer
+  ;; requests over its local router instead of conveying nothing. Typed
+  ;; record, not a flag -- absence keeps the daemon on `NoConveyance`.
+  RouterSubmissionConfiguration {
     router_socket_path.DaemonPath
     source_actor.ActorIdentifier
     peer_routes.(Vector PeerActorRoute)
@@ -167,7 +166,7 @@
     cluster_root.(Optional BlsPublicKey)
     AuthorizationMode
     node_identity.(Optional Identity)
-    router_voice.(Optional RouterVoiceConfiguration)
+    router_submission.(Optional RouterSubmissionConfiguration)
   }
 
   AuthorizationPolicySatisfaction {
@@ -232,7 +231,7 @@
     domain.GenesisDomainTag
   }
 
-  ;; ─── Founding conveyance (node-to-node, over the router voice) ─────
+  ;; ─── Founding conveyance (node-to-node, over the router) ───────────
   ;;
   ;; The wire that lets a multi-node cohort assemble a UNANIMOUS root
   ;; across peers' working sockets. `ConveyFounding` carries one of three
@@ -894,7 +893,7 @@
   ;;
   ;; The contract-quorum path. An originating node's criome proposes an
   ;; operation under an admitted Threshold contract, self-votes, solicits
-  ;; each peer member's vote across the router (the voice), collects the
+  ;; each peer member's vote across the router, collects the
   ;; stamped BLS signatures, and feeds them to the existing majority-judge
   ;; (Evidence + evaluate_authorization). A round is WITHHELD (Gathering)
   ;; until a true majority co-sign; only then does it carry an Authorized
@@ -924,7 +923,7 @@
     window.TimeWindow
   }
 
-  ;; Solicit (originator → peer, across the voice): the proposal the peer
+  ;; Solicit (originator → peer, across the peer conveyance): the proposal the peer
   ;; criome independently re-validates before casting vote #2. It carries
   ;; the shared moment proposition so every member signs the same moment,
   ;; and the originator identity so the peer routes its vote back.
@@ -937,7 +936,7 @@
     originator.Identity
   }
 
-  ;; Vote (peer → originator, across the voice): one member's two BLS
+  ;; Vote (peer → originator, across the peer conveyance): one member's two BLS
   ;; signatures — over the operation statement and over the moment. The
   ;; originator wraps these into the assembled Evidence.
   QuorumVote {

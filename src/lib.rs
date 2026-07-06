@@ -315,8 +315,8 @@ impl PeerActorRoute {
     }
 }
 
-impl RouterVoiceConfiguration {
-    /// Arm the router-mediated production voice: the local router socket this
+impl RouterSubmissionConfiguration {
+    /// Configure criome's router submission path: the local router socket this
     /// daemon originates conveyance over, the source actor it originates as,
     /// and the peer-to-destination route table.
     pub fn new(
@@ -353,7 +353,7 @@ impl CriomeDaemonConfiguration {
             cluster_root: None,
             authorization_mode: AuthorizationMode::Quorum,
             node_identity: None,
-            router_voice: None,
+            router_submission: None,
         }
     }
 
@@ -407,17 +407,20 @@ impl CriomeDaemonConfiguration {
         self.node_identity.as_ref()
     }
 
-    /// Arm the router-mediated production voice. Absent by default, in which
-    /// case the daemon stays on `SilentVoice` (single-node / unconfigured).
-    /// Present, the daemon originates quorum conveyance over the configured
-    /// router socket instead.
-    pub fn with_router_voice(mut self, router_voice: RouterVoiceConfiguration) -> Self {
-        self.router_voice = Some(router_voice);
+    /// Configure criome's router submission path. Absent by default, in which
+    /// case the daemon stays on `NoConveyance` (single-node / unconfigured).
+    /// Present, the daemon conveys peer requests over the configured router
+    /// socket instead.
+    pub fn with_router_submission(
+        mut self,
+        router_submission: RouterSubmissionConfiguration,
+    ) -> Self {
+        self.router_submission = Some(router_submission);
         self
     }
 
-    pub fn router_voice(&self) -> Option<&RouterVoiceConfiguration> {
-        self.router_voice.as_ref()
+    pub fn router_submission(&self) -> Option<&RouterSubmissionConfiguration> {
+        self.router_submission.as_ref()
     }
 
     pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, CriomeDaemonConfigurationArchiveError> {

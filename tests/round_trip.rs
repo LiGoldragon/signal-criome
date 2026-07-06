@@ -32,13 +32,14 @@ use signal_criome::{
     QuorumProposal, QuorumRoundIdentifier, QuorumRoundState, QuorumRoundStatus, QuorumShortfall,
     QuorumVote, QuorumVoteSolicitation, RawSpiritOperationPayload, Rejection, RejectionReason,
     ReplayNonce, RequiredSignatureThreshold, RootAnchorDigest, RootFoundingStatement, RootGenesis,
-    RoundPhase, RouterVoiceConfiguration, Rule, SignReceipt, SignRequest, SignalCallAuthorization,
-    SignatureAuthorizationResult, SignatureEnvelope, SignatureRouteReceipt, SignatureScheme,
-    SignatureSolicitation, SignatureSolicitationRoute, SignatureSubmission,
-    SignatureSubmissionReceipt, SpiritAuthorizationContext, SpiritOperationName,
-    SpiritOperationNames, SpiritProcessKey, StampedSignatureEnvelope, SubscriptionRetracted,
-    Threshold, TimeSignature, TimeWindow, TimestampNanos, VerificationDecision, VerificationResult,
-    VerifyRequest, WorkflowDigest, WorkflowGuard, WorkflowProvenanceDigest, WorkflowReceipt,
+    RoundPhase, RouterSubmissionConfiguration, Rule, SignReceipt, SignRequest,
+    SignalCallAuthorization, SignatureAuthorizationResult, SignatureEnvelope,
+    SignatureRouteReceipt, SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute,
+    SignatureSubmission, SignatureSubmissionReceipt, SpiritAuthorizationContext,
+    SpiritOperationName, SpiritOperationNames, SpiritProcessKey, StampedSignatureEnvelope,
+    SubscriptionRetracted, Threshold, TimeSignature, TimeWindow, TimestampNanos,
+    VerificationDecision, VerificationResult, VerifyRequest, WorkflowDigest, WorkflowGuard,
+    WorkflowProvenanceDigest, WorkflowReceipt,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
@@ -1049,30 +1050,30 @@ fn co_signature_expectation_tracks_expected_and_observed_peer_signers() {
     assert_nota_round_trip(expectation);
 }
 
-/// `RouterVoiceConfiguration` arms the non-silent, router-mediated production
-/// voice on `CriomeDaemonConfiguration` (primary-79z1.21, Slice C). Absent, the
-/// daemon stays on `SilentVoice`; present, `from_configuration` reads exactly
-/// this record back out. Proves the accessor-projected route table and the
-/// whole configuration round-trip through NOTA text unchanged.
+/// `RouterSubmissionConfiguration` selects criome's router submission path on
+/// `CriomeDaemonConfiguration` (primary-79z1.21, Slice C). Absent, the daemon
+/// stays on `NoConveyance`; present, `from_configuration` reads exactly this
+/// record back out. Proves the accessor-projected route table and the whole
+/// configuration round-trip through NOTA text unchanged.
 #[test]
-fn router_voice_configuration_arms_the_daemon_configuration() {
+fn router_submission_configuration_selects_the_daemon_router_path() {
     let route = PeerActorRoute::new(host("node-b"), ActorIdentifier::new("criome-b-inbox"));
-    let router_voice = RouterVoiceConfiguration::new(
+    let router_submission = RouterSubmissionConfiguration::new(
         "/run/criome/router.sock",
         ActorIdentifier::new("criome-a-outbox"),
         vec![route.clone()],
     );
 
     assert_eq!(
-        router_voice.router_socket_path(),
+        router_submission.router_socket_path(),
         &DaemonPath::new("/run/criome/router.sock")
     );
-    assert_eq!(router_voice.peer_routes(), &[route]);
+    assert_eq!(router_submission.peer_routes(), &[route]);
 
     let configuration =
         CriomeDaemonConfiguration::new("/run/criome/criome.sock", "/var/lib/criome")
-            .with_router_voice(router_voice.clone());
-    assert_eq!(configuration.router_voice(), Some(&router_voice));
+            .with_router_submission(router_submission.clone());
+    assert_eq!(configuration.router_submission(), Some(&router_submission));
 
     assert_nota_round_trip(configuration);
 }

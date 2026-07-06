@@ -177,8 +177,8 @@ escalation-to-approve prompt.
 `ProposeQuorumAuthorization` / `SolicitQuorumVote` / `SubmitQuorumVote` /
 `ObserveQuorumRound` are the gathered-quorum path: the vocabulary by which an
 originating node's criome proposes an operation under an admitted `Threshold`
-contract, self-votes, solicits each peer member's vote across the router (the
-voice, as opaque routed objects), collects the stamped BLS signatures, and feeds
+contract, self-votes, solicits each peer member's vote across the router (as
+opaque routed objects), collects the stamped BLS signatures, and feeds
 them to the existing majority-judge. A `QuorumProposal` names the contract
 digest, the `AuthorizedObjectReference` being authorized, and the attested-moment
 `TimeWindow`; a `QuorumVoteSolicitation` carries the shared
