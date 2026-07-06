@@ -354,6 +354,7 @@ impl CriomeDaemonConfiguration {
             authorization_mode: AuthorizationMode::Quorum,
             node_identity: None,
             router_submission: None,
+            quorum_window: None,
         }
     }
 
@@ -421,6 +422,18 @@ impl CriomeDaemonConfiguration {
 
     pub fn router_submission(&self) -> Option<&RouterSubmissionConfiguration> {
         self.router_submission.as_ref()
+    }
+
+    /// Set the owner-configured cluster authorization window: how long one
+    /// quorum authorization (both commit rounds plus the catch-up case) may
+    /// take before it expires fail-closed. Absent, the daemon default applies.
+    pub fn with_quorum_window(mut self, quorum_window: QuorumWindowNanos) -> Self {
+        self.quorum_window = Some(quorum_window);
+        self
+    }
+
+    pub fn quorum_window(&self) -> Option<&QuorumWindowNanos> {
+        self.quorum_window.as_ref()
     }
 
     pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, CriomeDaemonConfigurationArchiveError> {
@@ -600,24 +613,24 @@ impl Attestation {
 
 impl SignalCallAuthorization {
     pub fn new(
-        request_digest: ObjectDigest,
-        contract: ContractName,
-        operation: ContractOperationHead,
-        scope: AuthorizationScope,
+        object: AuthorizedObjectReference,
         requester: Identity,
         nonce: ReplayNonce,
         expires_at: Option<TimestampNanos>,
     ) -> Self {
         Self {
-            request_digest,
-            contract,
-            operation,
-            scope,
+            object,
             requester,
             nonce,
             signal_call_expires_at: expires_at,
             spirit_context: None,
         }
+    }
+
+    /// The digest of the typed object this ask names — the request's binding
+    /// fingerprint (formerly the standalone `request_digest` field).
+    pub fn request_digest(&self) -> &ObjectDigest {
+        &self.object.digest
     }
 
     pub fn expires_at(&self) -> Option<TimestampNanos> {
@@ -638,10 +651,7 @@ impl AuthorizationGrant {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         request_slot: AuthorizationRequestSlot,
-        authorized_object_digest: ObjectDigest,
-        authorized_contract: ContractName,
-        authorized_operation: ContractOperationHead,
-        authorization_scope: AuthorizationScope,
+        authorized_object: AuthorizedObjectReference,
         policy_satisfaction: AuthorizationPolicySatisfaction,
         signature_result: SignatureAuthorizationResult,
         signatures: Vec<StampedSignatureEnvelope>,
@@ -651,10 +661,7 @@ impl AuthorizationGrant {
     ) -> Self {
         Self {
             request_slot,
-            authorized_object_digest,
-            authorized_contract,
-            authorized_operation,
-            authorization_scope,
+            authorized_object,
             policy_satisfaction,
             signature_result,
             authorization_grant_signatures: signatures,
@@ -662,6 +669,12 @@ impl AuthorizationGrant {
             issued_at,
             authorization_grant_expires_at: expires_at,
         }
+    }
+
+    /// The digest of the typed object this grant authorizes (formerly the
+    /// standalone `authorized_object_digest` field).
+    pub fn authorized_object_digest(&self) -> &ObjectDigest {
+        &self.authorized_object.digest
     }
 
     pub fn signatures(&self) -> &[StampedSignatureEnvelope] {
@@ -711,6 +724,7 @@ impl AuthorizationStateRecord {
             denial,
             parked_evaluation: None,
             signal_authorization: None,
+            granted_evidence: None,
         }
     }
 
@@ -722,6 +736,18 @@ impl AuthorizationStateRecord {
     pub fn with_signal_authorization(mut self, authorization: SignalCallAuthorization) -> Self {
         self.signal_authorization = Some(authorization);
         self
+    }
+
+    /// Attach the cluster-authorization hand-off: the operational contract,
+    /// the authorized object, and the assembled quorum Evidence a receiving
+    /// node later re-judges.
+    pub fn with_granted_evidence(mut self, evidence: AuthorizationEvaluation) -> Self {
+        self.granted_evidence = Some(evidence);
+        self
+    }
+
+    pub fn granted_evidence(&self) -> Option<&AuthorizationEvaluation> {
+        self.granted_evidence.as_ref()
     }
 
     pub fn missing_authorities(&self) -> &[Identity] {

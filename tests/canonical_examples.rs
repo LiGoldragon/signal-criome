@@ -117,10 +117,11 @@ fn authorization_scope() -> AuthorizationScope {
 fn authorization_grant() -> AuthorizationGrant {
     AuthorizationGrant::new(
         authorization_request_slot(),
-        ObjectDigest::new("digest-lojix-request"),
-        contract_name(),
-        contract_operation_head(),
-        authorization_scope(),
+        AuthorizedObjectReference {
+            component: ComponentKind::Lojix,
+            digest: ObjectDigest::new("digest-lojix-request"),
+            kind: AuthorizedObjectKind::Operation,
+        },
         AuthorizationPolicySatisfaction::new(
             AuthorizationPolicyClass::ComplexQuorum,
             RequiredSignatureThreshold::new(1),
@@ -439,10 +440,11 @@ fn canonical_request_examples_round_trip() {
     ));
     round_trip(CriomeRequest::AuthorizeSignalCall(
         SignalCallAuthorization::new(
-            ObjectDigest::new("digest-lojix-request"),
-            contract_name(),
-            contract_operation_head(),
-            authorization_scope(),
+            AuthorizedObjectReference {
+                component: ComponentKind::Lojix,
+                digest: ObjectDigest::new("digest-lojix-request"),
+                kind: AuthorizedObjectKind::Operation,
+            },
             alice(),
             ReplayNonce::new("authorization-nonce-1"),
             None,

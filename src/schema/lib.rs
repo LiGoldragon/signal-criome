@@ -259,6 +259,14 @@ pub struct PolicyDurationNanos(Integer);
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct QuorumWindowNanos(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PolicyPriority(Integer);
 
 #[rustfmt::skip]
@@ -743,6 +751,7 @@ pub struct CriomeDaemonConfiguration {
     pub authorization_mode: AuthorizationMode,
     pub node_identity: Option<Identity>,
     pub router_submission: Option<RouterSubmissionConfiguration>,
+    pub quorum_window: Option<QuorumWindowNanos>,
 }
 
 #[rustfmt::skip]
@@ -1686,10 +1695,7 @@ pub struct SignedPersonaRequest {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignalCallAuthorization {
-    pub request_digest: ObjectDigest,
-    pub contract: ContractName,
-    pub operation: ContractOperationHead,
-    pub scope: AuthorizationScope,
+    pub object: AuthorizedObjectReference,
     pub requester: Identity,
     pub nonce: ReplayNonce,
     pub signal_call_expires_at: Option<TimestampNanos>,
@@ -1774,10 +1780,7 @@ pub struct AuthorizationRejection {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationGrant {
     pub request_slot: AuthorizationRequestSlot,
-    pub authorized_object_digest: ObjectDigest,
-    pub authorized_contract: ContractName,
-    pub authorized_operation: ContractOperationHead,
-    pub authorization_scope: AuthorizationScope,
+    pub authorized_object: AuthorizedObjectReference,
     pub policy_satisfaction: AuthorizationPolicySatisfaction,
     pub signature_result: SignatureAuthorizationResult,
     pub authorization_grant_signatures: Vec<StampedSignatureEnvelope>,
@@ -1855,6 +1858,7 @@ pub struct AuthorizationStateRecord {
     pub denial: Option<AuthorizationDenial>,
     pub parked_evaluation: Option<AuthorizationEvaluation>,
     pub signal_authorization: Option<SignalCallAuthorization>,
+    pub granted_evidence: Option<AuthorizationEvaluation>,
 }
 
 #[rustfmt::skip]
@@ -2900,6 +2904,25 @@ impl PolicyDurationNanos {
 }
 #[rustfmt::skip]
 impl From<Integer> for PolicyDurationNanos {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl QuorumWindowNanos {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for QuorumWindowNanos {
     fn from(payload: Integer) -> Self {
         Self::new(payload)
     }

@@ -102,6 +102,7 @@
   ParkedRequestIdentifier String
   TimestampNanos Integer
   PolicyDurationNanos Integer
+  QuorumWindowNanos Integer
   PolicyPriority Integer
   RequiredSignatureThreshold Integer
   CompositionThreshold Integer
@@ -159,6 +160,10 @@
     peer_routes.(Vector PeerActorRoute)
   }
 
+  ;; `quorum_window` is the owner-configured duration of one cluster
+  ;; authorization window (both commit rounds plus network round-trips, and
+  ;; the catch-up case that chains two proposals). Absent, the daemon uses
+  ;; its built-in default — tens of seconds live, seconds in tests.
   CriomeDaemonConfiguration {
     socket_path.DaemonPath
     store_path.DaemonPath
@@ -167,6 +172,7 @@
     AuthorizationMode
     node_identity.(Optional Identity)
     router_submission.(Optional RouterSubmissionConfiguration)
+    quorum_window.(Optional QuorumWindowNanos)
   }
 
   AuthorizationPolicySatisfaction {
@@ -666,11 +672,13 @@
     envelope.SignatureEnvelope
   }
 
+  ;; The authorization ask: the typed authorized-object reference (component
+  ;; and kind are closed enums, the digest names the object) plus requester
+  ;; identity, replay nonce, and optional expiry. The former contract-name /
+  ;; operation / scope string trio is retired: an identifier of a fixed set is
+  ;; an enum, and the object reference already carries the full typed shape.
   SignalCallAuthorization {
-    request_digest.ObjectDigest
-    contract.ContractName
-    operation.ContractOperationHead
-    scope.AuthorizationScope
+    object.AuthorizedObjectReference
     requester.Identity
     nonce.ReplayNonce
     signal_call_expires_at.(Optional TimestampNanos)
@@ -713,12 +721,13 @@
     reason.AuthorizationDenialReason
   }
 
+  ;; The grant binds the request slot to the typed authorized object it
+  ;; authorizes (the string contract/operation/scope trio is retired with the
+  ;; ask's). The BLS grant signatures sign the V2 grant statement over these
+  ;; fields.
   AuthorizationGrant {
     request_slot.AuthorizationRequestSlot
-    authorized_object_digest.ObjectDigest
-    authorized_contract.ContractName
-    authorized_operation.ContractOperationHead
-    AuthorizationScope
+    authorized_object.AuthorizedObjectReference
     policy_satisfaction.AuthorizationPolicySatisfaction
     signature_result.SignatureAuthorizationResult
     authorization_grant_signatures.(Vec StampedSignatureEnvelope)
@@ -753,6 +762,11 @@
     reason.PrincipalName
   }
 
+  ;; `granted_evidence` is the cluster-authorization hand-off: on a
+  ;; quorum-granted state it carries the operational contract digest, the
+  ;; authorized object, and the assembled quorum Evidence — exactly the
+  ;; carried authorization a receiving node later re-judges through
+  ;; EvaluateAuthorization. Absent on non-quorum grants.
   AuthorizationStateRecord {
     request_slot.AuthorizationRequestSlot
     request_digest.ObjectDigest
@@ -762,6 +776,7 @@
     denial.(Optional AuthorizationDenial)
     parked_evaluation.(Optional AuthorizationEvaluation)
     signal_authorization.(Optional SignalCallAuthorization)
+    granted_evidence.(Optional AuthorizationEvaluation)
   }
 
   AuthorizationObservationSnapshot {

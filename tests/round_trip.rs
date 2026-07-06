@@ -30,7 +30,8 @@ use signal_criome::{
     ParkedSpiritRequest, PeerActorRoute, PolicyDurationNanos, PolicyMember, PolicyOverlapMode,
     PolicyPriority, PrincipalName, PrincipalStatus, PublicKeyFingerprint, QuorumConflict,
     QuorumProposal, QuorumRoundIdentifier, QuorumRoundState, QuorumRoundStatus, QuorumShortfall,
-    QuorumVote, QuorumVoteSolicitation, RawSpiritOperationPayload, Rejection, RejectionReason,
+    QuorumVote, QuorumVoteSolicitation, QuorumWindowNanos, RawSpiritOperationPayload, Rejection,
+    RejectionReason,
     ReplayNonce, RequiredSignatureThreshold, RootAnchorDigest, RootFoundingStatement, RootGenesis,
     RoundPhase, RouterSubmissionConfiguration, Rule, SignReceipt, SignRequest,
     SignalCallAuthorization, SignatureAuthorizationResult, SignatureEnvelope,
@@ -125,12 +126,17 @@ fn contract_operation_head() -> ContractOperationHead {
     ContractOperationHead::new("Deploy")
 }
 
+fn authorized_request_object() -> AuthorizedObjectReference {
+    AuthorizedObjectReference {
+        component: ComponentKind::Lojix,
+        digest: ObjectDigest::from_bytes(b"signal-lojix request"),
+        kind: AuthorizedObjectKind::Operation,
+    }
+}
+
 fn signal_call_authorization() -> SignalCallAuthorization {
     SignalCallAuthorization::new(
-        ObjectDigest::from_bytes(b"signal-lojix request"),
-        contract_name(),
-        contract_operation_head(),
-        authorization_scope(),
+        authorized_request_object(),
         developer("operator"),
         ReplayNonce::new("authorization-nonce-1"),
         Some(TimestampNanos::new(10)),
@@ -144,10 +150,7 @@ fn authorization_observation_token() -> AuthorizationObservationToken {
 fn authorization_grant() -> AuthorizationGrant {
     AuthorizationGrant::new(
         authorization_request_slot(),
-        ObjectDigest::from_bytes(b"signal-lojix request"),
-        contract_name(),
-        contract_operation_head(),
-        authorization_scope(),
+        authorized_request_object(),
         AuthorizationPolicySatisfaction::new(
             AuthorizationPolicyClass::ComplexQuorum,
             RequiredSignatureThreshold::new(1),
@@ -1075,6 +1078,30 @@ fn router_submission_configuration_selects_the_daemon_router_path() {
             .with_router_submission(router_submission.clone());
     assert_eq!(configuration.router_submission(), Some(&router_submission));
 
+    assert_nota_round_trip(configuration);
+}
+
+/// The cluster-authorization surfaces of the 0.9 line: a quorum-granted
+/// `AuthorizationStateRecord` carries its `granted_evidence` hand-off (the
+/// operational contract digest, the authorized object, and the assembled
+/// quorum Evidence a receiving node later re-judges), and the daemon
+/// configuration carries the owner-configured `quorum_window`. Both survive
+/// the wire unchanged.
+#[test]
+fn cluster_authorization_surfaces_round_trip() {
+    let granted = authorization_state(AuthorizationStatus::Granted)
+        .with_granted_evidence(authorization_evaluation());
+    assert_eq!(
+        granted.granted_evidence(),
+        Some(&authorization_evaluation())
+    );
+    assert_nota_round_trip(granted);
+
+    let quorum_window = QuorumWindowNanos::new(8_000_000_000);
+    let configuration =
+        CriomeDaemonConfiguration::new("/run/criome/criome.sock", "/var/lib/criome")
+            .with_quorum_window(quorum_window.clone());
+    assert_eq!(configuration.quorum_window(), Some(&quorum_window));
     assert_nota_round_trip(configuration);
 }
 
