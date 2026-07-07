@@ -190,7 +190,10 @@ impl Contract {
     /// where it descends from: `ContractParent::Root` for a founded root,
     /// `ContractParent::Parent(digest)` for a child.
     pub fn new(rule: Rule, parent: ContractParent) -> Self {
-        Self { rule, parent }
+        Self {
+            rule,
+            contract_parent: parent,
+        }
     }
 
     /// A root Criome unit: its own origin, no parent. `Root` is a
@@ -209,8 +212,8 @@ impl Contract {
         &self.rule
     }
 
-    pub fn parent(&self) -> &ContractParent {
-        &self.parent
+    pub fn contract_parent(&self) -> &ContractParent {
+        &self.contract_parent
     }
 
     pub fn digest(&self) -> Result<ContractDigest, ContractDigestError> {
@@ -303,15 +306,18 @@ impl PeerActorRoute {
     /// One peer member mapped to the router destination-actor its conveyance
     /// is addressed to.
     pub fn new(peer: Identity, destination: ActorIdentifier) -> Self {
-        Self { peer, destination }
+        Self {
+            identity: peer,
+            actor_identifier: destination,
+        }
     }
 
-    pub fn peer(&self) -> &Identity {
-        &self.peer
+    pub fn identity(&self) -> &Identity {
+        &self.identity
     }
 
-    pub fn destination(&self) -> &ActorIdentifier {
-        &self.destination
+    pub fn actor_identifier(&self) -> &ActorIdentifier {
+        &self.actor_identifier
     }
 }
 
@@ -325,22 +331,22 @@ impl RouterSubmissionConfiguration {
         peer_routes: Vec<PeerActorRoute>,
     ) -> Self {
         Self {
-            router_socket_path: DaemonPath::new(router_socket_path.into()),
-            source_actor,
-            peer_routes,
+            daemon_path: DaemonPath::new(router_socket_path.into()),
+            actor_identifier: source_actor,
+            peer_actor_route_vector: peer_routes,
         }
     }
 
-    pub fn router_socket_path(&self) -> &DaemonPath {
-        &self.router_socket_path
+    pub fn daemon_path(&self) -> &DaemonPath {
+        &self.daemon_path
     }
 
-    pub fn source_actor(&self) -> &ActorIdentifier {
-        &self.source_actor
+    pub fn actor_identifier(&self) -> &ActorIdentifier {
+        &self.actor_identifier
     }
 
-    pub fn peer_routes(&self) -> &[PeerActorRoute] {
-        self.peer_routes.as_slice()
+    pub fn peer_actor_route_vector(&self) -> &[PeerActorRoute] {
+        self.peer_actor_route_vector.as_slice()
     }
 }
 
@@ -349,12 +355,12 @@ impl CriomeDaemonConfiguration {
         Self {
             socket_path: DaemonPath::new(socket_path.into()),
             store_path: DaemonPath::new(store_path.into()),
-            meta_socket_path: None,
-            cluster_root: None,
+            optional_daemon_path: None,
+            optional_bls_public_key: None,
             authorization_mode: AuthorizationMode::Quorum,
-            node_identity: None,
-            router_submission: None,
-            quorum_window: None,
+            optional_identity: None,
+            optional_router_submission_configuration: None,
+            optional_quorum_window_nanos: None,
         }
     }
 
@@ -374,23 +380,23 @@ impl CriomeDaemonConfiguration {
     /// Set the private meta socket used by local user-owned approval/configuration
     /// clients such as Mentci.
     pub fn with_meta_socket_path(mut self, meta_socket_path: impl Into<String>) -> Self {
-        self.meta_socket_path = Some(DaemonPath::new(meta_socket_path.into()));
+        self.optional_daemon_path = Some(DaemonPath::new(meta_socket_path.into()));
         self
     }
 
-    pub fn meta_socket_path(&self) -> Option<&DaemonPath> {
-        self.meta_socket_path.as_ref()
+    pub fn optional_daemon_path(&self) -> Option<&DaemonPath> {
+        self.optional_daemon_path.as_ref()
     }
 
     /// Set the cluster-root trust anchor (the public key whose signature admits
     /// keys into the registry). Absent by default for dev/virgin bootstrap.
     pub fn with_cluster_root(mut self, cluster_root: BlsPublicKey) -> Self {
-        self.cluster_root = Some(cluster_root);
+        self.optional_bls_public_key = Some(cluster_root);
         self
     }
 
-    pub fn cluster_root(&self) -> Option<&BlsPublicKey> {
-        self.cluster_root.as_ref()
+    pub fn optional_bls_public_key(&self) -> Option<&BlsPublicKey> {
+        self.optional_bls_public_key.as_ref()
     }
 
     /// Set the identity this criome signs attestations as. Absent by default,
@@ -400,12 +406,12 @@ impl CriomeDaemonConfiguration {
     /// node's public key under that identity can verify its attestations, while
     /// an unregistered identity is refused fail-closed.
     pub fn with_node_identity(mut self, node_identity: Identity) -> Self {
-        self.node_identity = Some(node_identity);
+        self.optional_identity = Some(node_identity);
         self
     }
 
-    pub fn node_identity(&self) -> Option<&Identity> {
-        self.node_identity.as_ref()
+    pub fn optional_identity(&self) -> Option<&Identity> {
+        self.optional_identity.as_ref()
     }
 
     /// Configure criome's router submission path. Absent by default, in which
@@ -416,24 +422,26 @@ impl CriomeDaemonConfiguration {
         mut self,
         router_submission: RouterSubmissionConfiguration,
     ) -> Self {
-        self.router_submission = Some(router_submission);
+        self.optional_router_submission_configuration = Some(router_submission);
         self
     }
 
-    pub fn router_submission(&self) -> Option<&RouterSubmissionConfiguration> {
-        self.router_submission.as_ref()
+    pub fn optional_router_submission_configuration(
+        &self,
+    ) -> Option<&RouterSubmissionConfiguration> {
+        self.optional_router_submission_configuration.as_ref()
     }
 
     /// Set the owner-configured cluster authorization window: how long one
     /// quorum authorization (both commit rounds plus the catch-up case) may
     /// take before it expires fail-closed. Absent, the daemon default applies.
     pub fn with_quorum_window(mut self, quorum_window: QuorumWindowNanos) -> Self {
-        self.quorum_window = Some(quorum_window);
+        self.optional_quorum_window_nanos = Some(quorum_window);
         self
     }
 
-    pub fn quorum_window(&self) -> Option<&QuorumWindowNanos> {
-        self.quorum_window.as_ref()
+    pub fn optional_quorum_window_nanos(&self) -> Option<&QuorumWindowNanos> {
+        self.optional_quorum_window_nanos.as_ref()
     }
 
     pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, CriomeDaemonConfigurationArchiveError> {
@@ -455,14 +463,14 @@ impl AuthorizationPolicySatisfaction {
         satisfied_signers: Vec<Identity>,
     ) -> Self {
         Self {
-            policy_class,
+            authorization_policy_class: policy_class,
             required_signature_threshold,
-            satisfied_signers,
+            vec_identity: satisfied_signers,
         }
     }
 
-    pub fn satisfied_signers(&self) -> &[Identity] {
-        self.satisfied_signers.as_slice()
+    pub fn vec_identity(&self) -> &[Identity] {
+        self.vec_identity.as_slice()
     }
 }
 
@@ -472,13 +480,13 @@ impl Threshold {
         members: Vec<PolicyMember>,
     ) -> Self {
         Self {
-            required_signatures,
-            members,
+            required_signature_threshold: required_signatures,
+            policy_member_vector: members,
         }
     }
 
-    pub fn members(&self) -> &[PolicyMember] {
-        self.members.as_slice()
+    pub fn policy_member_vector(&self) -> &[PolicyMember] {
+        self.policy_member_vector.as_slice()
     }
 }
 
@@ -489,14 +497,14 @@ impl AttestedMomentProposition {
         authorities: Vec<Identity>,
     ) -> Self {
         Self {
-            window,
-            required_signatures,
-            authorities,
+            time_window: window,
+            required_signature_threshold: required_signatures,
+            identity_vector: authorities,
         }
     }
 
-    pub fn authorities(&self) -> &[Identity] {
-        self.authorities.as_slice()
+    pub fn identity_vector(&self) -> &[Identity] {
+        self.identity_vector.as_slice()
     }
 }
 
@@ -506,13 +514,13 @@ impl AttestedMoment {
         time_signatures: Vec<TimeSignature>,
     ) -> Self {
         Self {
-            proposition,
-            time_signatures,
+            attested_moment_proposition: proposition,
+            time_signature_vector: time_signatures,
         }
     }
 
     pub fn signatures(&self) -> &[TimeSignature] {
-        self.time_signatures.as_slice()
+        self.time_signature_vector.as_slice()
     }
 }
 
@@ -525,18 +533,18 @@ impl Evidence {
         agreements: Vec<AgreementFact>,
     ) -> Self {
         Self {
-            component,
-            operation,
-            stamp,
-            evidence_signatures,
-            agreements,
-            workflow_receipts: Vec::new(),
-            object_co_signatures: Vec::new(),
+            component_kind: component,
+            operation_digest: operation,
+            attested_moment: stamp,
+            stamped_signature_envelope_vector: evidence_signatures,
+            agreement_fact_vector: agreements,
+            workflow_receipt_vector: Vec::new(),
+            object_co_signature_vector: Vec::new(),
         }
     }
 
     pub fn with_workflow_receipts(mut self, workflow_receipts: Vec<WorkflowReceipt>) -> Self {
-        self.workflow_receipts = workflow_receipts;
+        self.workflow_receipt_vector = workflow_receipts;
         self
     }
 
@@ -544,24 +552,24 @@ impl Evidence {
         mut self,
         object_co_signatures: Vec<ObjectCoSignature>,
     ) -> Self {
-        self.object_co_signatures = object_co_signatures;
+        self.object_co_signature_vector = object_co_signatures;
         self
     }
 
     pub fn signatures(&self) -> &[StampedSignatureEnvelope] {
-        self.evidence_signatures.as_slice()
+        self.stamped_signature_envelope_vector.as_slice()
     }
 
-    pub fn agreements(&self) -> &[AgreementFact] {
-        self.agreements.as_slice()
+    pub fn agreement_fact_vector(&self) -> &[AgreementFact] {
+        self.agreement_fact_vector.as_slice()
     }
 
-    pub fn workflow_receipts(&self) -> &[WorkflowReceipt] {
-        self.workflow_receipts.as_slice()
+    pub fn workflow_receipt_vector(&self) -> &[WorkflowReceipt] {
+        self.workflow_receipt_vector.as_slice()
     }
 
-    pub fn object_co_signatures(&self) -> &[ObjectCoSignature] {
-        self.object_co_signatures.as_slice()
+    pub fn object_co_signature_vector(&self) -> &[ObjectCoSignature] {
+        self.object_co_signature_vector.as_slice()
     }
 }
 
@@ -572,7 +580,7 @@ impl CoSignatureExpectation {
         observed_signers: Vec<Identity>,
     ) -> Self {
         Self {
-            object,
+            authorized_object_reference: object,
             expected_signers,
             observed_signers,
         }
@@ -597,17 +605,17 @@ impl Attestation {
         audit_context: AuditContext,
     ) -> Self {
         Self {
-            content,
-            signer,
-            envelope,
-            issued_at,
-            attestation_expires_at: expires_at,
+            content_reference: content,
+            identity: signer,
+            signature_envelope: envelope,
+            timestamp_nanos: issued_at,
+            optional_timestamp_nanos: expires_at,
             audit_context,
         }
     }
 
     pub fn expires_at(&self) -> Option<TimestampNanos> {
-        self.attestation_expires_at
+        self.optional_timestamp_nanos
     }
 }
 
@@ -619,31 +627,31 @@ impl SignalCallAuthorization {
         expires_at: Option<TimestampNanos>,
     ) -> Self {
         Self {
-            object,
-            requester,
-            nonce,
-            signal_call_expires_at: expires_at,
-            spirit_context: None,
+            authorized_object_reference: object,
+            identity: requester,
+            replay_nonce: nonce,
+            optional_timestamp_nanos: expires_at,
+            optional_spirit_authorization_context: None,
         }
     }
 
     /// The digest of the typed object this ask names — the request's binding
     /// fingerprint (formerly the standalone `request_digest` field).
     pub fn request_digest(&self) -> &ObjectDigest {
-        &self.object.digest
+        &self.authorized_object_reference.object_digest
     }
 
     pub fn expires_at(&self) -> Option<TimestampNanos> {
-        self.signal_call_expires_at
+        self.optional_timestamp_nanos
     }
 
     pub fn with_spirit_context(mut self, context: SpiritAuthorizationContext) -> Self {
-        self.spirit_context = Some(context);
+        self.optional_spirit_authorization_context = Some(context);
         self
     }
 
-    pub fn spirit_context(&self) -> Option<&SpiritAuthorizationContext> {
-        self.spirit_context.as_ref()
+    pub fn optional_spirit_authorization_context(&self) -> Option<&SpiritAuthorizationContext> {
+        self.optional_spirit_authorization_context.as_ref()
     }
 }
 
@@ -660,29 +668,29 @@ impl AuthorizationGrant {
         expires_at: Option<TimestampNanos>,
     ) -> Self {
         Self {
-            request_slot,
-            authorized_object,
-            policy_satisfaction,
-            signature_result,
-            authorization_grant_signatures: signatures,
-            issued_by,
-            issued_at,
-            authorization_grant_expires_at: expires_at,
+            authorization_request_slot: request_slot,
+            authorized_object_reference: authorized_object,
+            authorization_policy_satisfaction: policy_satisfaction,
+            signature_authorization_result: signature_result,
+            vec_stamped_signature_envelope: signatures,
+            identity: issued_by,
+            timestamp_nanos: issued_at,
+            optional_timestamp_nanos: expires_at,
         }
     }
 
     /// The digest of the typed object this grant authorizes (formerly the
     /// standalone `authorized_object_digest` field).
     pub fn authorized_object_digest(&self) -> &ObjectDigest {
-        &self.authorized_object.digest
+        &self.authorized_object_reference.object_digest
     }
 
     pub fn signatures(&self) -> &[StampedSignatureEnvelope] {
-        self.authorization_grant_signatures.as_slice()
+        self.vec_stamped_signature_envelope.as_slice()
     }
 
     pub fn expires_at(&self) -> Option<TimestampNanos> {
-        self.authorization_grant_expires_at
+        self.optional_timestamp_nanos
     }
 }
 
@@ -694,15 +702,15 @@ impl AuthorizationPending {
         observation_token: AuthorizationObservationToken,
     ) -> Self {
         Self {
-            request_slot,
-            request_digest,
-            pending_missing_authorities: missing_authorities,
-            observation_token,
+            authorization_request_slot: request_slot,
+            object_digest: request_digest,
+            vec_identity: missing_authorities,
+            authorization_observation_token: observation_token,
         }
     }
 
     pub fn missing_authorities(&self) -> &[Identity] {
-        self.pending_missing_authorities.as_slice()
+        self.vec_identity.as_slice()
     }
 }
 
@@ -716,14 +724,14 @@ impl AuthorizationStateRecord {
         denial: Option<AuthorizationDenial>,
     ) -> Self {
         Self {
-            request_slot,
-            request_digest,
-            status,
-            state_missing_authorities: missing_authorities,
-            grant,
-            denial,
+            authorization_request_slot: request_slot,
+            object_digest: request_digest,
+            authorization_status: status,
+            vec_identity: missing_authorities,
+            optional_authorization_grant: grant,
+            optional_authorization_denial: denial,
             parked_evaluation: None,
-            signal_authorization: None,
+            optional_signal_call_authorization: None,
             granted_evidence: None,
         }
     }
@@ -734,7 +742,7 @@ impl AuthorizationStateRecord {
     }
 
     pub fn with_signal_authorization(mut self, authorization: SignalCallAuthorization) -> Self {
-        self.signal_authorization = Some(authorization);
+        self.optional_signal_call_authorization = Some(authorization);
         self
     }
 
@@ -751,23 +759,23 @@ impl AuthorizationStateRecord {
     }
 
     pub fn missing_authorities(&self) -> &[Identity] {
-        self.state_missing_authorities.as_slice()
+        self.vec_identity.as_slice()
     }
 
-    pub fn grant(&self) -> Option<&AuthorizationGrant> {
-        self.grant.as_ref()
+    pub fn optional_authorization_grant(&self) -> Option<&AuthorizationGrant> {
+        self.optional_authorization_grant.as_ref()
     }
 
-    pub fn denial(&self) -> Option<&AuthorizationDenial> {
-        self.denial.as_ref()
+    pub fn optional_authorization_denial(&self) -> Option<&AuthorizationDenial> {
+        self.optional_authorization_denial.as_ref()
     }
 
     pub fn parked_evaluation(&self) -> Option<&AuthorizationEvaluation> {
         self.parked_evaluation.as_ref()
     }
 
-    pub fn signal_authorization(&self) -> Option<&SignalCallAuthorization> {
-        self.signal_authorization.as_ref()
+    pub fn optional_signal_call_authorization(&self) -> Option<&SignalCallAuthorization> {
+        self.optional_signal_call_authorization.as_ref()
     }
 }
 
@@ -789,9 +797,9 @@ impl ParkedAuthorization {
         evaluation: AuthorizationEvaluation,
     ) -> Self {
         Self {
-            request_slot,
-            parked_authorization_evaluation: Some(evaluation),
-            parked_signal_authorization: None,
+            authorization_request_slot: request_slot,
+            optional_authorization_evaluation: Some(evaluation),
+            optional_signal_call_authorization: None,
         }
     }
 
@@ -800,18 +808,18 @@ impl ParkedAuthorization {
         authorization: SignalCallAuthorization,
     ) -> Self {
         Self {
-            request_slot,
-            parked_authorization_evaluation: None,
-            parked_signal_authorization: Some(authorization),
+            authorization_request_slot: request_slot,
+            optional_authorization_evaluation: None,
+            optional_signal_call_authorization: Some(authorization),
         }
     }
 
     pub fn evaluation(&self) -> Option<&AuthorizationEvaluation> {
-        self.parked_authorization_evaluation.as_ref()
+        self.optional_authorization_evaluation.as_ref()
     }
 
     pub fn signal_authorization(&self) -> Option<&SignalCallAuthorization> {
-        self.parked_signal_authorization.as_ref()
+        self.optional_signal_call_authorization.as_ref()
     }
 }
 
@@ -837,15 +845,15 @@ impl SignRequest {
         expires_at: Option<TimestampNanos>,
     ) -> Self {
         Self {
-            content,
-            signer,
+            content_reference: content,
+            identity: signer,
             audit_context,
-            sign_request_expires_at: expires_at,
+            optional_timestamp_nanos: expires_at,
         }
     }
 
     pub fn expires_at(&self) -> Option<TimestampNanos> {
-        self.sign_request_expires_at
+        self.optional_timestamp_nanos
     }
 }
 
@@ -859,15 +867,15 @@ impl IdentityRegistration {
     ) -> Self {
         Self {
             identity,
-            public_key,
-            fingerprint,
-            purpose,
-            admission,
+            bls_public_key: public_key,
+            public_key_fingerprint: fingerprint,
+            key_purpose: purpose,
+            optional_signature_envelope: admission,
         }
     }
 
-    pub fn admission(&self) -> Option<&SignatureEnvelope> {
-        self.admission.as_ref()
+    pub fn optional_signature_envelope(&self) -> Option<&SignatureEnvelope> {
+        self.optional_signature_envelope.as_ref()
     }
 }
 
@@ -878,9 +886,9 @@ impl VerificationResult {
         expires_at: Option<TimestampNanos>,
     ) -> Self {
         Self {
-            decision,
-            verified_identity: identity,
-            verification_expires_at: expires_at,
+            verification_decision: decision,
+            optional_identity: identity,
+            optional_timestamp_nanos: expires_at,
         }
     }
 }
@@ -966,7 +974,7 @@ impl FoundingMember {
     pub fn new(identity: Identity, public_key: BlsPublicKey) -> Self {
         Self {
             identity,
-            public_key,
+            bls_public_key: public_key,
         }
     }
 }
@@ -979,15 +987,15 @@ impl RootGenesis {
         genesis_nonce: ReplayNonce,
     ) -> Self {
         Self {
-            root_contract,
-            founding_keys,
-            domain,
-            genesis_nonce,
+            contract: root_contract,
+            founding_member_vector: founding_keys,
+            genesis_domain_tag: domain,
+            replay_nonce: genesis_nonce,
         }
     }
 
-    pub fn founding_keys(&self) -> &[FoundingMember] {
-        self.founding_keys.as_slice()
+    pub fn founding_member_vector(&self) -> &[FoundingMember] {
+        self.founding_member_vector.as_slice()
     }
 
     /// The anchor every node bakes in: `blake3(rkyv(RootGenesis))`. Because the
@@ -1004,13 +1012,19 @@ impl RootGenesis {
 
 impl FoundingSignature {
     pub fn new(signer: Identity, envelope: SignatureEnvelope) -> Self {
-        Self { signer, envelope }
+        Self {
+            identity: signer,
+            signature_envelope: envelope,
+        }
     }
 }
 
 impl RootFoundingStatement {
     pub fn new(anchor: RootAnchorDigest, domain: GenesisDomainTag) -> Self {
-        Self { anchor, domain }
+        Self {
+            root_anchor_digest: anchor,
+            genesis_domain_tag: domain,
+        }
     }
 
     /// The canonical preimage digest each founder's master key signs:
@@ -1054,9 +1068,9 @@ impl QuorumConflict {
         existing_successor: AuthorizedObjectReference,
     ) -> Self {
         Self {
-            contract,
-            at_head,
-            existing_successor,
+            contract_digest: contract,
+            contract_operation_head: at_head,
+            authorized_object_reference: existing_successor,
         }
     }
 }

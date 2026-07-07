@@ -147,17 +147,17 @@
   ;; `PeerActorRoute` (routing table entry); this one round-trips through the
   ;; daemon configuration file.
   PeerActorRoute {
-    peer.Identity
-    destination.ActorIdentifier
+    Identity
+    ActorIdentifier
   }
 
   ;; Criome's router submission path: when present, the daemon conveys peer
   ;; requests over its local router instead of conveying nothing. Typed
   ;; record, not a flag -- absence keeps the daemon on `NoConveyance`.
   RouterSubmissionConfiguration {
-    router_socket_path.DaemonPath
-    source_actor.ActorIdentifier
-    peer_routes.(Vector PeerActorRoute)
+    DaemonPath
+    ActorIdentifier
+    (Vector PeerActorRoute)
   }
 
   ;; `quorum_window` is the owner-configured duration of one cluster
@@ -167,18 +167,18 @@
   CriomeDaemonConfiguration {
     socket_path.DaemonPath
     store_path.DaemonPath
-    meta_socket_path.(Optional DaemonPath)
-    cluster_root.(Optional BlsPublicKey)
+    (Optional DaemonPath)
+    (Optional BlsPublicKey)
     AuthorizationMode
-    node_identity.(Optional Identity)
-    router_submission.(Optional RouterSubmissionConfiguration)
-    quorum_window.(Optional QuorumWindowNanos)
+    (Optional Identity)
+    (Optional RouterSubmissionConfiguration)
+    (Optional QuorumWindowNanos)
   }
 
   AuthorizationPolicySatisfaction {
-    policy_class.AuthorizationPolicyClass
+    AuthorizationPolicyClass
     RequiredSignatureThreshold
-    satisfied_signers.(Vec Identity)
+    (Vec Identity)
   }
 
   ;; ─── The Criome unit, its parent link, and the founded root ───────
@@ -197,7 +197,7 @@
 
   Contract {
     Rule
-    parent.ContractParent
+    ContractParent
   }
 
   ;; ─── Root founding certificate (attached, scheme-tagged signatures) ─
@@ -217,24 +217,24 @@
 
   FoundingMember {
     Identity
-    public_key.BlsPublicKey
+    BlsPublicKey
   }
 
   RootGenesis {
-    root_contract.Contract
-    founding_keys.(Vector FoundingMember)
-    domain.GenesisDomainTag
-    genesis_nonce.ReplayNonce
+    Contract
+    (Vector FoundingMember)
+    GenesisDomainTag
+    ReplayNonce
   }
 
   FoundingSignature {
-    signer.Identity
-    envelope.SignatureEnvelope
+    Identity
+    SignatureEnvelope
   }
 
   RootFoundingStatement {
-    anchor.RootAnchorDigest
-    domain.GenesisDomainTag
+    RootAnchorDigest
+    GenesisDomainTag
   }
 
   ;; ─── Founding conveyance (node-to-node, over the router) ───────────
@@ -254,18 +254,18 @@
   ;;   Founded    initiator → peer: the finished unanimous root, so every
   ;;              cohort node verifies and persists the SAME anchor.
   FoundingProposal {
-    genesis.RootGenesis
-    initiator.Identity
+    RootGenesis
+    Identity
   }
 
   FoundingSignatureReturn {
-    anchor.RootAnchorDigest
-    signature.FoundingSignature
+    RootAnchorDigest
+    FoundingSignature
   }
 
   FoundedRoot {
-    genesis.RootGenesis
-    signatures.(Vector FoundingSignature)
+    RootGenesis
+    (Vector FoundingSignature)
   }
 
   FoundingConveyance [
@@ -286,8 +286,8 @@
   ]
 
   FoundingConveyanceReceipt {
-    anchor.RootAnchorDigest
-    outcome.FoundingConveyanceOutcome
+    RootAnchorDigest
+    FoundingConveyanceOutcome
   }
 
   ;; ─── Node public-key observation (public socket) ──────────────────
@@ -297,7 +297,7 @@
   NodePublicKeyObservation { }
 
   NodePublicKey {
-    public_key.BlsPublicKey
+    BlsPublicKey
   }
 
   Rule [
@@ -315,8 +315,8 @@
   ]
 
   WorkflowGuard {
-    workflow.WorkflowDigest
-    executor.Identity
+    WorkflowDigest
+    Identity
   }
 
   Composition [
@@ -334,17 +334,17 @@
   ]
 
   Threshold {
-    required_signatures.RequiredSignatureThreshold
-    members.(Vector PolicyMember)
+    RequiredSignatureThreshold
+    (Vector PolicyMember)
   }
 
   TimedRule {
-    boundary.TimestampNanos
-    signed_by.Identity
+    TimestampNanos
+    Identity
   }
 
   TimeSwitch {
-    boundary.TimestampNanos
+    TimestampNanos
     before.Threshold
     after.Threshold
   }
@@ -352,14 +352,14 @@
   AgreementRule {
     divergence.ObjectDigest
     resolution.ObjectDigest
-    resolver.Identity
+    Identity
   }
 
   AgreementFact {
     divergence.ObjectDigest
     resolution.ObjectDigest
-    resolver.Identity
-    signature.StampedSignatureEnvelope
+    Identity
+    StampedSignatureEnvelope
   }
 
   TimeWindow {
@@ -372,7 +372,7 @@
   ;; later design surface; criome meta-socket possession is the MVP authority
   ;; boundary for policy mutation.
   InterceptTargetSelector {
-    process_key.SpiritProcessKey
+    SpiritProcessKey
   }
 
   InterceptPolicyWindow {
@@ -381,23 +381,23 @@
   }
 
   InterceptPolicyProposal {
-    session_slot.MentciSessionSlot
-    target.InterceptTargetSelector
+    MentciSessionSlot
+    InterceptTargetSelector
     SpiritOperationNames
-    duration.PolicyDurationNanos
+    PolicyDurationNanos
     ExpiryAction
-    priority.PolicyPriority
-    overlap_mode.PolicyOverlapMode
+    PolicyPriority
+    PolicyOverlapMode
   }
 
   InterceptPolicy {
-    identifier.InterceptPolicyIdentifier
-    session_slot.MentciSessionSlot
-    target.InterceptTargetSelector
+    InterceptPolicyIdentifier
+    MentciSessionSlot
+    InterceptTargetSelector
     SpiritOperationNames
-    window.InterceptPolicyWindow
+    InterceptPolicyWindow
     ExpiryAction
-    priority.PolicyPriority
+    PolicyPriority
   }
 
   InterceptPolicies (Vector InterceptPolicy)
@@ -406,28 +406,28 @@
   }
 
   InterceptPolicyCancellation {
-    identifier.InterceptPolicyIdentifier
+    InterceptPolicyIdentifier
   }
 
   SpiritAuthorizationContext {
-    operation_name.SpiritOperationName
-    raw_payload.RawSpiritOperationPayload
-    target_key.SpiritProcessKey
+    SpiritOperationName
+    RawSpiritOperationPayload
+    SpiritProcessKey
   }
 
   ParkedSpiritRequest {
-    identifier.ParkedRequestIdentifier
-    matched_policy.InterceptPolicyIdentifier
-    session_slot.MentciSessionSlot
-    context.SpiritAuthorizationContext
+    ParkedRequestIdentifier
+    InterceptPolicyIdentifier
+    MentciSessionSlot
+    SpiritAuthorizationContext
     parked_at.TimestampNanos
     expires_at.TimestampNanos
     ExpiryAction
   }
 
   ParkedRequestQuery {
-    session_slot.(Optional MentciSessionSlot)
-    target.(Optional InterceptTargetSelector)
+    (Optional MentciSessionSlot)
+    (Optional InterceptTargetSelector)
   }
 
   ParkedSpiritRequests (Vector ParkedSpiritRequest)
@@ -436,66 +436,66 @@
   }
 
   ParkedRequestAnswer {
-    identifier.ParkedRequestIdentifier
-    decision.ParkedRequestDecision
+    ParkedRequestIdentifier
+    ParkedRequestDecision
   }
 
   ParkedRequestResolution {
-    identifier.ParkedRequestIdentifier
-    matched_policy.InterceptPolicyIdentifier
-    outcome.ParkedRequestOutcome
-    audit_source.ApprovalAuditSource
-    resolved_at.TimestampNanos
+    ParkedRequestIdentifier
+    InterceptPolicyIdentifier
+    ParkedRequestOutcome
+    ApprovalAuditSource
+    TimestampNanos
   }
 
   AttestedMomentProposition {
-    window.TimeWindow
-    required_signatures.RequiredSignatureThreshold
-    authorities.(Vector Identity)
+    TimeWindow
+    RequiredSignatureThreshold
+    (Vector Identity)
   }
 
   TimeSignature {
-    signer.Identity
-    envelope.SignatureEnvelope
+    Identity
+    SignatureEnvelope
   }
 
   AttestedMoment {
-    proposition.AttestedMomentProposition
-    time_signatures.(Vector TimeSignature)
+    AttestedMomentProposition
+    (Vector TimeSignature)
   }
 
   Evidence {
-    component.ComponentKind
-    operation.OperationDigest
-    stamp.AttestedMoment
-    evidence_signatures.(Vector StampedSignatureEnvelope)
-    agreements.(Vector AgreementFact)
-    workflow_receipts.(Vector WorkflowReceipt)
-    object_co_signatures.(Vector ObjectCoSignature)
+    ComponentKind
+    OperationDigest
+    AttestedMoment
+    (Vector StampedSignatureEnvelope)
+    (Vector AgreementFact)
+    (Vector WorkflowReceipt)
+    (Vector ObjectCoSignature)
   }
 
   WorkflowReceipt {
-    workflow.WorkflowDigest
-    operation.OperationDigest
-    outcome.EvaluationDecision
-    provenance.WorkflowProvenanceDigest
+    WorkflowDigest
+    OperationDigest
+    EvaluationDecision
+    WorkflowProvenanceDigest
   }
 
   ObjectCoSignature {
-    object.AuthorizedObjectReference
-    signer.Identity
-    signature.StampedSignatureEnvelope
+    AuthorizedObjectReference
+    Identity
+    StampedSignatureEnvelope
   }
 
   CoSignatureExpectation {
-    object.AuthorizedObjectReference
+    AuthorizedObjectReference
     expected_signers.(Vector Identity)
     observed_signers.(Vector Identity)
   }
 
   AuthorizationEvaluation {
-    contract.ContractDigest
-    object.AuthorizedObjectReference
+    ContractDigest
+    AuthorizedObjectReference
     Evidence
   }
 
@@ -524,8 +524,8 @@
   AuthorizedObjectKind [Operation Contract Agreement Time Head]
 
   ComponentObjectInterest {
-    component.ComponentKind
-    kind.AuthorizedObjectKind
+    ComponentKind
+    AuthorizedObjectKind
   }
 
   AuthorizedObjectInterest [
@@ -536,9 +536,9 @@
   ]
 
   AuthorizedObjectReference {
-    component.ComponentKind
-    digest.ObjectDigest
-    kind.AuthorizedObjectKind
+    ComponentKind
+    ObjectDigest
+    AuthorizedObjectKind
   }
 
   QuorumShortfall {
@@ -547,129 +547,129 @@
   }
 
   ContractAdmitted {
-    digest.ContractDigest
+    ContractDigest
   }
 
   ContractFound {
-    digest.ContractDigest
+    ContractDigest
     Contract
   }
 
   ContractMissing {
-    digest.ContractDigest
+    ContractDigest
   }
 
   ContractAdmissionRejected {
-    reason.ContractAdmissionRejectionReason
+    ContractAdmissionRejectionReason
   }
 
   AuthorizationEvaluated {
-    contract.ContractDigest
-    decision.EvaluationDecision
+    ContractDigest
+    EvaluationDecision
   }
 
   AuthorizedObjectObservation {
-    subscriber.Identity
-    interest.AuthorizedObjectInterest
+    Identity
+    AuthorizedObjectInterest
   }
 
   AuthorizedObjectUpdateToken {
-    subscriber.Identity
-    interest.AuthorizedObjectInterest
+    Identity
+    AuthorizedObjectInterest
   }
 
   AuthorizedObjectUpdate {
-    object.AuthorizedObjectReference
-    contract.ContractDigest
-    decision.EvaluationDecision
-    stamp.AttestedMoment
+    AuthorizedObjectReference
+    ContractDigest
+    EvaluationDecision
+    AttestedMoment
   }
 
   AuthorizedObjectUpdateSnapshot {
-    updates.(Vec AuthorizedObjectUpdate)
+    (Vec AuthorizedObjectUpdate)
   }
 
   AuthorizedObjectUpdateRetracted {
-    token.AuthorizedObjectUpdateToken
+    AuthorizedObjectUpdateToken
   }
 
   ContractTimeCheck {
-    contract.ContractDigest
-    due_at.TimestampNanos
-    result.AuthorizedObjectReference
-    absent.AuthorizedObjectInterest
+    ContractDigest
+    TimestampNanos
+    AuthorizedObjectReference
+    AuthorizedObjectInterest
   }
 
   ContractTimeCheckScheduled {
-    check.ContractTimeCheck
+    ContractTimeCheck
   }
 
   DueContractChecksEvaluated {
-    triggered.(Vec AuthorizedObjectUpdate)
+    (Vec AuthorizedObjectUpdate)
   }
 
   AuthorizationDenial {
-    source.AuthorizationDenialSource
-    reason.AuthorizationDenialReason
+    AuthorizationDenialSource
+    AuthorizationDenialReason
   }
 
   ContentReference {
-    digest.ObjectDigest
-    purpose.ContentPurpose
-    schema_version.PrincipalName
+    ObjectDigest
+    ContentPurpose
+    PrincipalName
   }
 
   AuditContext {
-    purpose.ContentPurpose
+    ContentPurpose
     audience.PrincipalName
     policy_version.PrincipalName
-    nonce.ReplayNonce
+    ReplayNonce
   }
 
   SignatureEnvelope {
-    scheme.SignatureScheme
-    public_key.BlsPublicKey
-    signature.BlsSignature
+    SignatureScheme
+    BlsPublicKey
+    BlsSignature
   }
 
   StampedSignatureEnvelope {
-    stamp.AttestedMoment
-    envelope.SignatureEnvelope
+    AttestedMoment
+    SignatureEnvelope
   }
 
   Attestation {
-    content.ContentReference
-    signer.Identity
-    envelope.SignatureEnvelope
-    issued_at.TimestampNanos
-    attestation_expires_at.(Optional TimestampNanos)
+    ContentReference
+    Identity
+    SignatureEnvelope
+    TimestampNanos
+    (Optional TimestampNanos)
     AuditContext
   }
 
   SignedObject {
-    content.ContentReference
-    signer.Identity
-    envelope.SignatureEnvelope
+    ContentReference
+    Identity
+    SignatureEnvelope
   }
 
   DelegationGrant {
     issuer.Identity
     subject.Identity
-    scope.ContentPurpose
-    delegation_expires_at.(Optional TimestampNanos)
+    ContentPurpose
+    (Optional TimestampNanos)
   }
 
   ComponentRelease {
-    component.PrincipalName
-    artifact.ObjectDigest
-    authorized_by.Identity
+    PrincipalName
+    ObjectDigest
+    Identity
   }
 
   SignedPersonaRequest {
-    audience.Identity
-    content.ContentReference
-    delegation.(Optional DelegationGrant)
-    envelope.SignatureEnvelope
+    Identity
+    ContentReference
+    (Optional DelegationGrant)
+    SignatureEnvelope
   }
 
   ;; The authorization ask: the typed authorized-object reference (component
@@ -678,47 +678,47 @@
   ;; operation / scope string trio is retired: an identifier of a fixed set is
   ;; an enum, and the object reference already carries the full typed shape.
   SignalCallAuthorization {
-    object.AuthorizedObjectReference
-    requester.Identity
-    nonce.ReplayNonce
-    signal_call_expires_at.(Optional TimestampNanos)
-    spirit_context.(Optional SpiritAuthorizationContext)
+    AuthorizedObjectReference
+    Identity
+    ReplayNonce
+    (Optional TimestampNanos)
+    (Optional SpiritAuthorizationContext)
   }
 
   AuthorizationObservation {
-    request_slot.AuthorizationRequestSlot
+    AuthorizationRequestSlot
   }
 
   AuthorizationVerification {
-    request_digest.ObjectDigest
-    authorization.AuthorizationGrant
+    ObjectDigest
+    AuthorizationGrant
   }
 
   SignatureSolicitation {
-    request_slot.AuthorizationRequestSlot
-    request_digest.ObjectDigest
-    contract.ContractName
-    operation.ContractOperationHead
-    scope.AuthorizationScope
+    AuthorizationRequestSlot
+    ObjectDigest
+    ContractName
+    ContractOperationHead
+    AuthorizationScope
     requester.Identity
     required_signer.Identity
   }
 
   SignatureSolicitationRoute {
-    solicitation.SignatureSolicitation
-    routed_to.Identity
+    SignatureSolicitation
+    Identity
   }
 
   SignatureSubmission {
-    request_slot.AuthorizationRequestSlot
-    signer.Identity
-    signature.StampedSignatureEnvelope
+    AuthorizationRequestSlot
+    Identity
+    StampedSignatureEnvelope
   }
 
   AuthorizationRejection {
-    request_slot.AuthorizationRequestSlot
-    rejector.Identity
-    reason.AuthorizationDenialReason
+    AuthorizationRequestSlot
+    Identity
+    AuthorizationDenialReason
   }
 
   ;; The grant binds the request slot to the typed authorized object it
@@ -726,40 +726,40 @@
   ;; ask's). The BLS grant signatures sign the V2 grant statement over these
   ;; fields.
   AuthorizationGrant {
-    request_slot.AuthorizationRequestSlot
-    authorized_object.AuthorizedObjectReference
-    policy_satisfaction.AuthorizationPolicySatisfaction
-    signature_result.SignatureAuthorizationResult
-    authorization_grant_signatures.(Vec StampedSignatureEnvelope)
-    issued_by.Identity
-    issued_at.TimestampNanos
-    authorization_grant_expires_at.(Optional TimestampNanos)
+    AuthorizationRequestSlot
+    AuthorizedObjectReference
+    AuthorizationPolicySatisfaction
+    SignatureAuthorizationResult
+    (Vec StampedSignatureEnvelope)
+    Identity
+    TimestampNanos
+    (Optional TimestampNanos)
   }
 
   AuthorizationObservationToken {
-    request_slot.AuthorizationRequestSlot
+    AuthorizationRequestSlot
   }
 
   AuthorizationPending {
-    request_slot.AuthorizationRequestSlot
-    request_digest.ObjectDigest
-    pending_missing_authorities.(Vec Identity)
-    observation_token.AuthorizationObservationToken
+    AuthorizationRequestSlot
+    ObjectDigest
+    (Vec Identity)
+    AuthorizationObservationToken
   }
 
   AuthorizationDenied {
-    request_slot.AuthorizationRequestSlot
-    denial.AuthorizationDenial
+    AuthorizationRequestSlot
+    AuthorizationDenial
   }
 
   AuthorizationExpired {
-    request_slot.AuthorizationRequestSlot
-    expired_at.TimestampNanos
+    AuthorizationRequestSlot
+    TimestampNanos
   }
 
   AuthorizationUnavailable {
-    request_slot.AuthorizationRequestSlot
-    reason.PrincipalName
+    AuthorizationRequestSlot
+    PrincipalName
   }
 
   ;; `granted_evidence` is the cluster-authorization hand-off: on a
@@ -768,75 +768,75 @@
   ;; carried authorization a receiving node later re-judges through
   ;; EvaluateAuthorization. Absent on non-quorum grants.
   AuthorizationStateRecord {
-    request_slot.AuthorizationRequestSlot
-    request_digest.ObjectDigest
-    status.AuthorizationStatus
-    state_missing_authorities.(Vec Identity)
-    grant.(Optional AuthorizationGrant)
-    denial.(Optional AuthorizationDenial)
+    AuthorizationRequestSlot
+    ObjectDigest
+    AuthorizationStatus
+    (Vec Identity)
+    (Optional AuthorizationGrant)
+    (Optional AuthorizationDenial)
     parked_evaluation.(Optional AuthorizationEvaluation)
-    signal_authorization.(Optional SignalCallAuthorization)
+    (Optional SignalCallAuthorization)
     granted_evidence.(Optional AuthorizationEvaluation)
   }
 
   AuthorizationObservationSnapshot {
-    states.(Vec AuthorizationStateRecord)
+    (Vec AuthorizationStateRecord)
   }
 
   ParkedAuthorization {
-    request_slot.AuthorizationRequestSlot
-    parked_authorization_evaluation.(Optional AuthorizationEvaluation)
-    parked_signal_authorization.(Optional SignalCallAuthorization)
+    AuthorizationRequestSlot
+    (Optional AuthorizationEvaluation)
+    (Optional SignalCallAuthorization)
   }
 
   ParkedAuthorizationObservation { }
 
   ParkedAuthorizationSnapshot {
-    parked_authorizations.(Vec ParkedAuthorization)
+    (Vec ParkedAuthorization)
   }
 
   SignatureRouteReceipt {
-    request_slot.AuthorizationRequestSlot
-    routed_to.Identity
+    AuthorizationRequestSlot
+    Identity
   }
 
   SignatureSubmissionReceipt {
-    request_slot.AuthorizationRequestSlot
-    signer.Identity
+    AuthorizationRequestSlot
+    Identity
   }
 
   AuthorizationObservationRetracted {
-    token.AuthorizationObservationToken
+    AuthorizationObservationToken
   }
 
   AuthorizationUpdate {
-    state.AuthorizationStateRecord
+    AuthorizationStateRecord
   }
 
   SignRequest {
-    content.ContentReference
-    signer.Identity
+    ContentReference
+    Identity
     AuditContext
-    sign_request_expires_at.(Optional TimestampNanos)
+    (Optional TimestampNanos)
   }
 
   VerifyRequest {
     Attestation
-    content.ContentReference
+    ContentReference
   }
 
   IdentityRegistration {
     Identity
-    public_key.BlsPublicKey
-    fingerprint.PublicKeyFingerprint
-    purpose.KeyPurpose
-    admission.(Optional SignatureEnvelope)
+    BlsPublicKey
+    PublicKeyFingerprint
+    KeyPurpose
+    (Optional SignatureEnvelope)
   }
 
   IdentityRevocation {
     Identity
-    fingerprint.PublicKeyFingerprint
-    reason.PrincipalName
+    PublicKeyFingerprint
+    PrincipalName
   }
 
   IdentityLookup {
@@ -844,48 +844,48 @@
   }
 
   ArchiveAttestationRequest {
-    release.ComponentRelease
+    ComponentRelease
     AuditContext
   }
 
   ChannelGrantAttestationRequest {
-    grant_content.ContentReference
-    source.Identity
+    ContentReference
+    Identity
     AuditContext
   }
 
   AuthorizationAttestationRequest {
-    authorization_content.ContentReference
-    source.Identity
+    ContentReference
+    Identity
     AuditContext
   }
 
   IdentitySubscription {
-    subscriber.Identity
+    Identity
   }
 
   IdentitySubscriptionToken {
-    subscriber.Identity
+    Identity
   }
 
   SignReceipt {
     Attestation
-    issued_at.TimestampNanos
+    TimestampNanos
   }
 
   VerificationResult {
-    decision.VerificationDecision
-    verified_identity.(Optional Identity)
-    verification_expires_at.(Optional TimestampNanos)
+    VerificationDecision
+    (Optional Identity)
+    (Optional TimestampNanos)
   }
 
   IdentityReceipt {
     Identity
-    status.PrincipalStatus
+    PrincipalStatus
   }
 
   IdentitySnapshot {
-    identities.(Vec IdentityReceipt)
+    (Vec IdentityReceipt)
   }
 
   AttestationReceipt {
@@ -893,15 +893,15 @@
   }
 
   IdentityUpdate {
-    receipt.IdentityReceipt
+    IdentityReceipt
   }
 
   SubscriptionRetracted {
-    token.IdentitySubscriptionToken
+    IdentitySubscriptionToken
   }
 
   Rejection {
-    reason.RejectionReason
+    RejectionReason
   }
 
   ;; ─── Quorum collection (propose → gather → judge → commit) ─────────
@@ -931,11 +931,11 @@
   ;; under the admitted `contract`, opening an attested-moment `window`
   ;; whose authorities and threshold are the contract's own members.
   QuorumProposal {
-    round.QuorumRoundIdentifier
-    phase.RoundPhase
-    contract.ContractDigest
-    object.AuthorizedObjectReference
-    window.TimeWindow
+    QuorumRoundIdentifier
+    RoundPhase
+    ContractDigest
+    AuthorizedObjectReference
+    TimeWindow
   }
 
   ;; Solicit (originator → peer, across the peer conveyance): the proposal the peer
@@ -943,40 +943,40 @@
   ;; the shared moment proposition so every member signs the same moment,
   ;; and the originator identity so the peer routes its vote back.
   QuorumVoteSolicitation {
-    round.QuorumRoundIdentifier
-    phase.RoundPhase
-    contract.ContractDigest
-    object.AuthorizedObjectReference
-    proposition.AttestedMomentProposition
-    originator.Identity
+    QuorumRoundIdentifier
+    RoundPhase
+    ContractDigest
+    AuthorizedObjectReference
+    AttestedMomentProposition
+    Identity
   }
 
   ;; Vote (peer → originator, across the peer conveyance): one member's two BLS
   ;; signatures — over the operation statement and over the moment. The
   ;; originator wraps these into the assembled Evidence.
   QuorumVote {
-    round.QuorumRoundIdentifier
-    phase.RoundPhase
-    voter.Identity
+    QuorumRoundIdentifier
+    RoundPhase
+    Identity
     operation_signature.SignatureEnvelope
     time_signature.SignatureEnvelope
   }
 
   QuorumRoundQuery {
-    round.QuorumRoundIdentifier
+    QuorumRoundIdentifier
   }
 
   ;; The durable round projection. `authorized_evidence` is present only
   ;; when `status` is Authorized — the withheld round exposes no valid
   ;; evidence until a true majority co-sign.
   QuorumRoundState {
-    round.QuorumRoundIdentifier
-    phase.RoundPhase
-    contract.ContractDigest
-    status.QuorumRoundStatus
+    QuorumRoundIdentifier
+    RoundPhase
+    ContractDigest
+    QuorumRoundStatus
     gathered.RequiredSignatureThreshold
     required.RequiredSignatureThreshold
-    authorized_evidence.(Optional Evidence)
+    (Optional Evidence)
   }
 
   ;; ─── Non-double-signing refusal (single successor per state-point) ─
@@ -988,9 +988,9 @@
   ;; predicate (a different successor from the same head) is enforced in
   ;; the daemon and kept pluggable for a later commutative-merge predicate.
   QuorumConflict {
-    contract.ContractDigest
-    at_head.ContractOperationHead
-    existing_successor.AuthorizedObjectReference
+    ContractDigest
+    ContractOperationHead
+    AuthorizedObjectReference
   }
 
   CriomeEvent [

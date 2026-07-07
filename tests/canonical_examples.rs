@@ -49,33 +49,33 @@ fn alice() -> Identity {
 
 fn content_reference() -> ContentReference {
     ContentReference {
-        digest: ObjectDigest::new("digest-abc"),
-        purpose: ContentPurpose::SignedObject,
-        schema_version: PrincipalName::new("schema-1"),
+        object_digest: ObjectDigest::new("digest-abc"),
+        content_purpose: ContentPurpose::SignedObject,
+        principal_name: PrincipalName::new("schema-1"),
     }
 }
 
 fn audit_context() -> AuditContext {
     AuditContext {
-        purpose: ContentPurpose::SignedObject,
+        content_purpose: ContentPurpose::SignedObject,
         audience: PrincipalName::new("audience-bob"),
         policy_version: PrincipalName::new("policy-1"),
-        nonce: ReplayNonce::new("nonce-7"),
+        replay_nonce: ReplayNonce::new("nonce-7"),
     }
 }
 
 fn envelope() -> SignatureEnvelope {
     SignatureEnvelope {
-        scheme: SignatureScheme::Bls12_381MinPk,
-        public_key: BlsPublicKey::new("public-key-1"),
-        signature: BlsSignature::new("signature-1"),
+        signature_scheme: SignatureScheme::Bls12_381MinPk,
+        bls_public_key: BlsPublicKey::new("public-key-1"),
+        bls_signature: BlsSignature::new("signature-1"),
     }
 }
 
 fn stamped_envelope() -> StampedSignatureEnvelope {
     StampedSignatureEnvelope {
-        stamp: attested_moment(),
-        envelope: envelope(),
+        attested_moment: attested_moment(),
+        signature_envelope: envelope(),
     }
 }
 
@@ -118,9 +118,9 @@ fn authorization_grant() -> AuthorizationGrant {
     AuthorizationGrant::new(
         authorization_request_slot(),
         AuthorizedObjectReference {
-            component: ComponentKind::Lojix,
-            digest: ObjectDigest::new("digest-lojix-request"),
-            kind: AuthorizedObjectKind::Operation,
+            component_kind: ComponentKind::Lojix,
+            object_digest: ObjectDigest::new("digest-lojix-request"),
+            authorized_object_kind: AuthorizedObjectKind::Operation,
         },
         AuthorizationPolicySatisfaction::new(
             AuthorizationPolicyClass::ComplexQuorum,
@@ -148,11 +148,11 @@ fn authorization_state() -> AuthorizationStateRecord {
 
 fn signature_solicitation() -> SignatureSolicitation {
     SignatureSolicitation {
-        request_slot: authorization_request_slot(),
-        request_digest: ObjectDigest::new("digest-lojix-request"),
-        contract: contract_name(),
-        operation: contract_operation_head(),
-        scope: authorization_scope(),
+        authorization_request_slot: authorization_request_slot(),
+        object_digest: ObjectDigest::new("digest-lojix-request"),
+        contract_name: contract_name(),
+        contract_operation_head: contract_operation_head(),
+        authorization_scope: authorization_scope(),
         requester: alice(),
         required_signer: Identity::Developer(PrincipalName::new("reviewer")),
     }
@@ -177,8 +177,8 @@ fn attested_moment() -> AttestedMoment {
             vec![Identity::Developer(PrincipalName::new("timekeeper"))],
         ),
         vec![TimeSignature {
-            signer: Identity::Developer(PrincipalName::new("timekeeper")),
-            envelope: envelope(),
+            identity: Identity::Developer(PrincipalName::new("timekeeper")),
+            signature_envelope: envelope(),
         }],
     )
 }
@@ -228,15 +228,15 @@ fn root_anchor() -> RootAnchorDigest {
 
 fn founding_conveyance_proposal() -> FoundingConveyance {
     FoundingConveyance::Proposal(FoundingProposal {
-        genesis: root_genesis(),
-        initiator: Identity::Host(PrincipalName::new("mirror-alpha")),
+        root_genesis: root_genesis(),
+        identity: Identity::Host(PrincipalName::new("mirror-alpha")),
     })
 }
 
 fn founding_conveyance_receipt() -> FoundingConveyanceReceipt {
     FoundingConveyanceReceipt {
-        anchor: root_anchor(),
-        outcome: FoundingConveyanceOutcome::RootFounded,
+        root_anchor_digest: root_anchor(),
+        founding_conveyance_outcome: FoundingConveyanceOutcome::RootFounded,
     }
 }
 
@@ -260,32 +260,32 @@ fn evidence() -> Evidence {
 
 fn authorized_object_update_token() -> AuthorizedObjectUpdateToken {
     AuthorizedObjectUpdateToken {
-        subscriber: alice(),
-        interest: AuthorizedObjectInterest::Component(ComponentKind::Spirit),
+        identity: alice(),
+        authorized_object_interest: AuthorizedObjectInterest::Component(ComponentKind::Spirit),
     }
 }
 
 fn authorized_object_reference() -> AuthorizedObjectReference {
     AuthorizedObjectReference {
-        component: ComponentKind::Spirit,
-        digest: operation_digest().object_digest().clone(),
-        kind: AuthorizedObjectKind::Head,
+        component_kind: ComponentKind::Spirit,
+        object_digest: operation_digest().object_digest().clone(),
+        authorized_object_kind: AuthorizedObjectKind::Head,
     }
 }
 
 fn authorized_object_update() -> AuthorizedObjectUpdate {
     AuthorizedObjectUpdate {
-        object: authorized_object_reference(),
-        contract: contract_digest(),
-        decision: EvaluationDecision::Authorized,
-        stamp: attested_moment(),
+        authorized_object_reference: authorized_object_reference(),
+        contract_digest: contract_digest(),
+        evaluation_decision: EvaluationDecision::Authorized,
+        attested_moment: attested_moment(),
     }
 }
 
 fn authorization_evaluation() -> AuthorizationEvaluation {
     AuthorizationEvaluation {
-        contract: contract_digest(),
-        object: authorized_object_reference(),
+        contract_digest: contract_digest(),
+        authorized_object_reference: authorized_object_reference(),
         evidence: evidence(),
     }
 }
@@ -310,11 +310,11 @@ fn quorum_moment_proposition() -> AttestedMomentProposition {
 
 fn quorum_proposal() -> QuorumProposal {
     QuorumProposal {
-        round: quorum_round_identifier(),
-        phase: RoundPhase::Request,
-        contract: contract_digest(),
-        object: authorized_object_reference(),
-        window: TimeWindow {
+        quorum_round_identifier: quorum_round_identifier(),
+        round_phase: RoundPhase::Request,
+        contract_digest: contract_digest(),
+        authorized_object_reference: authorized_object_reference(),
+        time_window: TimeWindow {
             opens_at: TimestampNanos::new(10),
             closes_at: TimestampNanos::new(20),
         },
@@ -323,20 +323,20 @@ fn quorum_proposal() -> QuorumProposal {
 
 fn quorum_vote_solicitation() -> QuorumVoteSolicitation {
     QuorumVoteSolicitation {
-        round: quorum_round_identifier(),
-        phase: RoundPhase::Request,
-        contract: contract_digest(),
-        object: authorized_object_reference(),
-        proposition: quorum_moment_proposition(),
-        originator: Identity::Host(PrincipalName::new("mirror-alpha")),
+        quorum_round_identifier: quorum_round_identifier(),
+        round_phase: RoundPhase::Request,
+        contract_digest: contract_digest(),
+        authorized_object_reference: authorized_object_reference(),
+        attested_moment_proposition: quorum_moment_proposition(),
+        identity: Identity::Host(PrincipalName::new("mirror-alpha")),
     }
 }
 
 fn quorum_vote() -> QuorumVote {
     QuorumVote {
-        round: quorum_round_identifier(),
-        phase: RoundPhase::Request,
-        voter: Identity::Host(PrincipalName::new("mirror-beta")),
+        quorum_round_identifier: quorum_round_identifier(),
+        round_phase: RoundPhase::Request,
+        identity: Identity::Host(PrincipalName::new("mirror-beta")),
         operation_signature: envelope(),
         time_signature: envelope(),
     }
@@ -344,13 +344,13 @@ fn quorum_vote() -> QuorumVote {
 
 fn quorum_round_state() -> QuorumRoundState {
     QuorumRoundState {
-        round: quorum_round_identifier(),
-        phase: RoundPhase::Request,
-        contract: contract_digest(),
-        status: QuorumRoundStatus::Authorized,
+        quorum_round_identifier: quorum_round_identifier(),
+        round_phase: RoundPhase::Request,
+        contract_digest: contract_digest(),
+        quorum_round_status: QuorumRoundStatus::Authorized,
         gathered: RequiredSignatureThreshold::new(2),
         required: RequiredSignatureThreshold::new(2),
-        authorized_evidence: Some(evidence()),
+        optional_evidence: Some(evidence()),
     }
 }
 
@@ -378,7 +378,7 @@ fn canonical_request_examples_round_trip() {
     )));
     round_trip(CriomeRequest::VerifyAttestation(VerifyRequest {
         attestation: attestation(),
-        content: content_reference(),
+        content_reference: content_reference(),
     }));
     round_trip(CriomeRequest::RegisterIdentity(IdentityRegistration::new(
         alice(),
@@ -389,61 +389,61 @@ fn canonical_request_examples_round_trip() {
     )));
     round_trip(CriomeRequest::RevokeIdentity(IdentityRevocation {
         identity: alice(),
-        fingerprint: PublicKeyFingerprint::new("fingerprint-1"),
-        reason: PrincipalName::new("revoked-by-owner"),
+        public_key_fingerprint: PublicKeyFingerprint::new("fingerprint-1"),
+        principal_name: PrincipalName::new("revoked-by-owner"),
     }));
     round_trip(CriomeRequest::LookupIdentity(IdentityLookup::new(alice())));
     round_trip(CriomeRequest::AttestArchive(ArchiveAttestationRequest {
-        release: ComponentRelease {
-            component: PrincipalName::new("persona-router"),
-            artifact: ObjectDigest::new("artifact-1"),
-            authorized_by: alice(),
+        component_release: ComponentRelease {
+            principal_name: PrincipalName::new("persona-router"),
+            object_digest: ObjectDigest::new("artifact-1"),
+            identity: alice(),
         },
         audit_context: AuditContext {
-            purpose: ContentPurpose::Archive,
+            content_purpose: ContentPurpose::Archive,
             audience: PrincipalName::new("audience-archive"),
             policy_version: PrincipalName::new("policy-1"),
-            nonce: ReplayNonce::new("nonce-8"),
+            replay_nonce: ReplayNonce::new("nonce-8"),
         },
     }));
     round_trip(CriomeRequest::AttestChannelGrant(
         ChannelGrantAttestationRequest {
-            grant_content: ContentReference {
-                digest: ObjectDigest::new("digest-grant"),
-                purpose: ContentPurpose::ChannelGrant,
-                schema_version: PrincipalName::new("schema-1"),
+            content_reference: ContentReference {
+                object_digest: ObjectDigest::new("digest-grant"),
+                content_purpose: ContentPurpose::ChannelGrant,
+                principal_name: PrincipalName::new("schema-1"),
             },
-            source: alice(),
+            identity: alice(),
             audit_context: AuditContext {
-                purpose: ContentPurpose::ChannelGrant,
+                content_purpose: ContentPurpose::ChannelGrant,
                 audience: PrincipalName::new("audience-bob"),
                 policy_version: PrincipalName::new("policy-1"),
-                nonce: ReplayNonce::new("nonce-9"),
+                replay_nonce: ReplayNonce::new("nonce-9"),
             },
         },
     ));
     round_trip(CriomeRequest::AttestAuthorization(
         AuthorizationAttestationRequest {
-            authorization_content: ContentReference {
-                digest: ObjectDigest::new("digest-auth"),
-                purpose: ContentPurpose::Authorization,
-                schema_version: PrincipalName::new("schema-1"),
+            content_reference: ContentReference {
+                object_digest: ObjectDigest::new("digest-auth"),
+                content_purpose: ContentPurpose::Authorization,
+                principal_name: PrincipalName::new("schema-1"),
             },
-            source: alice(),
+            identity: alice(),
             audit_context: AuditContext {
-                purpose: ContentPurpose::Authorization,
+                content_purpose: ContentPurpose::Authorization,
                 audience: PrincipalName::new("audience-bob"),
                 policy_version: PrincipalName::new("policy-1"),
-                nonce: ReplayNonce::new("nonce-10"),
+                replay_nonce: ReplayNonce::new("nonce-10"),
             },
         },
     ));
     round_trip(CriomeRequest::AuthorizeSignalCall(
         SignalCallAuthorization::new(
             AuthorizedObjectReference {
-                component: ComponentKind::Lojix,
-                digest: ObjectDigest::new("digest-lojix-request"),
-                kind: AuthorizedObjectKind::Operation,
+                component_kind: ComponentKind::Lojix,
+                object_digest: ObjectDigest::new("digest-lojix-request"),
+                authorized_object_kind: AuthorizedObjectKind::Operation,
             },
             alice(),
             ReplayNonce::new("authorization-nonce-1"),
@@ -458,25 +458,25 @@ fn canonical_request_examples_round_trip() {
     ));
     round_trip(CriomeRequest::VerifyAuthorization(
         AuthorizationVerification {
-            request_digest: ObjectDigest::new("digest-lojix-request"),
-            authorization: authorization_grant(),
+            object_digest: ObjectDigest::new("digest-lojix-request"),
+            authorization_grant: authorization_grant(),
         },
     ));
     round_trip(CriomeRequest::RouteSignatureRequest(
         SignatureSolicitationRoute {
-            solicitation: signature_solicitation(),
-            routed_to: Identity::Host(PrincipalName::new("balboa")),
+            signature_solicitation: signature_solicitation(),
+            identity: Identity::Host(PrincipalName::new("balboa")),
         },
     ));
     round_trip(CriomeRequest::SubmitSignature(SignatureSubmission {
-        request_slot: authorization_request_slot(),
-        signer: Identity::Developer(PrincipalName::new("reviewer")),
-        signature: stamped_envelope(),
+        authorization_request_slot: authorization_request_slot(),
+        identity: Identity::Developer(PrincipalName::new("reviewer")),
+        stamped_signature_envelope: stamped_envelope(),
     }));
     round_trip(CriomeRequest::RejectAuthorization(AuthorizationRejection {
-        request_slot: authorization_request_slot(),
-        rejector: Identity::Developer(PrincipalName::new("reviewer")),
-        reason: AuthorizationDenialReason::SignatureRejected,
+        authorization_request_slot: authorization_request_slot(),
+        identity: Identity::Developer(PrincipalName::new("reviewer")),
+        authorization_denial_reason: AuthorizationDenialReason::SignatureRejected,
     }));
     round_trip(CriomeRequest::AdmitContract(policy_contract()));
     round_trip(CriomeRequest::LookupContract(contract_digest()));
@@ -485,8 +485,8 @@ fn canonical_request_examples_round_trip() {
     ));
     round_trip(CriomeRequest::ObserveAuthorizedObjects(
         AuthorizedObjectObservation {
-            subscriber: alice(),
-            interest: AuthorizedObjectInterest::Component(ComponentKind::Spirit),
+            identity: alice(),
+            authorized_object_interest: AuthorizedObjectInterest::Component(ComponentKind::Spirit),
         },
     ));
     round_trip(CriomeRequest::AuthorizedObjectUpdateRetraction(
@@ -515,7 +515,7 @@ fn canonical_request_examples_round_trip() {
 fn canonical_reply_examples_round_trip() {
     round_trip(CriomeReply::SignReceipt(SignReceipt {
         attestation: attestation(),
-        issued_at: TimestampNanos::new(100),
+        timestamp_nanos: TimestampNanos::new(100),
     }));
     round_trip(CriomeReply::VerificationResult(VerificationResult::new(
         VerificationDecision::Valid,
@@ -524,12 +524,12 @@ fn canonical_reply_examples_round_trip() {
     )));
     round_trip(CriomeReply::IdentityReceipt(IdentityReceipt {
         identity: alice(),
-        status: PrincipalStatus::Active,
+        principal_status: PrincipalStatus::Active,
     }));
     round_trip(CriomeReply::IdentitySnapshot(
         IdentitySnapshot::from_identities(vec![IdentityReceipt {
             identity: alice(),
-            status: PrincipalStatus::Active,
+            principal_status: PrincipalStatus::Active,
         }]),
     ));
     round_trip(CriomeReply::AttestationReceipt(AttestationReceipt::new(
@@ -545,20 +545,20 @@ fn canonical_reply_examples_round_trip() {
     ));
     round_trip(CriomeReply::AuthorizationGranted(authorization_grant()));
     round_trip(CriomeReply::AuthorizationDenied(AuthorizationDenied {
-        request_slot: authorization_request_slot(),
-        denial: AuthorizationDenial {
-            source: AuthorizationDenialSource::Policy,
-            reason: AuthorizationDenialReason::SignatureScopeMismatch,
+        authorization_request_slot: authorization_request_slot(),
+        authorization_denial: AuthorizationDenial {
+            authorization_denial_source: AuthorizationDenialSource::Policy,
+            authorization_denial_reason: AuthorizationDenialReason::SignatureScopeMismatch,
         },
     }));
     round_trip(CriomeReply::AuthorizationExpired(AuthorizationExpired {
-        request_slot: authorization_request_slot(),
-        expired_at: TimestampNanos::new(111),
+        authorization_request_slot: authorization_request_slot(),
+        timestamp_nanos: TimestampNanos::new(111),
     }));
     round_trip(CriomeReply::AuthorizationUnavailable(
         AuthorizationUnavailable {
-            request_slot: authorization_request_slot(),
-            reason: PrincipalName::new("criome-peer-unreachable"),
+            authorization_request_slot: authorization_request_slot(),
+            principal_name: PrincipalName::new("criome-peer-unreachable"),
         },
     ));
     round_trip(CriomeReply::AuthorizationObservationSnapshot(
@@ -571,20 +571,20 @@ fn canonical_reply_examples_round_trip() {
         )]),
     ));
     round_trip(CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
-        request_slot: authorization_request_slot(),
-        routed_to: Identity::Host(PrincipalName::new("balboa")),
+        authorization_request_slot: authorization_request_slot(),
+        identity: Identity::Host(PrincipalName::new("balboa")),
     }));
     round_trip(CriomeReply::SignatureSubmissionReceipt(
         SignatureSubmissionReceipt {
-            request_slot: authorization_request_slot(),
-            signer: Identity::Developer(PrincipalName::new("reviewer")),
+            authorization_request_slot: authorization_request_slot(),
+            identity: Identity::Developer(PrincipalName::new("reviewer")),
         },
     ));
     round_trip(CriomeReply::ContractAdmitted(ContractAdmitted::new(
         contract_digest(),
     )));
     round_trip(CriomeReply::ContractFound(ContractFound {
-        digest: contract_digest(),
+        contract_digest: contract_digest(),
         contract: policy_contract(),
     }));
     round_trip(CriomeReply::ContractMissing(ContractMissing::new(
@@ -595,13 +595,13 @@ fn canonical_reply_examples_round_trip() {
     ));
     round_trip(CriomeReply::AuthorizationEvaluated(
         AuthorizationEvaluated {
-            contract: contract_digest(),
-            decision: EvaluationDecision::Rejected(EvaluationRejectionReason::QuorumShort(
-                QuorumShortfall {
+            contract_digest: contract_digest(),
+            evaluation_decision: EvaluationDecision::Rejected(
+                EvaluationRejectionReason::QuorumShort(QuorumShortfall {
                     required: RequiredSignatureThreshold::new(2),
                     satisfied: RequiredSignatureThreshold::new(1),
-                },
-            )),
+                }),
+            ),
         },
     ));
     round_trip(CriomeReply::AuthorizedObjectUpdateSnapshot(
@@ -633,7 +633,7 @@ fn canonical_event_examples_round_trip() {
     round_trip(CriomeEvent::IdentityUpdate(IdentityUpdate::new(
         IdentityReceipt {
             identity: alice(),
-            status: PrincipalStatus::Active,
+            principal_status: PrincipalStatus::Active,
         },
     )));
     round_trip(CriomeEvent::AuthorizationUpdate(AuthorizationUpdate::new(

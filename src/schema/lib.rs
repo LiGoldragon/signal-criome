@@ -724,8 +724,8 @@ pub enum Identity {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PeerActorRoute {
-    pub peer: Identity,
-    pub destination: ActorIdentifier,
+    pub identity: Identity,
+    pub actor_identifier: ActorIdentifier,
 }
 
 #[rustfmt::skip]
@@ -735,9 +735,9 @@ pub struct PeerActorRoute {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RouterSubmissionConfiguration {
-    pub router_socket_path: DaemonPath,
-    pub source_actor: ActorIdentifier,
-    pub peer_routes: Vec<PeerActorRoute>,
+    pub daemon_path: DaemonPath,
+    pub actor_identifier: ActorIdentifier,
+    pub peer_actor_route_vector: Vec<PeerActorRoute>,
 }
 
 #[rustfmt::skip]
@@ -749,12 +749,12 @@ pub struct RouterSubmissionConfiguration {
 pub struct CriomeDaemonConfiguration {
     pub socket_path: DaemonPath,
     pub store_path: DaemonPath,
-    pub meta_socket_path: Option<DaemonPath>,
-    pub cluster_root: Option<BlsPublicKey>,
+    pub optional_daemon_path: Option<DaemonPath>,
+    pub optional_bls_public_key: Option<BlsPublicKey>,
     pub authorization_mode: AuthorizationMode,
-    pub node_identity: Option<Identity>,
-    pub router_submission: Option<RouterSubmissionConfiguration>,
-    pub quorum_window: Option<QuorumWindowNanos>,
+    pub optional_identity: Option<Identity>,
+    pub optional_router_submission_configuration: Option<RouterSubmissionConfiguration>,
+    pub optional_quorum_window_nanos: Option<QuorumWindowNanos>,
 }
 
 #[rustfmt::skip]
@@ -764,9 +764,9 @@ pub struct CriomeDaemonConfiguration {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationPolicySatisfaction {
-    pub policy_class: AuthorizationPolicyClass,
+    pub authorization_policy_class: AuthorizationPolicyClass,
     pub required_signature_threshold: RequiredSignatureThreshold,
-    pub satisfied_signers: Vec<Identity>,
+    pub vec_identity: Vec<Identity>,
 }
 
 #[rustfmt::skip]
@@ -788,7 +788,7 @@ pub enum ContractParent {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Contract {
     pub rule: Rule,
-    pub parent: ContractParent,
+    pub contract_parent: ContractParent,
 }
 
 #[rustfmt::skip]
@@ -818,7 +818,7 @@ pub enum GenesisDomainTag {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct FoundingMember {
     pub identity: Identity,
-    pub public_key: BlsPublicKey,
+    pub bls_public_key: BlsPublicKey,
 }
 
 #[rustfmt::skip]
@@ -828,10 +828,10 @@ pub struct FoundingMember {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RootGenesis {
-    pub root_contract: Contract,
-    pub founding_keys: Vec<FoundingMember>,
-    pub domain: GenesisDomainTag,
-    pub genesis_nonce: ReplayNonce,
+    pub contract: Contract,
+    pub founding_member_vector: Vec<FoundingMember>,
+    pub genesis_domain_tag: GenesisDomainTag,
+    pub replay_nonce: ReplayNonce,
 }
 
 #[rustfmt::skip]
@@ -841,8 +841,8 @@ pub struct RootGenesis {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct FoundingSignature {
-    pub signer: Identity,
-    pub envelope: SignatureEnvelope,
+    pub identity: Identity,
+    pub signature_envelope: SignatureEnvelope,
 }
 
 #[rustfmt::skip]
@@ -852,8 +852,8 @@ pub struct FoundingSignature {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RootFoundingStatement {
-    pub anchor: RootAnchorDigest,
-    pub domain: GenesisDomainTag,
+    pub root_anchor_digest: RootAnchorDigest,
+    pub genesis_domain_tag: GenesisDomainTag,
 }
 
 #[rustfmt::skip]
@@ -863,8 +863,8 @@ pub struct RootFoundingStatement {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct FoundingProposal {
-    pub genesis: RootGenesis,
-    pub initiator: Identity,
+    pub root_genesis: RootGenesis,
+    pub identity: Identity,
 }
 
 #[rustfmt::skip]
@@ -874,8 +874,8 @@ pub struct FoundingProposal {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct FoundingSignatureReturn {
-    pub anchor: RootAnchorDigest,
-    pub signature: FoundingSignature,
+    pub root_anchor_digest: RootAnchorDigest,
+    pub founding_signature: FoundingSignature,
 }
 
 #[rustfmt::skip]
@@ -885,8 +885,8 @@ pub struct FoundingSignatureReturn {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct FoundedRoot {
-    pub genesis: RootGenesis,
-    pub signatures: Vec<FoundingSignature>,
+    pub root_genesis: RootGenesis,
+    pub founding_signature_vector: Vec<FoundingSignature>,
 }
 
 #[rustfmt::skip]
@@ -930,8 +930,8 @@ pub enum FoundingConveyanceOutcome {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct FoundingConveyanceReceipt {
-    pub anchor: RootAnchorDigest,
-    pub outcome: FoundingConveyanceOutcome,
+    pub root_anchor_digest: RootAnchorDigest,
+    pub founding_conveyance_outcome: FoundingConveyanceOutcome,
 }
 
 #[rustfmt::skip]
@@ -977,8 +977,8 @@ pub enum Rule {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct WorkflowGuard {
-    pub workflow: WorkflowDigest,
-    pub executor: Identity,
+    pub workflow_digest: WorkflowDigest,
+    pub identity: Identity,
 }
 
 #[rustfmt::skip]
@@ -1014,8 +1014,8 @@ pub enum PolicyMember {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Threshold {
-    pub required_signatures: RequiredSignatureThreshold,
-    pub members: Vec<PolicyMember>,
+    pub required_signature_threshold: RequiredSignatureThreshold,
+    pub policy_member_vector: Vec<PolicyMember>,
 }
 
 #[rustfmt::skip]
@@ -1025,8 +1025,8 @@ pub struct Threshold {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimedRule {
-    pub boundary: TimestampNanos,
-    pub signed_by: Identity,
+    pub timestamp_nanos: TimestampNanos,
+    pub identity: Identity,
 }
 
 #[rustfmt::skip]
@@ -1036,7 +1036,7 @@ pub struct TimedRule {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimeSwitch {
-    pub boundary: TimestampNanos,
+    pub timestamp_nanos: TimestampNanos,
     pub before: Threshold,
     pub after: Threshold,
 }
@@ -1050,7 +1050,7 @@ pub struct TimeSwitch {
 pub struct AgreementRule {
     pub divergence: ObjectDigest,
     pub resolution: ObjectDigest,
-    pub resolver: Identity,
+    pub identity: Identity,
 }
 
 #[rustfmt::skip]
@@ -1062,8 +1062,8 @@ pub struct AgreementRule {
 pub struct AgreementFact {
     pub divergence: ObjectDigest,
     pub resolution: ObjectDigest,
-    pub resolver: Identity,
-    pub signature: StampedSignatureEnvelope,
+    pub identity: Identity,
+    pub stamped_signature_envelope: StampedSignatureEnvelope,
 }
 
 #[rustfmt::skip]
@@ -1103,13 +1103,13 @@ pub struct InterceptPolicyWindow {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InterceptPolicyProposal {
-    pub session_slot: MentciSessionSlot,
-    pub target: InterceptTargetSelector,
+    pub mentci_session_slot: MentciSessionSlot,
+    pub intercept_target_selector: InterceptTargetSelector,
     pub spirit_operation_names: SpiritOperationNames,
-    pub duration: PolicyDurationNanos,
+    pub policy_duration_nanos: PolicyDurationNanos,
     pub expiry_action: ExpiryAction,
-    pub priority: PolicyPriority,
-    pub overlap_mode: PolicyOverlapMode,
+    pub policy_priority: PolicyPriority,
+    pub policy_overlap_mode: PolicyOverlapMode,
 }
 
 #[rustfmt::skip]
@@ -1119,13 +1119,13 @@ pub struct InterceptPolicyProposal {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InterceptPolicy {
-    pub identifier: InterceptPolicyIdentifier,
-    pub session_slot: MentciSessionSlot,
-    pub target: InterceptTargetSelector,
+    pub intercept_policy_identifier: InterceptPolicyIdentifier,
+    pub mentci_session_slot: MentciSessionSlot,
+    pub intercept_target_selector: InterceptTargetSelector,
     pub spirit_operation_names: SpiritOperationNames,
-    pub window: InterceptPolicyWindow,
+    pub intercept_policy_window: InterceptPolicyWindow,
     pub expiry_action: ExpiryAction,
-    pub priority: PolicyPriority,
+    pub policy_priority: PolicyPriority,
 }
 
 #[rustfmt::skip]
@@ -1159,9 +1159,9 @@ pub struct InterceptPolicyCancellation(InterceptPolicyIdentifier);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SpiritAuthorizationContext {
-    pub operation_name: SpiritOperationName,
-    pub raw_payload: RawSpiritOperationPayload,
-    pub target_key: SpiritProcessKey,
+    pub spirit_operation_name: SpiritOperationName,
+    pub raw_spirit_operation_payload: RawSpiritOperationPayload,
+    pub spirit_process_key: SpiritProcessKey,
 }
 
 #[rustfmt::skip]
@@ -1171,10 +1171,10 @@ pub struct SpiritAuthorizationContext {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ParkedSpiritRequest {
-    pub identifier: ParkedRequestIdentifier,
-    pub matched_policy: InterceptPolicyIdentifier,
-    pub session_slot: MentciSessionSlot,
-    pub context: SpiritAuthorizationContext,
+    pub parked_request_identifier: ParkedRequestIdentifier,
+    pub intercept_policy_identifier: InterceptPolicyIdentifier,
+    pub mentci_session_slot: MentciSessionSlot,
+    pub spirit_authorization_context: SpiritAuthorizationContext,
     pub parked_at: TimestampNanos,
     pub expires_at: TimestampNanos,
     pub expiry_action: ExpiryAction,
@@ -1187,8 +1187,8 @@ pub struct ParkedSpiritRequest {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ParkedRequestQuery {
-    pub session_slot: Option<MentciSessionSlot>,
-    pub target: Option<InterceptTargetSelector>,
+    pub optional_mentci_session_slot: Option<MentciSessionSlot>,
+    pub optional_intercept_target_selector: Option<InterceptTargetSelector>,
 }
 
 #[rustfmt::skip]
@@ -1214,8 +1214,8 @@ pub struct ParkedRequestSnapshot(ParkedSpiritRequests);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ParkedRequestAnswer {
-    pub identifier: ParkedRequestIdentifier,
-    pub decision: ParkedRequestDecision,
+    pub parked_request_identifier: ParkedRequestIdentifier,
+    pub parked_request_decision: ParkedRequestDecision,
 }
 
 #[rustfmt::skip]
@@ -1225,11 +1225,11 @@ pub struct ParkedRequestAnswer {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ParkedRequestResolution {
-    pub identifier: ParkedRequestIdentifier,
-    pub matched_policy: InterceptPolicyIdentifier,
-    pub outcome: ParkedRequestOutcome,
-    pub audit_source: ApprovalAuditSource,
-    pub resolved_at: TimestampNanos,
+    pub parked_request_identifier: ParkedRequestIdentifier,
+    pub intercept_policy_identifier: InterceptPolicyIdentifier,
+    pub parked_request_outcome: ParkedRequestOutcome,
+    pub approval_audit_source: ApprovalAuditSource,
+    pub timestamp_nanos: TimestampNanos,
 }
 
 #[rustfmt::skip]
@@ -1239,9 +1239,9 @@ pub struct ParkedRequestResolution {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AttestedMomentProposition {
-    pub window: TimeWindow,
-    pub required_signatures: RequiredSignatureThreshold,
-    pub authorities: Vec<Identity>,
+    pub time_window: TimeWindow,
+    pub required_signature_threshold: RequiredSignatureThreshold,
+    pub identity_vector: Vec<Identity>,
 }
 
 #[rustfmt::skip]
@@ -1251,8 +1251,8 @@ pub struct AttestedMomentProposition {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimeSignature {
-    pub signer: Identity,
-    pub envelope: SignatureEnvelope,
+    pub identity: Identity,
+    pub signature_envelope: SignatureEnvelope,
 }
 
 #[rustfmt::skip]
@@ -1262,8 +1262,8 @@ pub struct TimeSignature {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AttestedMoment {
-    pub proposition: AttestedMomentProposition,
-    pub time_signatures: Vec<TimeSignature>,
+    pub attested_moment_proposition: AttestedMomentProposition,
+    pub time_signature_vector: Vec<TimeSignature>,
 }
 
 #[rustfmt::skip]
@@ -1273,13 +1273,13 @@ pub struct AttestedMoment {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Evidence {
-    pub component: ComponentKind,
-    pub operation: OperationDigest,
-    pub stamp: AttestedMoment,
-    pub evidence_signatures: Vec<StampedSignatureEnvelope>,
-    pub agreements: Vec<AgreementFact>,
-    pub workflow_receipts: Vec<WorkflowReceipt>,
-    pub object_co_signatures: Vec<ObjectCoSignature>,
+    pub component_kind: ComponentKind,
+    pub operation_digest: OperationDigest,
+    pub attested_moment: AttestedMoment,
+    pub stamped_signature_envelope_vector: Vec<StampedSignatureEnvelope>,
+    pub agreement_fact_vector: Vec<AgreementFact>,
+    pub workflow_receipt_vector: Vec<WorkflowReceipt>,
+    pub object_co_signature_vector: Vec<ObjectCoSignature>,
 }
 
 #[rustfmt::skip]
@@ -1289,10 +1289,10 @@ pub struct Evidence {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct WorkflowReceipt {
-    pub workflow: WorkflowDigest,
-    pub operation: OperationDigest,
-    pub outcome: EvaluationDecision,
-    pub provenance: WorkflowProvenanceDigest,
+    pub workflow_digest: WorkflowDigest,
+    pub operation_digest: OperationDigest,
+    pub evaluation_decision: EvaluationDecision,
+    pub workflow_provenance_digest: WorkflowProvenanceDigest,
 }
 
 #[rustfmt::skip]
@@ -1302,9 +1302,9 @@ pub struct WorkflowReceipt {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectCoSignature {
-    pub object: AuthorizedObjectReference,
-    pub signer: Identity,
-    pub signature: StampedSignatureEnvelope,
+    pub authorized_object_reference: AuthorizedObjectReference,
+    pub identity: Identity,
+    pub stamped_signature_envelope: StampedSignatureEnvelope,
 }
 
 #[rustfmt::skip]
@@ -1314,7 +1314,7 @@ pub struct ObjectCoSignature {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CoSignatureExpectation {
-    pub object: AuthorizedObjectReference,
+    pub authorized_object_reference: AuthorizedObjectReference,
     pub expected_signers: Vec<Identity>,
     pub observed_signers: Vec<Identity>,
 }
@@ -1326,8 +1326,8 @@ pub struct CoSignatureExpectation {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationEvaluation {
-    pub contract: ContractDigest,
-    pub object: AuthorizedObjectReference,
+    pub contract_digest: ContractDigest,
+    pub authorized_object_reference: AuthorizedObjectReference,
     pub evidence: Evidence,
 }
 
@@ -1401,8 +1401,8 @@ pub enum AuthorizedObjectKind {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ComponentObjectInterest {
-    pub component: ComponentKind,
-    pub kind: AuthorizedObjectKind,
+    pub component_kind: ComponentKind,
+    pub authorized_object_kind: AuthorizedObjectKind,
 }
 
 #[rustfmt::skip]
@@ -1425,9 +1425,9 @@ pub enum AuthorizedObjectInterest {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectReference {
-    pub component: ComponentKind,
-    pub digest: ObjectDigest,
-    pub kind: AuthorizedObjectKind,
+    pub component_kind: ComponentKind,
+    pub object_digest: ObjectDigest,
+    pub authorized_object_kind: AuthorizedObjectKind,
 }
 
 #[rustfmt::skip]
@@ -1456,7 +1456,7 @@ pub struct ContractAdmitted(ContractDigest);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractFound {
-    pub digest: ContractDigest,
+    pub contract_digest: ContractDigest,
     pub contract: Contract,
 }
 
@@ -1483,8 +1483,8 @@ pub struct ContractAdmissionRejected(ContractAdmissionRejectionReason);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationEvaluated {
-    pub contract: ContractDigest,
-    pub decision: EvaluationDecision,
+    pub contract_digest: ContractDigest,
+    pub evaluation_decision: EvaluationDecision,
 }
 
 #[rustfmt::skip]
@@ -1494,8 +1494,8 @@ pub struct AuthorizationEvaluated {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectObservation {
-    pub subscriber: Identity,
-    pub interest: AuthorizedObjectInterest,
+    pub identity: Identity,
+    pub authorized_object_interest: AuthorizedObjectInterest,
 }
 
 #[rustfmt::skip]
@@ -1505,8 +1505,8 @@ pub struct AuthorizedObjectObservation {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectUpdateToken {
-    pub subscriber: Identity,
-    pub interest: AuthorizedObjectInterest,
+    pub identity: Identity,
+    pub authorized_object_interest: AuthorizedObjectInterest,
 }
 
 #[rustfmt::skip]
@@ -1516,10 +1516,10 @@ pub struct AuthorizedObjectUpdateToken {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizedObjectUpdate {
-    pub object: AuthorizedObjectReference,
-    pub contract: ContractDigest,
-    pub decision: EvaluationDecision,
-    pub stamp: AttestedMoment,
+    pub authorized_object_reference: AuthorizedObjectReference,
+    pub contract_digest: ContractDigest,
+    pub evaluation_decision: EvaluationDecision,
+    pub attested_moment: AttestedMoment,
 }
 
 #[rustfmt::skip]
@@ -1545,10 +1545,10 @@ pub struct AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateToken);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractTimeCheck {
-    pub contract: ContractDigest,
-    pub due_at: TimestampNanos,
-    pub result: AuthorizedObjectReference,
-    pub absent: AuthorizedObjectInterest,
+    pub contract_digest: ContractDigest,
+    pub timestamp_nanos: TimestampNanos,
+    pub authorized_object_reference: AuthorizedObjectReference,
+    pub authorized_object_interest: AuthorizedObjectInterest,
 }
 
 #[rustfmt::skip]
@@ -1574,8 +1574,8 @@ pub struct DueContractChecksEvaluated(Vec<AuthorizedObjectUpdate>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationDenial {
-    pub source: AuthorizationDenialSource,
-    pub reason: AuthorizationDenialReason,
+    pub authorization_denial_source: AuthorizationDenialSource,
+    pub authorization_denial_reason: AuthorizationDenialReason,
 }
 
 #[rustfmt::skip]
@@ -1585,9 +1585,9 @@ pub struct AuthorizationDenial {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContentReference {
-    pub digest: ObjectDigest,
-    pub purpose: ContentPurpose,
-    pub schema_version: PrincipalName,
+    pub object_digest: ObjectDigest,
+    pub content_purpose: ContentPurpose,
+    pub principal_name: PrincipalName,
 }
 
 #[rustfmt::skip]
@@ -1597,10 +1597,10 @@ pub struct ContentReference {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuditContext {
-    pub purpose: ContentPurpose,
+    pub content_purpose: ContentPurpose,
     pub audience: PrincipalName,
     pub policy_version: PrincipalName,
-    pub nonce: ReplayNonce,
+    pub replay_nonce: ReplayNonce,
 }
 
 #[rustfmt::skip]
@@ -1610,9 +1610,9 @@ pub struct AuditContext {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureEnvelope {
-    pub scheme: SignatureScheme,
-    pub public_key: BlsPublicKey,
-    pub signature: BlsSignature,
+    pub signature_scheme: SignatureScheme,
+    pub bls_public_key: BlsPublicKey,
+    pub bls_signature: BlsSignature,
 }
 
 #[rustfmt::skip]
@@ -1622,8 +1622,8 @@ pub struct SignatureEnvelope {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct StampedSignatureEnvelope {
-    pub stamp: AttestedMoment,
-    pub envelope: SignatureEnvelope,
+    pub attested_moment: AttestedMoment,
+    pub signature_envelope: SignatureEnvelope,
 }
 
 #[rustfmt::skip]
@@ -1633,11 +1633,11 @@ pub struct StampedSignatureEnvelope {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Attestation {
-    pub content: ContentReference,
-    pub signer: Identity,
-    pub envelope: SignatureEnvelope,
-    pub issued_at: TimestampNanos,
-    pub attestation_expires_at: Option<TimestampNanos>,
+    pub content_reference: ContentReference,
+    pub identity: Identity,
+    pub signature_envelope: SignatureEnvelope,
+    pub timestamp_nanos: TimestampNanos,
+    pub optional_timestamp_nanos: Option<TimestampNanos>,
     pub audit_context: AuditContext,
 }
 
@@ -1648,9 +1648,9 @@ pub struct Attestation {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignedObject {
-    pub content: ContentReference,
-    pub signer: Identity,
-    pub envelope: SignatureEnvelope,
+    pub content_reference: ContentReference,
+    pub identity: Identity,
+    pub signature_envelope: SignatureEnvelope,
 }
 
 #[rustfmt::skip]
@@ -1662,8 +1662,8 @@ pub struct SignedObject {
 pub struct DelegationGrant {
     pub issuer: Identity,
     pub subject: Identity,
-    pub scope: ContentPurpose,
-    pub delegation_expires_at: Option<TimestampNanos>,
+    pub content_purpose: ContentPurpose,
+    pub optional_timestamp_nanos: Option<TimestampNanos>,
 }
 
 #[rustfmt::skip]
@@ -1673,9 +1673,9 @@ pub struct DelegationGrant {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ComponentRelease {
-    pub component: PrincipalName,
-    pub artifact: ObjectDigest,
-    pub authorized_by: Identity,
+    pub principal_name: PrincipalName,
+    pub object_digest: ObjectDigest,
+    pub identity: Identity,
 }
 
 #[rustfmt::skip]
@@ -1685,10 +1685,10 @@ pub struct ComponentRelease {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignedPersonaRequest {
-    pub audience: Identity,
-    pub content: ContentReference,
-    pub delegation: Option<DelegationGrant>,
-    pub envelope: SignatureEnvelope,
+    pub identity: Identity,
+    pub content_reference: ContentReference,
+    pub optional_delegation_grant: Option<DelegationGrant>,
+    pub signature_envelope: SignatureEnvelope,
 }
 
 #[rustfmt::skip]
@@ -1698,11 +1698,11 @@ pub struct SignedPersonaRequest {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignalCallAuthorization {
-    pub object: AuthorizedObjectReference,
-    pub requester: Identity,
-    pub nonce: ReplayNonce,
-    pub signal_call_expires_at: Option<TimestampNanos>,
-    pub spirit_context: Option<SpiritAuthorizationContext>,
+    pub authorized_object_reference: AuthorizedObjectReference,
+    pub identity: Identity,
+    pub replay_nonce: ReplayNonce,
+    pub optional_timestamp_nanos: Option<TimestampNanos>,
+    pub optional_spirit_authorization_context: Option<SpiritAuthorizationContext>,
 }
 
 #[rustfmt::skip]
@@ -1720,8 +1720,8 @@ pub struct AuthorizationObservation(AuthorizationRequestSlot);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationVerification {
-    pub request_digest: ObjectDigest,
-    pub authorization: AuthorizationGrant,
+    pub object_digest: ObjectDigest,
+    pub authorization_grant: AuthorizationGrant,
 }
 
 #[rustfmt::skip]
@@ -1731,11 +1731,11 @@ pub struct AuthorizationVerification {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureSolicitation {
-    pub request_slot: AuthorizationRequestSlot,
-    pub request_digest: ObjectDigest,
-    pub contract: ContractName,
-    pub operation: ContractOperationHead,
-    pub scope: AuthorizationScope,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub object_digest: ObjectDigest,
+    pub contract_name: ContractName,
+    pub contract_operation_head: ContractOperationHead,
+    pub authorization_scope: AuthorizationScope,
     pub requester: Identity,
     pub required_signer: Identity,
 }
@@ -1747,8 +1747,8 @@ pub struct SignatureSolicitation {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureSolicitationRoute {
-    pub solicitation: SignatureSolicitation,
-    pub routed_to: Identity,
+    pub signature_solicitation: SignatureSolicitation,
+    pub identity: Identity,
 }
 
 #[rustfmt::skip]
@@ -1758,9 +1758,9 @@ pub struct SignatureSolicitationRoute {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureSubmission {
-    pub request_slot: AuthorizationRequestSlot,
-    pub signer: Identity,
-    pub signature: StampedSignatureEnvelope,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub identity: Identity,
+    pub stamped_signature_envelope: StampedSignatureEnvelope,
 }
 
 #[rustfmt::skip]
@@ -1770,9 +1770,9 @@ pub struct SignatureSubmission {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationRejection {
-    pub request_slot: AuthorizationRequestSlot,
-    pub rejector: Identity,
-    pub reason: AuthorizationDenialReason,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub identity: Identity,
+    pub authorization_denial_reason: AuthorizationDenialReason,
 }
 
 #[rustfmt::skip]
@@ -1782,14 +1782,14 @@ pub struct AuthorizationRejection {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationGrant {
-    pub request_slot: AuthorizationRequestSlot,
-    pub authorized_object: AuthorizedObjectReference,
-    pub policy_satisfaction: AuthorizationPolicySatisfaction,
-    pub signature_result: SignatureAuthorizationResult,
-    pub authorization_grant_signatures: Vec<StampedSignatureEnvelope>,
-    pub issued_by: Identity,
-    pub issued_at: TimestampNanos,
-    pub authorization_grant_expires_at: Option<TimestampNanos>,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub authorized_object_reference: AuthorizedObjectReference,
+    pub authorization_policy_satisfaction: AuthorizationPolicySatisfaction,
+    pub signature_authorization_result: SignatureAuthorizationResult,
+    pub vec_stamped_signature_envelope: Vec<StampedSignatureEnvelope>,
+    pub identity: Identity,
+    pub timestamp_nanos: TimestampNanos,
+    pub optional_timestamp_nanos: Option<TimestampNanos>,
 }
 
 #[rustfmt::skip]
@@ -1807,10 +1807,10 @@ pub struct AuthorizationObservationToken(AuthorizationRequestSlot);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationPending {
-    pub request_slot: AuthorizationRequestSlot,
-    pub request_digest: ObjectDigest,
-    pub pending_missing_authorities: Vec<Identity>,
-    pub observation_token: AuthorizationObservationToken,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub object_digest: ObjectDigest,
+    pub vec_identity: Vec<Identity>,
+    pub authorization_observation_token: AuthorizationObservationToken,
 }
 
 #[rustfmt::skip]
@@ -1820,8 +1820,8 @@ pub struct AuthorizationPending {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationDenied {
-    pub request_slot: AuthorizationRequestSlot,
-    pub denial: AuthorizationDenial,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub authorization_denial: AuthorizationDenial,
 }
 
 #[rustfmt::skip]
@@ -1831,8 +1831,8 @@ pub struct AuthorizationDenied {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationExpired {
-    pub request_slot: AuthorizationRequestSlot,
-    pub expired_at: TimestampNanos,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub timestamp_nanos: TimestampNanos,
 }
 
 #[rustfmt::skip]
@@ -1842,8 +1842,8 @@ pub struct AuthorizationExpired {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationUnavailable {
-    pub request_slot: AuthorizationRequestSlot,
-    pub reason: PrincipalName,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub principal_name: PrincipalName,
 }
 
 #[rustfmt::skip]
@@ -1853,14 +1853,14 @@ pub struct AuthorizationUnavailable {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationStateRecord {
-    pub request_slot: AuthorizationRequestSlot,
-    pub request_digest: ObjectDigest,
-    pub status: AuthorizationStatus,
-    pub state_missing_authorities: Vec<Identity>,
-    pub grant: Option<AuthorizationGrant>,
-    pub denial: Option<AuthorizationDenial>,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub object_digest: ObjectDigest,
+    pub authorization_status: AuthorizationStatus,
+    pub vec_identity: Vec<Identity>,
+    pub optional_authorization_grant: Option<AuthorizationGrant>,
+    pub optional_authorization_denial: Option<AuthorizationDenial>,
     pub parked_evaluation: Option<AuthorizationEvaluation>,
-    pub signal_authorization: Option<SignalCallAuthorization>,
+    pub optional_signal_call_authorization: Option<SignalCallAuthorization>,
     pub granted_evidence: Option<AuthorizationEvaluation>,
 }
 
@@ -1879,9 +1879,9 @@ pub struct AuthorizationObservationSnapshot(Vec<AuthorizationStateRecord>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ParkedAuthorization {
-    pub request_slot: AuthorizationRequestSlot,
-    pub parked_authorization_evaluation: Option<AuthorizationEvaluation>,
-    pub parked_signal_authorization: Option<SignalCallAuthorization>,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub optional_authorization_evaluation: Option<AuthorizationEvaluation>,
+    pub optional_signal_call_authorization: Option<SignalCallAuthorization>,
 }
 
 #[rustfmt::skip]
@@ -1907,8 +1907,8 @@ pub struct ParkedAuthorizationSnapshot(Vec<ParkedAuthorization>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureRouteReceipt {
-    pub request_slot: AuthorizationRequestSlot,
-    pub routed_to: Identity,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub identity: Identity,
 }
 
 #[rustfmt::skip]
@@ -1918,8 +1918,8 @@ pub struct SignatureRouteReceipt {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignatureSubmissionReceipt {
-    pub request_slot: AuthorizationRequestSlot,
-    pub signer: Identity,
+    pub authorization_request_slot: AuthorizationRequestSlot,
+    pub identity: Identity,
 }
 
 #[rustfmt::skip]
@@ -1945,10 +1945,10 @@ pub struct AuthorizationUpdate(AuthorizationStateRecord);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignRequest {
-    pub content: ContentReference,
-    pub signer: Identity,
+    pub content_reference: ContentReference,
+    pub identity: Identity,
     pub audit_context: AuditContext,
-    pub sign_request_expires_at: Option<TimestampNanos>,
+    pub optional_timestamp_nanos: Option<TimestampNanos>,
 }
 
 #[rustfmt::skip]
@@ -1959,7 +1959,7 @@ pub struct SignRequest {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct VerifyRequest {
     pub attestation: Attestation,
-    pub content: ContentReference,
+    pub content_reference: ContentReference,
 }
 
 #[rustfmt::skip]
@@ -1970,10 +1970,10 @@ pub struct VerifyRequest {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentityRegistration {
     pub identity: Identity,
-    pub public_key: BlsPublicKey,
-    pub fingerprint: PublicKeyFingerprint,
-    pub purpose: KeyPurpose,
-    pub admission: Option<SignatureEnvelope>,
+    pub bls_public_key: BlsPublicKey,
+    pub public_key_fingerprint: PublicKeyFingerprint,
+    pub key_purpose: KeyPurpose,
+    pub optional_signature_envelope: Option<SignatureEnvelope>,
 }
 
 #[rustfmt::skip]
@@ -1984,8 +1984,8 @@ pub struct IdentityRegistration {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentityRevocation {
     pub identity: Identity,
-    pub fingerprint: PublicKeyFingerprint,
-    pub reason: PrincipalName,
+    pub public_key_fingerprint: PublicKeyFingerprint,
+    pub principal_name: PrincipalName,
 }
 
 #[rustfmt::skip]
@@ -2003,7 +2003,7 @@ pub struct IdentityLookup(Identity);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ArchiveAttestationRequest {
-    pub release: ComponentRelease,
+    pub component_release: ComponentRelease,
     pub audit_context: AuditContext,
 }
 
@@ -2014,8 +2014,8 @@ pub struct ArchiveAttestationRequest {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ChannelGrantAttestationRequest {
-    pub grant_content: ContentReference,
-    pub source: Identity,
+    pub content_reference: ContentReference,
+    pub identity: Identity,
     pub audit_context: AuditContext,
 }
 
@@ -2026,8 +2026,8 @@ pub struct ChannelGrantAttestationRequest {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AuthorizationAttestationRequest {
-    pub authorization_content: ContentReference,
-    pub source: Identity,
+    pub content_reference: ContentReference,
+    pub identity: Identity,
     pub audit_context: AuditContext,
 }
 
@@ -2055,7 +2055,7 @@ pub struct IdentitySubscriptionToken(Identity);
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SignReceipt {
     pub attestation: Attestation,
-    pub issued_at: TimestampNanos,
+    pub timestamp_nanos: TimestampNanos,
 }
 
 #[rustfmt::skip]
@@ -2065,9 +2065,9 @@ pub struct SignReceipt {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct VerificationResult {
-    pub decision: VerificationDecision,
-    pub verified_identity: Option<Identity>,
-    pub verification_expires_at: Option<TimestampNanos>,
+    pub verification_decision: VerificationDecision,
+    pub optional_identity: Option<Identity>,
+    pub optional_timestamp_nanos: Option<TimestampNanos>,
 }
 
 #[rustfmt::skip]
@@ -2078,7 +2078,7 @@ pub struct VerificationResult {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct IdentityReceipt {
     pub identity: Identity,
-    pub status: PrincipalStatus,
+    pub principal_status: PrincipalStatus,
 }
 
 #[rustfmt::skip]
@@ -2176,11 +2176,11 @@ pub enum RoundPhase {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuorumProposal {
-    pub round: QuorumRoundIdentifier,
-    pub phase: RoundPhase,
-    pub contract: ContractDigest,
-    pub object: AuthorizedObjectReference,
-    pub window: TimeWindow,
+    pub quorum_round_identifier: QuorumRoundIdentifier,
+    pub round_phase: RoundPhase,
+    pub contract_digest: ContractDigest,
+    pub authorized_object_reference: AuthorizedObjectReference,
+    pub time_window: TimeWindow,
 }
 
 #[rustfmt::skip]
@@ -2190,12 +2190,12 @@ pub struct QuorumProposal {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuorumVoteSolicitation {
-    pub round: QuorumRoundIdentifier,
-    pub phase: RoundPhase,
-    pub contract: ContractDigest,
-    pub object: AuthorizedObjectReference,
-    pub proposition: AttestedMomentProposition,
-    pub originator: Identity,
+    pub quorum_round_identifier: QuorumRoundIdentifier,
+    pub round_phase: RoundPhase,
+    pub contract_digest: ContractDigest,
+    pub authorized_object_reference: AuthorizedObjectReference,
+    pub attested_moment_proposition: AttestedMomentProposition,
+    pub identity: Identity,
 }
 
 #[rustfmt::skip]
@@ -2205,9 +2205,9 @@ pub struct QuorumVoteSolicitation {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuorumVote {
-    pub round: QuorumRoundIdentifier,
-    pub phase: RoundPhase,
-    pub voter: Identity,
+    pub quorum_round_identifier: QuorumRoundIdentifier,
+    pub round_phase: RoundPhase,
+    pub identity: Identity,
     pub operation_signature: SignatureEnvelope,
     pub time_signature: SignatureEnvelope,
 }
@@ -2227,13 +2227,13 @@ pub struct QuorumRoundQuery(QuorumRoundIdentifier);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuorumRoundState {
-    pub round: QuorumRoundIdentifier,
-    pub phase: RoundPhase,
-    pub contract: ContractDigest,
-    pub status: QuorumRoundStatus,
+    pub quorum_round_identifier: QuorumRoundIdentifier,
+    pub round_phase: RoundPhase,
+    pub contract_digest: ContractDigest,
+    pub quorum_round_status: QuorumRoundStatus,
     pub gathered: RequiredSignatureThreshold,
     pub required: RequiredSignatureThreshold,
-    pub authorized_evidence: Option<Evidence>,
+    pub optional_evidence: Option<Evidence>,
 }
 
 #[rustfmt::skip]
@@ -2243,9 +2243,9 @@ pub struct QuorumRoundState {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuorumConflict {
-    pub contract: ContractDigest,
-    pub at_head: ContractOperationHead,
-    pub existing_successor: AuthorizedObjectReference,
+    pub contract_digest: ContractDigest,
+    pub contract_operation_head: ContractOperationHead,
+    pub authorized_object_reference: AuthorizedObjectReference,
 }
 
 #[rustfmt::skip]
