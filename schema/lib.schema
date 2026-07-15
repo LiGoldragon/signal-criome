@@ -1,1005 +1,195 @@
-;; signal-criome — ordinary working wire contract for Criome trust and
-;; attestation. Wire-only: schema-emitted rkyv + optional NOTA codec on the
-;; signal-frame request/reply/stream envelope. No daemon, actor runtime,
-;; transport, database, or signing implementation — those live in the criome
-;; daemon. SELF-CONTAINED VOCABULARY.
-
-[(Sign SignRequest)
- (VerifyAttestation VerifyRequest)
- (RegisterIdentity IdentityRegistration)
- (RevokeIdentity IdentityRevocation)
- (LookupIdentity IdentityLookup)
- (AttestArchive ArchiveAttestationRequest)
- (AttestChannelGrant ChannelGrantAttestationRequest)
- (AttestAuthorization AuthorizationAttestationRequest)
- (AuthorizeSignalCall SignalCallAuthorization opens AuthorizationObservationStream)
- (ObserveAuthorization AuthorizationObservation opens AuthorizationObservationStream)
- (VerifyAuthorization AuthorizationVerification)
- (RouteSignatureRequest SignatureSolicitationRoute)
- (SubmitSignature SignatureSubmission)
- (RejectAuthorization AuthorizationRejection)
- (ObserveParkedAuthorizations ParkedAuthorizationObservation)
- (AdmitContract Contract)
- (LookupContract ContractDigest)
- (EvaluateAuthorization AuthorizationEvaluation)
- (ObserveAuthorizedObjects AuthorizedObjectObservation opens AuthorizedObjectUpdateStream)
- (AuthorizedObjectUpdateRetraction AuthorizedObjectUpdateToken)
- (ScheduleContractTimeCheck ContractTimeCheck)
- (RunDueContractChecks AttestedMoment)
- (SubscribeIdentityUpdates IdentitySubscription opens IdentityUpdateStream)
- (IdentitySubscriptionRetraction IdentitySubscriptionToken)
- (AuthorizationObservationRetraction AuthorizationObservationToken)
- (ProposeQuorumAuthorization QuorumProposal)
- (SolicitQuorumVote QuorumVoteSolicitation)
- (SubmitQuorumVote QuorumVote)
- (ObserveQuorumRound QuorumRoundQuery)
- (ObserveNodePublicKey NodePublicKeyObservation)
- (ConveyFounding FoundingConveyance)]
-[(SignReceipt SignReceipt)
- (VerificationResult VerificationResult)
- (IdentityReceipt IdentityReceipt)
- (IdentitySnapshot IdentitySnapshot)
- (AttestationReceipt AttestationReceipt)
- (AuthorizationPending AuthorizationPending)
- (AuthorizationGranted AuthorizationGrant)
- (AuthorizationDenied AuthorizationDenied)
- (AuthorizationExpired AuthorizationExpired)
- (AuthorizationUnavailable AuthorizationUnavailable)
- (AuthorizationObservationSnapshot AuthorizationObservationSnapshot)
- (SignatureRouteReceipt SignatureRouteReceipt)
- (SignatureSubmissionReceipt SignatureSubmissionReceipt)
- (ParkedAuthorizationSnapshot ParkedAuthorizationSnapshot)
- (ContractAdmitted ContractAdmitted)
- (ContractFound ContractFound)
- (ContractMissing ContractMissing)
- (ContractAdmissionRejected ContractAdmissionRejected)
- (AuthorizationEvaluated AuthorizationEvaluated)
- (AuthorizedObjectUpdateSnapshot AuthorizedObjectUpdateSnapshot)
- (AuthorizedObjectUpdateRetracted AuthorizedObjectUpdateRetracted)
- (ContractTimeCheckScheduled ContractTimeCheckScheduled)
- (DueContractChecksEvaluated DueContractChecksEvaluated)
- (AuthorizationObservationRetracted AuthorizationObservationRetracted)
- (SubscriptionRetracted SubscriptionRetracted)
- (Rejection Rejection)
- (QuorumRoundOpened QuorumRoundState)
- (QuorumVoteSolicited QuorumRoundState)
- (QuorumVoteAccepted QuorumRoundState)
- (QuorumRoundObserved QuorumRoundState)
- (NodePublicKey NodePublicKey)
- (QuorumConflict QuorumConflict)
- (FoundingConveyed FoundingConveyanceReceipt)]
+;; Criome trust and attestation wire contract. The MVP target selector is not a
+;; cryptographic or durable identity binding; Authority-binding remains a future
+;; authority-design concern.
+{}
+[Sign.SignRequest VerifyAttestation.VerifyRequest RegisterIdentity.IdentityRegistration RevokeIdentity.IdentityRevocation LookupIdentity.IdentityLookup AttestArchive.ArchiveAttestationRequest AttestChannelGrant.ChannelGrantAttestationRequest AttestAuthorization.AuthorizationAttestationRequest AuthorizeSignalCall.SignalCallAuthorization ObserveAuthorization.AuthorizationObservation VerifyAuthorization.AuthorizationVerification RouteSignatureRequest.SignatureSolicitationRoute SubmitSignature.SignatureSubmission RejectAuthorization.AuthorizationRejection ObserveParkedAuthorizations.ParkedAuthorizationObservation AdmitContract.Contract LookupContract.ContractDigest EvaluateAuthorization.AuthorizationEvaluation ObserveAuthorizedObjects.AuthorizedObjectObservation AuthorizedObjectUpdateRetraction.AuthorizedObjectUpdateToken ScheduleContractTimeCheck.ContractTimeCheck RunDueContractChecks.AttestedMoment SubscribeIdentityUpdates.IdentitySubscription IdentitySubscriptionRetraction.IdentitySubscriptionToken AuthorizationObservationRetraction.AuthorizationObservationToken ProposeQuorumAuthorization.QuorumProposal SolicitQuorumVote.QuorumVoteSolicitation SubmitQuorumVote.QuorumVote ObserveQuorumRound.QuorumRoundQuery ObserveNodePublicKey.NodePublicKeyObservation ConveyFounding.FoundingConveyance]
+[Signed.SignReceipt Verified.VerificationResult IdentityRegistered.IdentityReceipt Identities.IdentitySnapshot Attested.AttestationReceipt Pending.AuthorizationPending AuthorizationGranted.AuthorizationGrant Denied.AuthorizationDenied Expired.AuthorizationExpired Unavailable.AuthorizationUnavailable AuthorizationObserved.AuthorizationObservationSnapshot SignatureRouted.SignatureRouteReceipt SignatureSubmitted.SignatureSubmissionReceipt ParkedAuthorizations.ParkedAuthorizationSnapshot ContractAccepted.ContractAdmitted ContractLocated.ContractFound ContractAbsent.ContractMissing ContractRefused.ContractAdmissionRejected AuthorizationJudged.AuthorizationEvaluated AuthorizedObjectsUpdated.AuthorizedObjectUpdateSnapshot AuthorizedObjectRetracted.AuthorizedObjectUpdateRetracted TimeCheckScheduled.ContractTimeCheckScheduled DueChecksEvaluated.DueContractChecksEvaluated AuthorizationObservationClosed.AuthorizationObservationRetracted SubscriptionClosed.SubscriptionRetracted Refused.Rejection QuorumRoundOpened.QuorumRoundState QuorumVoteSolicited.QuorumRoundState QuorumVoteAccepted.QuorumRoundState QuorumRoundObserved.QuorumRoundState PublicKeyObserved.NodePublicKey QuorumRefused.QuorumConflict FoundingConveyed.FoundingConveyanceReceipt]
 {
-  DaemonPath String
-  ;; The router destination-actor identifier a peer's conveyance is addressed
-  ;; to (the criome-side twin of signal-router's own `ActorIdentifier`; kept
-  ;; local so signal-criome stays a self-contained vocabulary).
-  ActorIdentifier String
-  PrincipalName String
-  PrincipalId String
-  PublicKeyFingerprint String
-  BlsPublicKey String
-  BlsSignature String
-  ObjectDigest String
-  ContractDigest ObjectDigest
-  OperationDigest ObjectDigest
-  CompositionDigest ObjectDigest
-  WorkflowDigest ObjectDigest
-  WorkflowProvenanceDigest ObjectDigest
-  AttestedMomentDigest ObjectDigest
-  RootAnchorDigest ObjectDigest
-  ReplayNonce String
-  ContractName String
-  AuthorizationRequestSlot String
-  AuthorizationScope String
-  ContractOperationHead String
-  WorkflowStepName String
-  InterceptPolicyIdentifier String
-  MentciSessionSlot String
-  SpiritProcessKey String
-  SpiritOperationName String
-  SpiritOperationNames (Vector SpiritOperationName)
-  RawSpiritOperationPayload String
-  ParkedRequestIdentifier String
-  TimestampNanos Integer
-  PolicyDurationNanos Integer
-  QuorumWindowNanos Integer
-  PolicyPriority Integer
-  RequiredSignatureThreshold Integer
-  CompositionThreshold Integer
-
-  SignatureScheme [Bls12_381MinPk Bls12_381MinSig]
-  PrincipalStatus [Active Revoked]
-  KeyPurpose [CriomeRoot PersonaRequest AgentRequest ReleaseAuthorization HostPublication]
-  ContentPurpose [SignedObject ComponentRelease ChannelGrant ChannelRetract Authorization Archive PrivilegeElevation]
-  VerificationDecision [Valid InvalidSignature UnknownSigner Expired Revoked ReplayAttempted]
-  SignatureAuthorizationResult [SingleSignature RequiredSignaturesSatisfied PendingSignatures Rejected Expired]
-  AuthorizationPolicyClass [SimpleSelfSigned ComplexQuorum]
-  AuthorizationMode [Quorum AutoApprove ClientApproval]
-  AuthorizationStatus [Pending Signing Parked Granted Denied Expired Unavailable]
-  AuthorizationDenialReason [PolicyRefused RequiredSignatureMissing SignatureRejected SignerThresholdRejected SignatureExpired RequestDigestMismatch SignatureScopeMismatch SignerUnavailable]
-  AuthorizationDenialSource [Policy Signers]
-  ExpiryAction [AutoApprove AutoReject LeaveParked]
-  PolicyOverlapMode [RejectSamePriorityOverlap ReplaceSamePriorityOverlap]
-  ParkedRequestDecision [Approve Reject]
-  ParkedRequestOutcome [Approved Rejected LeftParked]
-  ApprovalAuditSource [Manual Automatic]
-  RejectionReason [MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration OutsideTimeWindow SelfLoopSuccessor ForgedVote StaleVote]
-  ComponentKind [Spirit Criome Router Mirror Lojix Persona Agent]
-  ContractAdmissionRejectionReason [
-    (DanglingReference ContractDigest)
-    DuplicatePolicyMember
-    EmptyDisjunction
-    EmptyConjunction
-    EmptyThreshold
-    ThresholdUnsatisfiable
-  ]
-
-  Identity [
-    (Persona PrincipalName)
-    (Agent PrincipalName)
-    (Host PrincipalName)
-    (Developer PrincipalName)
-    (Cluster PrincipalName)
-  ]
-
-  ;; One peer member mapped to the router destination-actor the local router
-  ;; resolves a remote route for. The wire twin of criome's in-memory
-  ;; `PeerActorRoute` (routing table entry); this one round-trips through the
-  ;; daemon configuration file.
-  PeerActorRoute {
-    Identity
-    ActorIdentifier
-  }
-
-  ;; Criome's router submission path: when present, the daemon conveys peer
-  ;; requests over its local router instead of conveying nothing. Typed
-  ;; record, not a flag -- absence keeps the daemon on `NoConveyance`.
-  RouterSubmissionConfiguration {
-    DaemonPath
-    ActorIdentifier
-    (Vector PeerActorRoute)
-  }
-
-  ;; `quorum_window` is the owner-configured duration of one cluster
-  ;; authorization window (both commit rounds plus network round-trips, and
-  ;; the catch-up case that chains two proposals). Absent, the daemon uses
-  ;; its built-in default — tens of seconds live, seconds in tests.
-  CriomeDaemonConfiguration {
-    socket_path.DaemonPath
-    store_path.DaemonPath
-    (Optional DaemonPath)
-    (Optional BlsPublicKey)
-    AuthorizationMode
-    (Optional Identity)
-    (Optional RouterSubmissionConfiguration)
-    (Optional QuorumWindowNanos)
-  }
-
-  AuthorizationPolicySatisfaction {
-    AuthorizationPolicyClass
-    RequiredSignatureThreshold
-    (Vec Identity)
-  }
-
-  ;; ─── The Criome unit, its parent link, and the founded root ───────
-  ;;
-  ;; A Criome unit is a content-addressed Contract. `parent` is the
-  ;; provenance / authority-derivation link: `Root` is the distinguished
-  ;; self-grounding sentinel (its own origin, NOT a self-reference, so no
-  ;; self-referential digest), and `Parent` chains authority upward to
-  ;; the contract whose digest it names. Adding `parent` re-serialises
-  ;; and therefore re-digests every Contract; this is a clean-genesis
-  ;; schema change, not a migration.
-  ContractParent [
-    Root
-    (Parent ContractDigest)
-  ]
-
-  Contract {
-    Rule
-    ContractParent
-  }
-
-  ;; ─── Root founding certificate (attached, scheme-tagged signatures) ─
-  ;;
-  ;; RootGenesis is the accepted initial state hashed to the anchor
-  ;; (RootAnchorDigest = blake3(rkyv(RootGenesis))). Because it embeds the
-  ;; ordered founding_keys, the hashed anchor COMMITS to the founding
-  ;; quorum's public keys (self-certifying identity). Founding signatures
-  ;; ride ATTACHED to the anchor as a separate accumulating collection —
-  ;; never folded into the hash — and stay scheme-tagged through
-  ;; SignatureEnvelope.scheme, the seam for later cold/hardware keys on a
-  ;; non-BLS scheme. RootFoundingStatement is the preimage each founder
-  ;; signs.
-  GenesisDomainTag [
-    CriomeRootFoundingV1
-  ]
-
-  FoundingMember {
-    Identity
-    BlsPublicKey
-  }
-
-  RootGenesis {
-    Contract
-    (Vector FoundingMember)
-    GenesisDomainTag
-    ReplayNonce
-  }
-
-  FoundingSignature {
-    Identity
-    SignatureEnvelope
-  }
-
-  RootFoundingStatement {
-    RootAnchorDigest
-    GenesisDomainTag
-  }
-
-  ;; ─── Founding conveyance (node-to-node, over the router) ───────────
-  ;;
-  ;; The wire that lets a multi-node cohort assemble a UNANIMOUS root
-  ;; across peers' working sockets. `ConveyFounding` carries one of three
-  ;; founding movements between cohort criomes; the frozen ordinary ops
-  ;; never carried a founding proposal to a peer, a peer's signature back,
-  ;; or a finished root out — so a unanimous multi-node root could never
-  ;; be gathered and persisted without it.
-  ;;
-  ;;   Proposal   initiator → peer: found this exact cohort. The peer
-  ;;              stores it pending an explicit owner accept; it does NOT
-  ;;              sign on receipt (no auto-approval).
-  ;;   Signature  peer → initiator: this peer's accepted FoundingSignature,
-  ;;              returned so the initiator accumulates it toward unanimity.
-  ;;   Founded    initiator → peer: the finished unanimous root, so every
-  ;;              cohort node verifies and persists the SAME anchor.
-  FoundingProposal {
-    RootGenesis
-    Identity
-  }
-
-  FoundingSignatureReturn {
-    RootAnchorDigest
-    FoundingSignature
-  }
-
-  FoundedRoot {
-    RootGenesis
-    (Vector FoundingSignature)
-  }
-
-  FoundingConveyance [
-    (Proposal FoundingProposal)
-    (Signature FoundingSignatureReturn)
-    (Founded FoundedRoot)
-  ]
-
-  ;; What the receiving node did with a conveyed founding movement. The
-  ;; receipt names the anchor it pertains to and the domain outcome, so a
-  ;; caller that conveys synchronously can act on the result instead of a
-  ;; bare Success/Error shell.
-  FoundingConveyanceOutcome [
-    ProposalPending
-    SignatureAccumulated
-    RootFounded
-    Refused
-  ]
-
-  FoundingConveyanceReceipt {
-    RootAnchorDigest
-    FoundingConveyanceOutcome
-  }
-
-  ;; ─── Node public-key observation (public socket) ──────────────────
-  ;;
-  ;; A public read-op so a founding client can display and exchange a
-  ;; node's Criome master public key out-of-band before founding.
-  NodePublicKeyObservation { }
-
-  NodePublicKey {
-    BlsPublicKey
-  }
-
-  Rule [
-    (SignedBy Identity)
-    (All (Vector ContractDigest))
-    (Any (Vector ContractDigest))
-    (Threshold Threshold)
-    (Workflow WorkflowGuard)
-    (Composition Composition)
-    (ActiveAfter TimedRule)
-    (ActiveUntil TimedRule)
-    (TimeSwitch TimeSwitch)
-    (Agreement AgreementRule)
-    EscalateToPsyche
-  ]
-
-  WorkflowGuard {
-    WorkflowDigest
-    Identity
-  }
-
-  Composition [
-    (AllOf (Vector CompositionDigest))
-    (AnyOf (Vector CompositionDigest))
-    (Threshold CompositionThreshold)
-    (Escalate EscalationTarget)
-    (WorkflowStep WorkflowStepName)
-    (Signature Identity)
-  ]
-
-  PolicyMember [
-    (KeyMember Identity)
-    (ObjectMember ContractDigest)
-  ]
-
-  Threshold {
-    RequiredSignatureThreshold
-    (Vector PolicyMember)
-  }
-
-  TimedRule {
-    TimestampNanos
-    Identity
-  }
-
-  TimeSwitch {
-    TimestampNanos
-    before.Threshold
-    after.Threshold
-  }
-
-  AgreementRule {
-    divergence.ObjectDigest
-    resolution.ObjectDigest
-    Identity
-  }
-
-  AgreementFact {
-    divergence.ObjectDigest
-    resolution.ObjectDigest
-    Identity
-    StampedSignatureEnvelope
-  }
-
-  TimeWindow {
-    opens_at.TimestampNanos
-    closes_at.TimestampNanos
-  }
-
-  ;; The MVP process key is a simple Spirit stream/process selector, not a
-  ;; cryptographic or durable identity binding. Authority-binding remains a
-  ;; later design surface; criome meta-socket possession is the MVP authority
-  ;; boundary for policy mutation.
-  InterceptTargetSelector {
-    SpiritProcessKey
-  }
-
-  InterceptPolicyWindow {
-    starts_at.TimestampNanos
-    expires_at.TimestampNanos
-  }
-
-  InterceptPolicyProposal {
-    MentciSessionSlot
-    InterceptTargetSelector
-    SpiritOperationNames
-    PolicyDurationNanos
-    ExpiryAction
-    PolicyPriority
-    PolicyOverlapMode
-  }
-
-  InterceptPolicy {
-    InterceptPolicyIdentifier
-    MentciSessionSlot
-    InterceptTargetSelector
-    SpiritOperationNames
-    InterceptPolicyWindow
-    ExpiryAction
-    PolicyPriority
-  }
-
-  InterceptPolicies (Vector InterceptPolicy)
-  ActiveInterceptPolicies {
-    InterceptPolicies
-  }
-
-  InterceptPolicyCancellation {
-    InterceptPolicyIdentifier
-  }
-
-  SpiritAuthorizationContext {
-    SpiritOperationName
-    RawSpiritOperationPayload
-    SpiritProcessKey
-  }
-
-  ParkedSpiritRequest {
-    ParkedRequestIdentifier
-    InterceptPolicyIdentifier
-    MentciSessionSlot
-    SpiritAuthorizationContext
-    parked_at.TimestampNanos
-    expires_at.TimestampNanos
-    ExpiryAction
-  }
-
-  ParkedRequestQuery {
-    (Optional MentciSessionSlot)
-    (Optional InterceptTargetSelector)
-  }
-
-  ParkedSpiritRequests (Vector ParkedSpiritRequest)
-  ParkedRequestSnapshot {
-    ParkedSpiritRequests
-  }
-
-  ParkedRequestAnswer {
-    ParkedRequestIdentifier
-    ParkedRequestDecision
-  }
-
-  ParkedRequestResolution {
-    ParkedRequestIdentifier
-    InterceptPolicyIdentifier
-    ParkedRequestOutcome
-    ApprovalAuditSource
-    TimestampNanos
-  }
-
-  AttestedMomentProposition {
-    TimeWindow
-    RequiredSignatureThreshold
-    (Vector Identity)
-  }
-
-  TimeSignature {
-    Identity
-    SignatureEnvelope
-  }
-
-  AttestedMoment {
-    AttestedMomentProposition
-    (Vector TimeSignature)
-  }
-
-  Evidence {
-    ComponentKind
-    OperationDigest
-    AttestedMoment
-    (Vector StampedSignatureEnvelope)
-    (Vector AgreementFact)
-    (Vector WorkflowReceipt)
-    (Vector ObjectCoSignature)
-  }
-
-  WorkflowReceipt {
-    WorkflowDigest
-    OperationDigest
-    EvaluationDecision
-    WorkflowProvenanceDigest
-  }
-
-  ObjectCoSignature {
-    AuthorizedObjectReference
-    Identity
-    StampedSignatureEnvelope
-  }
-
-  CoSignatureExpectation {
-    AuthorizedObjectReference
-    expected_signers.(Vector Identity)
-    observed_signers.(Vector Identity)
-  }
-
-  AuthorizationEvaluation {
-    ContractDigest
-    AuthorizedObjectReference
-    Evidence
-  }
-
-  EvaluationDecision [
-    Authorized
-    (Rejected EvaluationRejectionReason)
-    Deferred
-    NonJudgement
-    (Escalate EscalationTarget)
-  ]
-
-  EscalationTarget [
-    Psyche
-    (Workflow WorkflowDigest)
-    (SmarterAgent Identity)
-  ]
-
-  EvaluationRejectionReason [
-    (SignatureMissing Identity)
-    (QuorumShort QuorumShortfall)
-    OutsideTimeWindow
-    TimeNotProven
-    AgreementMissing
-  ]
-
-  AuthorizedObjectKind [Operation Contract Agreement Time Head]
-
-  ComponentObjectInterest {
-    ComponentKind
-    AuthorizedObjectKind
-  }
-
-  AuthorizedObjectInterest [
-    AnyAuthorizedObject
-    (Component ComponentKind)
-    (ObjectKind AuthorizedObjectKind)
-    (ComponentObject ComponentObjectInterest)
-  ]
-
-  AuthorizedObjectReference {
-    ComponentKind
-    ObjectDigest
-    AuthorizedObjectKind
-  }
-
-  QuorumShortfall {
-    required.RequiredSignatureThreshold
-    satisfied.RequiredSignatureThreshold
-  }
-
-  ContractAdmitted {
-    ContractDigest
-  }
-
-  ContractFound {
-    ContractDigest
-    Contract
-  }
-
-  ContractMissing {
-    ContractDigest
-  }
-
-  ContractAdmissionRejected {
-    ContractAdmissionRejectionReason
-  }
-
-  AuthorizationEvaluated {
-    ContractDigest
-    EvaluationDecision
-  }
-
-  AuthorizedObjectObservation {
-    Identity
-    AuthorizedObjectInterest
-  }
-
-  AuthorizedObjectUpdateToken {
-    Identity
-    AuthorizedObjectInterest
-  }
-
-  AuthorizedObjectUpdate {
-    AuthorizedObjectReference
-    ContractDigest
-    EvaluationDecision
-    AttestedMoment
-  }
-
-  AuthorizedObjectUpdateSnapshot {
-    (Vec AuthorizedObjectUpdate)
-  }
-
-  AuthorizedObjectUpdateRetracted {
-    AuthorizedObjectUpdateToken
-  }
-
-  ContractTimeCheck {
-    ContractDigest
-    TimestampNanos
-    AuthorizedObjectReference
-    AuthorizedObjectInterest
-  }
-
-  ContractTimeCheckScheduled {
-    ContractTimeCheck
-  }
-
-  DueContractChecksEvaluated {
-    (Vec AuthorizedObjectUpdate)
-  }
-
-  AuthorizationDenial {
-    AuthorizationDenialSource
-    AuthorizationDenialReason
-  }
-
-  ContentReference {
-    ObjectDigest
-    ContentPurpose
-    PrincipalName
-  }
-
-  AuditContext {
-    ContentPurpose
-    audience.PrincipalName
-    policy_version.PrincipalName
-    ReplayNonce
-  }
-
-  SignatureEnvelope {
-    SignatureScheme
-    BlsPublicKey
-    BlsSignature
-  }
-
-  StampedSignatureEnvelope {
-    AttestedMoment
-    SignatureEnvelope
-  }
-
-  Attestation {
-    ContentReference
-    Identity
-    SignatureEnvelope
-    TimestampNanos
-    (Optional TimestampNanos)
-    AuditContext
-  }
-
-  SignedObject {
-    ContentReference
-    Identity
-    SignatureEnvelope
-  }
-
-  DelegationGrant {
-    issuer.Identity
-    subject.Identity
-    ContentPurpose
-    (Optional TimestampNanos)
-  }
-
-  ComponentRelease {
-    PrincipalName
-    ObjectDigest
-    Identity
-  }
-
-  SignedPersonaRequest {
-    Identity
-    ContentReference
-    (Optional DelegationGrant)
-    SignatureEnvelope
-  }
-
-  ;; The authorization ask: the typed authorized-object reference (component
-  ;; and kind are closed enums, the digest names the object) plus requester
-  ;; identity, replay nonce, and optional expiry. The former contract-name /
-  ;; operation / scope string trio is retired: an identifier of a fixed set is
-  ;; an enum, and the object reference already carries the full typed shape.
-  SignalCallAuthorization {
-    AuthorizedObjectReference
-    Identity
-    ReplayNonce
-    (Optional TimestampNanos)
-    (Optional SpiritAuthorizationContext)
-  }
-
-  AuthorizationObservation {
-    AuthorizationRequestSlot
-  }
-
-  AuthorizationVerification {
-    ObjectDigest
-    AuthorizationGrant
-  }
-
-  SignatureSolicitation {
-    AuthorizationRequestSlot
-    ObjectDigest
-    ContractName
-    ContractOperationHead
-    AuthorizationScope
-    requester.Identity
-    required_signer.Identity
-  }
-
-  SignatureSolicitationRoute {
-    SignatureSolicitation
-    Identity
-  }
-
-  SignatureSubmission {
-    AuthorizationRequestSlot
-    Identity
-    StampedSignatureEnvelope
-  }
-
-  AuthorizationRejection {
-    AuthorizationRequestSlot
-    Identity
-    AuthorizationDenialReason
-  }
-
-  ;; The grant binds the request slot to the typed authorized object it
-  ;; authorizes (the string contract/operation/scope trio is retired with the
-  ;; ask's). The BLS grant signatures sign the V2 grant statement over these
-  ;; fields.
-  AuthorizationGrant {
-    AuthorizationRequestSlot
-    AuthorizedObjectReference
-    AuthorizationPolicySatisfaction
-    SignatureAuthorizationResult
-    (Vec StampedSignatureEnvelope)
-    Identity
-    TimestampNanos
-    (Optional TimestampNanos)
-  }
-
-  AuthorizationObservationToken {
-    AuthorizationRequestSlot
-  }
-
-  AuthorizationPending {
-    AuthorizationRequestSlot
-    ObjectDigest
-    (Vec Identity)
-    AuthorizationObservationToken
-  }
-
-  AuthorizationDenied {
-    AuthorizationRequestSlot
-    AuthorizationDenial
-  }
-
-  AuthorizationExpired {
-    AuthorizationRequestSlot
-    TimestampNanos
-  }
-
-  AuthorizationUnavailable {
-    AuthorizationRequestSlot
-    PrincipalName
-  }
-
-  ;; `granted_evidence` is the cluster-authorization hand-off: on a
-  ;; quorum-granted state it carries the operational contract digest, the
-  ;; authorized object, and the assembled quorum Evidence — exactly the
-  ;; carried authorization a receiving node later re-judges through
-  ;; EvaluateAuthorization. Absent on non-quorum grants.
-  AuthorizationStateRecord {
-    AuthorizationRequestSlot
-    ObjectDigest
-    AuthorizationStatus
-    (Vec Identity)
-    (Optional AuthorizationGrant)
-    (Optional AuthorizationDenial)
-    parked_evaluation.(Optional AuthorizationEvaluation)
-    (Optional SignalCallAuthorization)
-    granted_evidence.(Optional AuthorizationEvaluation)
-  }
-
-  AuthorizationObservationSnapshot {
-    (Vec AuthorizationStateRecord)
-  }
-
-  ParkedAuthorization {
-    AuthorizationRequestSlot
-    (Optional AuthorizationEvaluation)
-    (Optional SignalCallAuthorization)
-  }
-
-  ParkedAuthorizationObservation { }
-
-  ParkedAuthorizationSnapshot {
-    (Vec ParkedAuthorization)
-  }
-
-  SignatureRouteReceipt {
-    AuthorizationRequestSlot
-    Identity
-  }
-
-  SignatureSubmissionReceipt {
-    AuthorizationRequestSlot
-    Identity
-  }
-
-  AuthorizationObservationRetracted {
-    AuthorizationObservationToken
-  }
-
-  AuthorizationUpdate {
-    AuthorizationStateRecord
-  }
-
-  SignRequest {
-    ContentReference
-    Identity
-    AuditContext
-    (Optional TimestampNanos)
-  }
-
-  VerifyRequest {
-    Attestation
-    ContentReference
-  }
-
-  IdentityRegistration {
-    Identity
-    BlsPublicKey
-    PublicKeyFingerprint
-    KeyPurpose
-    (Optional SignatureEnvelope)
-  }
-
-  IdentityRevocation {
-    Identity
-    PublicKeyFingerprint
-    PrincipalName
-  }
-
-  IdentityLookup {
-    Identity
-  }
-
-  ArchiveAttestationRequest {
-    ComponentRelease
-    AuditContext
-  }
-
-  ChannelGrantAttestationRequest {
-    ContentReference
-    Identity
-    AuditContext
-  }
-
-  AuthorizationAttestationRequest {
-    ContentReference
-    Identity
-    AuditContext
-  }
-
-  IdentitySubscription {
-    Identity
-  }
-
-  IdentitySubscriptionToken {
-    Identity
-  }
-
-  SignReceipt {
-    Attestation
-    TimestampNanos
-  }
-
-  VerificationResult {
-    VerificationDecision
-    (Optional Identity)
-    (Optional TimestampNanos)
-  }
-
-  IdentityReceipt {
-    Identity
-    PrincipalStatus
-  }
-
-  IdentitySnapshot {
-    (Vec IdentityReceipt)
-  }
-
-  AttestationReceipt {
-    Attestation
-  }
-
-  IdentityUpdate {
-    IdentityReceipt
-  }
-
-  SubscriptionRetracted {
-    IdentitySubscriptionToken
-  }
-
-  Rejection {
-    RejectionReason
-  }
-
-  ;; ─── Quorum collection (propose → gather → judge → commit) ─────────
-  ;;
-  ;; The contract-quorum path. An originating node's criome proposes an
-  ;; operation under an admitted Threshold contract, self-votes, solicits
-  ;; each peer member's vote across the router, collects the
-  ;; stamped BLS signatures, and feeds them to the existing majority-judge
-  ;; (Evidence + evaluate_authorization). A round is WITHHELD (Gathering)
-  ;; until a true majority co-sign; only then does it carry an Authorized
-  ;; Evidence. This is the gathered-quorum path, distinct from the 1-of-1
-  ;; signal-call skeleton (RouteSignatureRequest / SubmitSignature), which
-  ;; it must not be confused with.
-  QuorumRoundIdentifier String
-  QuorumRoundStatus [Gathering Authorized]
-
-  ;; Round phase: the two-round commit dimension. Round 1 (Request)
-  ;; gathers a majority over the request object; round 2 (Commit) gathers
-  ;; an independently verified majority over the commit object. Appended
-  ;; append-only — Request first, Commit second. The QuorumRoundIdentifier
-  ;; is derived phase-aware (QuorumRoundIdentifier::for_phase) so round-1
-  ;; and round-2 signatures over the same object occupy distinct durable
-  ;; rounds and can never collide.
-  RoundPhase [Request Commit]
-
-  ;; Propose (originator ← Spirit): open a round to authorize `object`
-  ;; under the admitted `contract`, opening an attested-moment `window`
-  ;; whose authorities and threshold are the contract's own members.
-  QuorumProposal {
-    QuorumRoundIdentifier
-    RoundPhase
-    ContractDigest
-    AuthorizedObjectReference
-    TimeWindow
-  }
-
-  ;; Solicit (originator → peer, across the peer conveyance): the proposal the peer
-  ;; criome independently re-validates before casting vote #2. It carries
-  ;; the shared moment proposition so every member signs the same moment,
-  ;; and the originator identity so the peer routes its vote back.
-  QuorumVoteSolicitation {
-    QuorumRoundIdentifier
-    RoundPhase
-    ContractDigest
-    AuthorizedObjectReference
-    AttestedMomentProposition
-    Identity
-  }
-
-  ;; Vote (peer → originator, across the peer conveyance): one member's two BLS
-  ;; signatures — over the operation statement and over the moment. The
-  ;; originator wraps these into the assembled Evidence.
-  QuorumVote {
-    QuorumRoundIdentifier
-    RoundPhase
-    Identity
-    operation_signature.SignatureEnvelope
-    time_signature.SignatureEnvelope
-  }
-
-  QuorumRoundQuery {
-    QuorumRoundIdentifier
-  }
-
-  ;; The durable round projection. `authorized_evidence` is present only
-  ;; when `status` is Authorized — the withheld round exposes no valid
-  ;; evidence until a true majority co-sign.
-  QuorumRoundState {
-    QuorumRoundIdentifier
-    RoundPhase
-    ContractDigest
-    QuorumRoundStatus
-    gathered.RequiredSignatureThreshold
-    required.RequiredSignatureThreshold
-    (Optional Evidence)
-  }
-
-  ;; ─── Non-double-signing refusal (single successor per state-point) ─
-  ;;
-  ;; An honest node co-signs at most one successor per (Criome, head).
-  ;; Having co-signed `existing_successor` from `at_head` on `contract`,
-  ;; it refuses any different successor from the same head and answers the
-  ;; loser with this typed "refused, resubmit" reply. The conflict
-  ;; predicate (a different successor from the same head) is enforced in
-  ;; the daemon and kept pluggable for a later commutative-merge predicate.
-  QuorumConflict {
-    ContractDigest
-    ContractOperationHead
-    AuthorizedObjectReference
-  }
-
-  CriomeEvent [
-    (IdentityUpdate IdentityUpdate belongs IdentityUpdateStream)
-    (AuthorizationUpdate AuthorizationUpdate belongs AuthorizationObservationStream)
-    (AuthorizedObjectUpdate AuthorizedObjectUpdate belongs AuthorizedObjectUpdateStream)
-  ]
-
-  IdentityUpdateStream (Stream { token.IdentitySubscriptionToken opened.IdentitySnapshot event.CriomeEvent close.IdentitySubscriptionToken })
-  AuthorizationObservationStream (Stream { token.AuthorizationObservationToken opened.AuthorizationObservationSnapshot event.CriomeEvent close.AuthorizationObservationToken })
-  AuthorizedObjectUpdateStream (Stream { token.AuthorizedObjectUpdateToken opened.AuthorizedObjectUpdateSnapshot event.CriomeEvent close.AuthorizedObjectUpdateToken })
+  DaemonPath.String
+  ActorIdentifier.String
+  PrincipalName.String
+  PrincipalId.String
+  PublicKeyFingerprint.String
+  BlsPublicKey.String
+  BlsSignature.String
+  ObjectDigest.String
+  ContractDigest.ObjectDigest
+  OperationDigest.ObjectDigest
+  CompositionDigest.ObjectDigest
+  WorkflowDigest.ObjectDigest
+  WorkflowProvenanceDigest.ObjectDigest
+  AttestedMomentDigest.ObjectDigest
+  RootAnchorDigest.ObjectDigest
+  ReplayNonce.String
+  ContractName.String
+  AuthorizationRequestSlot.String
+  AuthorizationScope.String
+  ContractOperationHead.String
+  WorkflowStepName.String
+  InterceptPolicyIdentifier.String
+  MentciSessionSlot.String
+  SpiritProcessKey.String
+  SpiritOperationName.String
+  SpiritOperationNames.Vector.SpiritOperationName
+  RawSpiritOperationPayload.String
+  ParkedRequestIdentifier.String
+  TimestampNanos.Integer
+  PolicyDurationNanos.Integer
+  QuorumWindowNanos.Integer
+  PolicyPriority.Integer
+  RequiredSignatureThreshold.Integer
+  CompositionThreshold.Integer
+  SignatureScheme.[Bls12_381MinPk Bls12_381MinSig]
+  PrincipalStatus.[Active Revoked]
+  KeyPurpose.[CriomeRoot PersonaRequest AgentRequest ReleaseAuthorization HostPublication]
+  ContentPurpose.[SignedObject ComponentRelease ChannelGrant ChannelRetract Authorization Archive PrivilegeElevation]
+  VerificationDecision.[Valid InvalidSignature UnknownSigner Expired Revoked ReplayAttempted]
+  SignatureAuthorizationResult.[SingleSignature RequiredSignaturesSatisfied PendingSignatures Rejected Expired]
+  AuthorizationPolicyClass.[SimpleSelfSigned ComplexQuorum]
+  AuthorizationMode.[Quorum AutoApprove ClientApproval]
+  AuthorizationStatus.[Pending Signing Parked Granted Denied Expired Unavailable]
+  AuthorizationDenialReason.[PolicyRefused RequiredSignatureMissing SignatureRejected SignerThresholdRejected SignatureExpired RequestDigestMismatch SignatureScopeMismatch SignerUnavailable]
+  AuthorizationDenialSource.[Policy Signers]
+  ExpiryAction.[AutoApprove AutoReject LeaveParked]
+  PolicyOverlapMode.[RejectSamePriorityOverlap ReplaceSamePriorityOverlap]
+  ParkedRequestDecision.[Approve Reject]
+  ParkedRequestOutcome.[Approved Rejected LeftParked]
+  ApprovalAuditSource.[Manual Automatic]
+  RejectionReason.[MalformedRequest UnsupportedSignatureScheme UnknownIdentity RevokedIdentity DuplicateIdentity ReplayAttempted UnauthorizedRegistration OutsideTimeWindow SelfLoopSuccessor ForgedVote StaleVote]
+  ComponentKind.[Spirit Criome Router Mirror Lojix Persona Agent]
+  ContractAdmissionRejectionReason.[DanglingReference.ContractDigest DuplicatePolicyMember EmptyDisjunction EmptyConjunction EmptyThreshold ThresholdUnsatisfiable]
+  Identity.[Persona.PrincipalName Agent.PrincipalName Host.PrincipalName Developer.PrincipalName Cluster.PrincipalName]
+  PeerActorRoute.{ Identity ActorIdentifier }
+  RouterSubmissionConfiguration.{ DaemonPath ActorIdentifier Vector.PeerActorRoute }
+  CriomeDaemonConfiguration.{ socket_path.DaemonPath store_path.DaemonPath Optional.DaemonPath Optional.BlsPublicKey AuthorizationMode Optional.Identity Optional.RouterSubmissionConfiguration Optional.QuorumWindowNanos }
+  AuthorizationPolicySatisfaction.{ AuthorizationPolicyClass RequiredSignatureThreshold Vector.Identity }
+  ContractParent.[Root Parent.ContractDigest]
+  Contract.{ Rule ContractParent }
+  GenesisDomainTag.[CriomeRootFoundingV1]
+  FoundingMember.{ Identity BlsPublicKey }
+  RootGenesis.{ Contract Vector.FoundingMember GenesisDomainTag ReplayNonce }
+  FoundingSignature.{ Identity SignatureEnvelope }
+  RootFoundingStatement.{ RootAnchorDigest GenesisDomainTag }
+  FoundingProposal.{ RootGenesis Identity }
+  FoundingSignatureReturn.{ RootAnchorDigest FoundingSignature }
+  FoundedRoot.{ RootGenesis Vector.FoundingSignature }
+  FoundingConveyance.[Proposal.FoundingProposal Signature.FoundingSignatureReturn Founded.FoundedRoot]
+  FoundingConveyanceOutcome.[ProposalPending SignatureAccumulated RootFounded Refused]
+  FoundingConveyanceReceipt.{ RootAnchorDigest FoundingConveyanceOutcome }
+  NodePublicKeyObservation.{  }
+  NodePublicKey.{ BlsPublicKey }
+  Rule.[SignedBy.Identity All.Vector.ContractDigest Any.Vector.ContractDigest ThresholdRule.Threshold Workflow.WorkflowGuard Composite.Composition ActiveAfter.TimedRule ActiveUntil.TimedRule Timed.TimeSwitch Agreement.AgreementRule EscalateToPsyche]
+  WorkflowGuard.{ WorkflowDigest Identity }
+  Composition.[AllOf.Vector.CompositionDigest AnyOf.Vector.CompositionDigest Threshold.CompositionThreshold Escalate.EscalationTarget WorkflowStep.WorkflowStepName Signature.Identity]
+  PolicyMember.[KeyMember.Identity ObjectMember.ContractDigest]
+  Threshold.{ RequiredSignatureThreshold Vector.PolicyMember }
+  TimedRule.{ TimestampNanos Identity }
+  TimeSwitch.{ TimestampNanos before.Threshold after.Threshold }
+  AgreementRule.{ divergence.ObjectDigest resolution.ObjectDigest Identity }
+  AgreementFact.{ divergence.ObjectDigest resolution.ObjectDigest Identity StampedSignatureEnvelope }
+  TimeWindow.{ opens_at.TimestampNanos closes_at.TimestampNanos }
+  InterceptTargetSelector.{ SpiritProcessKey }
+  InterceptPolicyWindow.{ starts_at.TimestampNanos expires_at.TimestampNanos }
+  InterceptPolicyProposal.{ MentciSessionSlot InterceptTargetSelector SpiritOperationNames PolicyDurationNanos ExpiryAction PolicyPriority PolicyOverlapMode }
+  InterceptPolicy.{ InterceptPolicyIdentifier MentciSessionSlot InterceptTargetSelector SpiritOperationNames InterceptPolicyWindow ExpiryAction PolicyPriority }
+  InterceptPolicies.Vector.InterceptPolicy
+  ActiveInterceptPolicies.{ InterceptPolicies }
+  InterceptPolicyCancellation.{ InterceptPolicyIdentifier }
+  SpiritAuthorizationContext.{ SpiritOperationName RawSpiritOperationPayload SpiritProcessKey }
+  ParkedSpiritRequest.{ ParkedRequestIdentifier InterceptPolicyIdentifier MentciSessionSlot SpiritAuthorizationContext parked_at.TimestampNanos expires_at.TimestampNanos ExpiryAction }
+  ParkedRequestQuery.{ Optional.MentciSessionSlot Optional.InterceptTargetSelector }
+  ParkedSpiritRequests.Vector.ParkedSpiritRequest
+  ParkedRequestSnapshot.{ ParkedSpiritRequests }
+  ParkedRequestAnswer.{ ParkedRequestIdentifier ParkedRequestDecision }
+  ParkedRequestResolution.{ ParkedRequestIdentifier InterceptPolicyIdentifier ParkedRequestOutcome ApprovalAuditSource TimestampNanos }
+  AttestedMomentProposition.{ TimeWindow RequiredSignatureThreshold Vector.Identity }
+  TimeSignature.{ Identity SignatureEnvelope }
+  AttestedMoment.{ AttestedMomentProposition Vector.TimeSignature }
+  Evidence.{ ComponentKind OperationDigest AttestedMoment Vector.StampedSignatureEnvelope Vector.AgreementFact Vector.WorkflowReceipt Vector.ObjectCoSignature }
+  WorkflowReceipt.{ WorkflowDigest OperationDigest EvaluationDecision WorkflowProvenanceDigest }
+  ObjectCoSignature.{ AuthorizedObjectReference Identity StampedSignatureEnvelope }
+  CoSignatureExpectation.{ AuthorizedObjectReference expected_signers. Vector.Identity observed_signers. Vector.Identity }
+  AuthorizationEvaluation.{ ContractDigest AuthorizedObjectReference Evidence }
+  EvaluationDecision.[Authorized Rejected.EvaluationRejectionReason Deferred NonJudgement Escalate.EscalationTarget]
+  EscalationTarget.[Psyche Workflow.WorkflowDigest SmarterAgent.Identity]
+  EvaluationRejectionReason.[SignatureMissing.Identity QuorumShort.QuorumShortfall OutsideTimeWindow TimeNotProven AgreementMissing]
+  AuthorizedObjectKind.[Operation Contract Agreement Time Head]
+  ComponentObjectInterest.{ ComponentKind AuthorizedObjectKind }
+  AuthorizedObjectInterest.[AnyAuthorizedObject Component.ComponentKind ObjectKind.AuthorizedObjectKind ComponentObject.ComponentObjectInterest]
+  AuthorizedObjectReference.{ ComponentKind ObjectDigest AuthorizedObjectKind }
+  QuorumShortfall.{ required.RequiredSignatureThreshold satisfied.RequiredSignatureThreshold }
+  ContractAdmitted.{ ContractDigest }
+  ContractFound.{ ContractDigest Contract }
+  ContractMissing.{ ContractDigest }
+  ContractAdmissionRejected.{ ContractAdmissionRejectionReason }
+  AuthorizationEvaluated.{ ContractDigest EvaluationDecision }
+  AuthorizedObjectObservation.{ Identity AuthorizedObjectInterest }
+  AuthorizedObjectUpdateToken.{ Identity AuthorizedObjectInterest }
+  AuthorizedObjectUpdate.{ AuthorizedObjectReference ContractDigest EvaluationDecision AttestedMoment }
+  AuthorizedObjectUpdateSnapshot.{ Vector.AuthorizedObjectUpdate }
+  AuthorizedObjectUpdateRetracted.{ AuthorizedObjectUpdateToken }
+  ContractTimeCheck.{ ContractDigest TimestampNanos AuthorizedObjectReference AuthorizedObjectInterest }
+  ContractTimeCheckScheduled.{ ContractTimeCheck }
+  DueContractChecksEvaluated.{ Vector.AuthorizedObjectUpdate }
+  AuthorizationDenial.{ AuthorizationDenialSource AuthorizationDenialReason }
+  ContentReference.{ ObjectDigest ContentPurpose PrincipalName }
+  AuditContext.{ ContentPurpose audience.PrincipalName policy_version.PrincipalName ReplayNonce }
+  SignatureEnvelope.{ SignatureScheme BlsPublicKey BlsSignature }
+  StampedSignatureEnvelope.{ AttestedMoment SignatureEnvelope }
+  Attestation.{ ContentReference Identity SignatureEnvelope TimestampNanos Optional.TimestampNanos AuditContext }
+  SignedObject.{ ContentReference Identity SignatureEnvelope }
+  DelegationGrant.{ issuer.Identity subject.Identity ContentPurpose Optional.TimestampNanos }
+  ComponentRelease.{ PrincipalName ObjectDigest Identity }
+  SignedPersonaRequest.{ Identity ContentReference Optional.DelegationGrant SignatureEnvelope }
+  SignalCallAuthorization.{ AuthorizedObjectReference Identity ReplayNonce Optional.TimestampNanos Optional.SpiritAuthorizationContext }
+  AuthorizationObservation.{ AuthorizationRequestSlot }
+  AuthorizationVerification.{ ObjectDigest AuthorizationGrant }
+  SignatureSolicitation.{ AuthorizationRequestSlot ObjectDigest ContractName ContractOperationHead AuthorizationScope requester.Identity required_signer.Identity }
+  SignatureSolicitationRoute.{ SignatureSolicitation Identity }
+  SignatureSubmission.{ AuthorizationRequestSlot Identity StampedSignatureEnvelope }
+  AuthorizationRejection.{ AuthorizationRequestSlot Identity AuthorizationDenialReason }
+  AuthorizationGrant.{ AuthorizationRequestSlot AuthorizedObjectReference AuthorizationPolicySatisfaction SignatureAuthorizationResult Vector.StampedSignatureEnvelope Identity TimestampNanos Optional.TimestampNanos }
+  AuthorizationObservationToken.{ AuthorizationRequestSlot }
+  AuthorizationPending.{ AuthorizationRequestSlot ObjectDigest Vector.Identity AuthorizationObservationToken }
+  AuthorizationDenied.{ AuthorizationRequestSlot AuthorizationDenial }
+  AuthorizationExpired.{ AuthorizationRequestSlot TimestampNanos }
+  AuthorizationUnavailable.{ AuthorizationRequestSlot PrincipalName }
+  AuthorizationStateRecord.{ AuthorizationRequestSlot ObjectDigest AuthorizationStatus Vector.Identity Optional.AuthorizationGrant Optional.AuthorizationDenial parked_evaluation. Optional.AuthorizationEvaluation Optional.SignalCallAuthorization granted_evidence. Optional.AuthorizationEvaluation }
+  AuthorizationObservationSnapshot.{ Vector.AuthorizationStateRecord }
+  ParkedAuthorization.{ AuthorizationRequestSlot Optional.AuthorizationEvaluation Optional.SignalCallAuthorization }
+  ParkedAuthorizationObservation.{  }
+  ParkedAuthorizationSnapshot.{ Vector.ParkedAuthorization }
+  SignatureRouteReceipt.{ AuthorizationRequestSlot Identity }
+  SignatureSubmissionReceipt.{ AuthorizationRequestSlot Identity }
+  AuthorizationObservationRetracted.{ AuthorizationObservationToken }
+  AuthorizationUpdate.{ AuthorizationStateRecord }
+  SignRequest.{ ContentReference Identity AuditContext Optional.TimestampNanos }
+  VerifyRequest.{ Attestation ContentReference }
+  IdentityRegistration.{ Identity BlsPublicKey PublicKeyFingerprint KeyPurpose Optional.SignatureEnvelope }
+  IdentityRevocation.{ Identity PublicKeyFingerprint PrincipalName }
+  IdentityLookup.{ Identity }
+  ArchiveAttestationRequest.{ ComponentRelease AuditContext }
+  ChannelGrantAttestationRequest.{ ContentReference Identity AuditContext }
+  AuthorizationAttestationRequest.{ ContentReference Identity AuditContext }
+  IdentitySubscription.{ Identity }
+  IdentitySubscriptionToken.{ Identity }
+  SignReceipt.{ Attestation TimestampNanos }
+  VerificationResult.{ VerificationDecision Optional.Identity Optional.TimestampNanos }
+  IdentityReceipt.{ Identity PrincipalStatus }
+  IdentitySnapshot.{ Vector.IdentityReceipt }
+  AttestationReceipt.{ Attestation }
+  IdentityUpdate.{ IdentityReceipt }
+  SubscriptionRetracted.{ IdentitySubscriptionToken }
+  Rejection.{ RejectionReason }
+  QuorumRoundIdentifier.String
+  QuorumRoundStatus.[Gathering Authorized]
+  RoundPhase.[Request Commit]
+  QuorumProposal.{ QuorumRoundIdentifier RoundPhase ContractDigest AuthorizedObjectReference TimeWindow }
+  QuorumVoteSolicitation.{ QuorumRoundIdentifier RoundPhase ContractDigest AuthorizedObjectReference AttestedMomentProposition Identity }
+  QuorumVote.{ QuorumRoundIdentifier RoundPhase Identity operation_signature.SignatureEnvelope time_signature.SignatureEnvelope }
+  QuorumRoundQuery.{ QuorumRoundIdentifier }
+  QuorumRoundState.{ QuorumRoundIdentifier RoundPhase ContractDigest QuorumRoundStatus gathered.RequiredSignatureThreshold required.RequiredSignatureThreshold Optional.Evidence }
+  QuorumConflict.{ ContractDigest ContractOperationHead AuthorizedObjectReference }
 }
+{}
+{}

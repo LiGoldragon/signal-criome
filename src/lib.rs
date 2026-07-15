@@ -14,8 +14,8 @@ pub use schema::lib::*;
 /// Criome-named aliases over the emitted channel roots.
 pub type CriomeRequest = Input;
 pub type CriomeReply = Output;
-pub type CriomeFrame = signal_frame::StreamingFrame<Input, Output, CriomeEvent>;
-pub type CriomeFrameBody = signal_frame::StreamingFrameBody<Input, Output, CriomeEvent>;
+pub type CriomeFrame = signal_frame::ExchangeFrame<Input, Output>;
+pub type CriomeFrameBody = signal_frame::ExchangeFrameBody<Input, Output>;
 pub type CriomeReplyEnvelope = ReplyEnvelope;
 pub type CriomeRequestBuilder = RequestBuilder;
 pub type CriomeOperationKind = InputRoute;
@@ -465,12 +465,12 @@ impl AuthorizationPolicySatisfaction {
         Self {
             authorization_policy_class: policy_class,
             required_signature_threshold,
-            vec_identity: satisfied_signers,
+            identity_vector: satisfied_signers,
         }
     }
 
-    pub fn vec_identity(&self) -> &[Identity] {
-        self.vec_identity.as_slice()
+    pub fn identity_vector(&self) -> &[Identity] {
+        self.identity_vector.as_slice()
     }
 }
 
@@ -672,7 +672,7 @@ impl AuthorizationGrant {
             authorized_object_reference: authorized_object,
             authorization_policy_satisfaction: policy_satisfaction,
             signature_authorization_result: signature_result,
-            vec_stamped_signature_envelope: signatures,
+            stamped_signature_envelope_vector: signatures,
             identity: issued_by,
             timestamp_nanos: issued_at,
             optional_timestamp_nanos: expires_at,
@@ -686,7 +686,7 @@ impl AuthorizationGrant {
     }
 
     pub fn signatures(&self) -> &[StampedSignatureEnvelope] {
-        self.vec_stamped_signature_envelope.as_slice()
+        self.stamped_signature_envelope_vector.as_slice()
     }
 
     pub fn expires_at(&self) -> Option<TimestampNanos> {
@@ -704,13 +704,13 @@ impl AuthorizationPending {
         Self {
             authorization_request_slot: request_slot,
             object_digest: request_digest,
-            vec_identity: missing_authorities,
+            identity_vector: missing_authorities,
             authorization_observation_token: observation_token,
         }
     }
 
     pub fn missing_authorities(&self) -> &[Identity] {
-        self.vec_identity.as_slice()
+        self.identity_vector.as_slice()
     }
 }
 
@@ -727,7 +727,7 @@ impl AuthorizationStateRecord {
             authorization_request_slot: request_slot,
             object_digest: request_digest,
             authorization_status: status,
-            vec_identity: missing_authorities,
+            identity_vector: missing_authorities,
             optional_authorization_grant: grant,
             optional_authorization_denial: denial,
             parked_evaluation: None,
@@ -759,7 +759,7 @@ impl AuthorizationStateRecord {
     }
 
     pub fn missing_authorities(&self) -> &[Identity] {
-        self.vec_identity.as_slice()
+        self.identity_vector.as_slice()
     }
 
     pub fn optional_authorization_grant(&self) -> Option<&AuthorizationGrant> {

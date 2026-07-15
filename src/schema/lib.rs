@@ -766,7 +766,7 @@ pub struct CriomeDaemonConfiguration {
 pub struct AuthorizationPolicySatisfaction {
     pub authorization_policy_class: AuthorizationPolicyClass,
     pub required_signature_threshold: RequiredSignatureThreshold,
-    pub vec_identity: Vec<Identity>,
+    pub identity_vector: Vec<Identity>,
 }
 
 #[rustfmt::skip]
@@ -960,12 +960,12 @@ pub enum Rule {
     SignedBy(Identity),
     All(Vec<ContractDigest>),
     Any(Vec<ContractDigest>),
-    Threshold(Threshold),
+    ThresholdRule(Threshold),
     Workflow(WorkflowGuard),
-    Composition(Composition),
+    Composite(Composition),
     ActiveAfter(TimedRule),
     ActiveUntil(TimedRule),
-    TimeSwitch(TimeSwitch),
+    Timed(TimeSwitch),
     Agreement(AgreementRule),
     EscalateToPsyche,
 }
@@ -1786,7 +1786,7 @@ pub struct AuthorizationGrant {
     pub authorized_object_reference: AuthorizedObjectReference,
     pub authorization_policy_satisfaction: AuthorizationPolicySatisfaction,
     pub signature_authorization_result: SignatureAuthorizationResult,
-    pub vec_stamped_signature_envelope: Vec<StampedSignatureEnvelope>,
+    pub stamped_signature_envelope_vector: Vec<StampedSignatureEnvelope>,
     pub identity: Identity,
     pub timestamp_nanos: TimestampNanos,
     pub optional_timestamp_nanos: Option<TimestampNanos>,
@@ -1809,7 +1809,7 @@ pub struct AuthorizationObservationToken(AuthorizationRequestSlot);
 pub struct AuthorizationPending {
     pub authorization_request_slot: AuthorizationRequestSlot,
     pub object_digest: ObjectDigest,
-    pub vec_identity: Vec<Identity>,
+    pub identity_vector: Vec<Identity>,
     pub authorization_observation_token: AuthorizationObservationToken,
 }
 
@@ -1856,7 +1856,7 @@ pub struct AuthorizationStateRecord {
     pub authorization_request_slot: AuthorizationRequestSlot,
     pub object_digest: ObjectDigest,
     pub authorization_status: AuthorizationStatus,
-    pub vec_identity: Vec<Identity>,
+    pub identity_vector: Vec<Identity>,
     pub optional_authorization_grant: Option<AuthorizationGrant>,
     pub optional_authorization_denial: Option<AuthorizationDenial>,
     pub parked_evaluation: Option<AuthorizationEvaluation>,
@@ -2254,18 +2254,6 @@ pub struct QuorumConflict {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub enum CriomeEvent {
-    IdentityUpdate(IdentityUpdate),
-    AuthorizationUpdate(AuthorizationUpdate),
-    AuthorizedObjectUpdate(AuthorizedObjectUpdate),
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Input {
     Sign(SignRequest),
     VerifyAttestation(VerifyRequest),
@@ -2307,38 +2295,38 @@ pub enum Input {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Output {
-    SignReceipt(SignReceipt),
-    VerificationResult(VerificationResult),
-    IdentityReceipt(IdentityReceipt),
-    IdentitySnapshot(IdentitySnapshot),
-    AttestationReceipt(AttestationReceipt),
-    AuthorizationPending(AuthorizationPending),
+    Signed(SignReceipt),
+    Verified(VerificationResult),
+    IdentityRegistered(IdentityReceipt),
+    Identities(IdentitySnapshot),
+    Attested(AttestationReceipt),
+    Pending(AuthorizationPending),
     AuthorizationGranted(AuthorizationGrant),
-    AuthorizationDenied(AuthorizationDenied),
-    AuthorizationExpired(AuthorizationExpired),
-    AuthorizationUnavailable(AuthorizationUnavailable),
-    AuthorizationObservationSnapshot(AuthorizationObservationSnapshot),
-    SignatureRouteReceipt(SignatureRouteReceipt),
-    SignatureSubmissionReceipt(SignatureSubmissionReceipt),
-    ParkedAuthorizationSnapshot(ParkedAuthorizationSnapshot),
-    ContractAdmitted(ContractAdmitted),
-    ContractFound(ContractFound),
-    ContractMissing(ContractMissing),
-    ContractAdmissionRejected(ContractAdmissionRejected),
-    AuthorizationEvaluated(AuthorizationEvaluated),
-    AuthorizedObjectUpdateSnapshot(AuthorizedObjectUpdateSnapshot),
-    AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateRetracted),
-    ContractTimeCheckScheduled(ContractTimeCheckScheduled),
-    DueContractChecksEvaluated(DueContractChecksEvaluated),
-    AuthorizationObservationRetracted(AuthorizationObservationRetracted),
-    SubscriptionRetracted(SubscriptionRetracted),
-    Rejection(Rejection),
+    Denied(AuthorizationDenied),
+    Expired(AuthorizationExpired),
+    Unavailable(AuthorizationUnavailable),
+    AuthorizationObserved(AuthorizationObservationSnapshot),
+    SignatureRouted(SignatureRouteReceipt),
+    SignatureSubmitted(SignatureSubmissionReceipt),
+    ParkedAuthorizations(ParkedAuthorizationSnapshot),
+    ContractAccepted(ContractAdmitted),
+    ContractLocated(ContractFound),
+    ContractAbsent(ContractMissing),
+    ContractRefused(ContractAdmissionRejected),
+    AuthorizationJudged(AuthorizationEvaluated),
+    AuthorizedObjectsUpdated(AuthorizedObjectUpdateSnapshot),
+    AuthorizedObjectRetracted(AuthorizedObjectUpdateRetracted),
+    TimeCheckScheduled(ContractTimeCheckScheduled),
+    DueChecksEvaluated(DueContractChecksEvaluated),
+    AuthorizationObservationClosed(AuthorizationObservationRetracted),
+    SubscriptionClosed(SubscriptionRetracted),
+    Refused(Rejection),
     QuorumRoundOpened(QuorumRoundState),
     QuorumVoteSolicited(QuorumRoundState),
     QuorumVoteAccepted(QuorumRoundState),
     QuorumRoundObserved(QuorumRoundState),
-    NodePublicKey(NodePublicKey),
-    QuorumConflict(QuorumConflict),
+    PublicKeyObserved(NodePublicKey),
+    QuorumRefused(QuorumConflict),
     FoundingConveyed(FoundingConveyanceReceipt),
 }
 
@@ -3615,14 +3603,14 @@ impl Rule {
     pub fn any(payload: Vec<ContractDigest>) -> Self {
         Self::Any(payload)
     }
-    pub fn threshold(payload: Threshold) -> Self {
-        Self::Threshold(payload)
+    pub fn threshold_rule(payload: Threshold) -> Self {
+        Self::ThresholdRule(payload)
     }
     pub fn workflow(payload: WorkflowGuard) -> Self {
         Self::Workflow(payload)
     }
-    pub fn composition(payload: Composition) -> Self {
-        Self::Composition(payload)
+    pub fn composite(payload: Composition) -> Self {
+        Self::Composite(payload)
     }
     pub fn active_after(payload: TimedRule) -> Self {
         Self::ActiveAfter(payload)
@@ -3630,8 +3618,8 @@ impl Rule {
     pub fn active_until(payload: TimedRule) -> Self {
         Self::ActiveUntil(payload)
     }
-    pub fn time_switch(payload: TimeSwitch) -> Self {
-        Self::TimeSwitch(payload)
+    pub fn timed(payload: TimeSwitch) -> Self {
+        Self::Timed(payload)
     }
     pub fn agreement(payload: AgreementRule) -> Self {
         Self::Agreement(payload)
@@ -3710,19 +3698,6 @@ impl AuthorizedObjectInterest {
     }
     pub fn component_object(payload: ComponentObjectInterest) -> Self {
         Self::ComponentObject(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl CriomeEvent {
-    pub fn identity_update(payload: IdentityReceipt) -> Self {
-        Self::IdentityUpdate(IdentityUpdate::new(payload))
-    }
-    pub fn authorization_update(payload: AuthorizationStateRecord) -> Self {
-        Self::AuthorizationUpdate(AuthorizationUpdate::new(payload))
-    }
-    pub fn authorized_object_update(payload: AuthorizedObjectUpdate) -> Self {
-        Self::AuthorizedObjectUpdate(payload)
     }
 }
 
@@ -3833,101 +3808,87 @@ impl Input {
 
 #[rustfmt::skip]
 impl Output {
-    pub fn sign_receipt(payload: SignReceipt) -> Self {
-        Self::SignReceipt(payload)
+    pub fn signed(payload: SignReceipt) -> Self {
+        Self::Signed(payload)
     }
-    pub fn verification_result(payload: VerificationResult) -> Self {
-        Self::VerificationResult(payload)
+    pub fn verified(payload: VerificationResult) -> Self {
+        Self::Verified(payload)
     }
-    pub fn identity_receipt(payload: IdentityReceipt) -> Self {
-        Self::IdentityReceipt(payload)
+    pub fn identity_registered(payload: IdentityReceipt) -> Self {
+        Self::IdentityRegistered(payload)
     }
-    pub fn identity_snapshot(payload: Vec<IdentityReceipt>) -> Self {
-        Self::IdentitySnapshot(IdentitySnapshot::new(payload))
+    pub fn identities(payload: Vec<IdentityReceipt>) -> Self {
+        Self::Identities(IdentitySnapshot::new(payload))
     }
-    pub fn attestation_receipt(payload: Attestation) -> Self {
-        Self::AttestationReceipt(AttestationReceipt::new(payload))
+    pub fn attested(payload: Attestation) -> Self {
+        Self::Attested(AttestationReceipt::new(payload))
     }
-    pub fn authorization_pending(payload: AuthorizationPending) -> Self {
-        Self::AuthorizationPending(payload)
+    pub fn pending(payload: AuthorizationPending) -> Self {
+        Self::Pending(payload)
     }
     pub fn authorization_granted(payload: AuthorizationGrant) -> Self {
         Self::AuthorizationGranted(payload)
     }
-    pub fn authorization_denied(payload: AuthorizationDenied) -> Self {
-        Self::AuthorizationDenied(payload)
+    pub fn denied(payload: AuthorizationDenied) -> Self {
+        Self::Denied(payload)
     }
-    pub fn authorization_expired(payload: AuthorizationExpired) -> Self {
-        Self::AuthorizationExpired(payload)
+    pub fn expired(payload: AuthorizationExpired) -> Self {
+        Self::Expired(payload)
     }
-    pub fn authorization_unavailable(payload: AuthorizationUnavailable) -> Self {
-        Self::AuthorizationUnavailable(payload)
+    pub fn unavailable(payload: AuthorizationUnavailable) -> Self {
+        Self::Unavailable(payload)
     }
-    pub fn authorization_observation_snapshot(
-        payload: Vec<AuthorizationStateRecord>,
-    ) -> Self {
-        Self::AuthorizationObservationSnapshot(
-            AuthorizationObservationSnapshot::new(payload),
-        )
+    pub fn authorization_observed(payload: Vec<AuthorizationStateRecord>) -> Self {
+        Self::AuthorizationObserved(AuthorizationObservationSnapshot::new(payload))
     }
-    pub fn signature_route_receipt(payload: SignatureRouteReceipt) -> Self {
-        Self::SignatureRouteReceipt(payload)
+    pub fn signature_routed(payload: SignatureRouteReceipt) -> Self {
+        Self::SignatureRouted(payload)
     }
-    pub fn signature_submission_receipt(payload: SignatureSubmissionReceipt) -> Self {
-        Self::SignatureSubmissionReceipt(payload)
+    pub fn signature_submitted(payload: SignatureSubmissionReceipt) -> Self {
+        Self::SignatureSubmitted(payload)
     }
-    pub fn parked_authorization_snapshot(payload: Vec<ParkedAuthorization>) -> Self {
-        Self::ParkedAuthorizationSnapshot(ParkedAuthorizationSnapshot::new(payload))
+    pub fn parked_authorizations(payload: Vec<ParkedAuthorization>) -> Self {
+        Self::ParkedAuthorizations(ParkedAuthorizationSnapshot::new(payload))
     }
-    pub fn contract_admitted(payload: ContractDigest) -> Self {
-        Self::ContractAdmitted(ContractAdmitted::new(payload))
+    pub fn contract_accepted(payload: ContractDigest) -> Self {
+        Self::ContractAccepted(ContractAdmitted::new(payload))
     }
-    pub fn contract_found(payload: ContractFound) -> Self {
-        Self::ContractFound(payload)
+    pub fn contract_located(payload: ContractFound) -> Self {
+        Self::ContractLocated(payload)
     }
-    pub fn contract_missing(payload: ContractDigest) -> Self {
-        Self::ContractMissing(ContractMissing::new(payload))
+    pub fn contract_absent(payload: ContractDigest) -> Self {
+        Self::ContractAbsent(ContractMissing::new(payload))
     }
-    pub fn contract_admission_rejected(
-        payload: ContractAdmissionRejectionReason,
-    ) -> Self {
-        Self::ContractAdmissionRejected(ContractAdmissionRejected::new(payload))
+    pub fn contract_refused(payload: ContractAdmissionRejectionReason) -> Self {
+        Self::ContractRefused(ContractAdmissionRejected::new(payload))
     }
-    pub fn authorization_evaluated(payload: AuthorizationEvaluated) -> Self {
-        Self::AuthorizationEvaluated(payload)
+    pub fn authorization_judged(payload: AuthorizationEvaluated) -> Self {
+        Self::AuthorizationJudged(payload)
     }
-    pub fn authorized_object_update_snapshot(
-        payload: Vec<AuthorizedObjectUpdate>,
-    ) -> Self {
-        Self::AuthorizedObjectUpdateSnapshot(
-            AuthorizedObjectUpdateSnapshot::new(payload),
-        )
+    pub fn authorized_objects_updated(payload: Vec<AuthorizedObjectUpdate>) -> Self {
+        Self::AuthorizedObjectsUpdated(AuthorizedObjectUpdateSnapshot::new(payload))
     }
-    pub fn authorized_object_update_retracted(
-        payload: AuthorizedObjectUpdateToken,
-    ) -> Self {
-        Self::AuthorizedObjectUpdateRetracted(
-            AuthorizedObjectUpdateRetracted::new(payload),
-        )
+    pub fn authorized_object_retracted(payload: AuthorizedObjectUpdateToken) -> Self {
+        Self::AuthorizedObjectRetracted(AuthorizedObjectUpdateRetracted::new(payload))
     }
-    pub fn contract_time_check_scheduled(payload: ContractTimeCheck) -> Self {
-        Self::ContractTimeCheckScheduled(ContractTimeCheckScheduled::new(payload))
+    pub fn time_check_scheduled(payload: ContractTimeCheck) -> Self {
+        Self::TimeCheckScheduled(ContractTimeCheckScheduled::new(payload))
     }
-    pub fn due_contract_checks_evaluated(payload: Vec<AuthorizedObjectUpdate>) -> Self {
-        Self::DueContractChecksEvaluated(DueContractChecksEvaluated::new(payload))
+    pub fn due_checks_evaluated(payload: Vec<AuthorizedObjectUpdate>) -> Self {
+        Self::DueChecksEvaluated(DueContractChecksEvaluated::new(payload))
     }
-    pub fn authorization_observation_retracted(
+    pub fn authorization_observation_closed(
         payload: AuthorizationObservationToken,
     ) -> Self {
-        Self::AuthorizationObservationRetracted(
+        Self::AuthorizationObservationClosed(
             AuthorizationObservationRetracted::new(payload),
         )
     }
-    pub fn subscription_retracted(payload: IdentitySubscriptionToken) -> Self {
-        Self::SubscriptionRetracted(SubscriptionRetracted::new(payload))
+    pub fn subscription_closed(payload: IdentitySubscriptionToken) -> Self {
+        Self::SubscriptionClosed(SubscriptionRetracted::new(payload))
     }
-    pub fn rejection(payload: RejectionReason) -> Self {
-        Self::Rejection(Rejection::new(payload))
+    pub fn refused(payload: RejectionReason) -> Self {
+        Self::Refused(Rejection::new(payload))
     }
     pub fn quorum_round_opened(payload: QuorumRoundState) -> Self {
         Self::QuorumRoundOpened(payload)
@@ -3941,11 +3902,11 @@ impl Output {
     pub fn quorum_round_observed(payload: QuorumRoundState) -> Self {
         Self::QuorumRoundObserved(payload)
     }
-    pub fn node_public_key(payload: BlsPublicKey) -> Self {
-        Self::NodePublicKey(NodePublicKey::new(payload))
+    pub fn public_key_observed(payload: BlsPublicKey) -> Self {
+        Self::PublicKeyObserved(NodePublicKey::new(payload))
     }
-    pub fn quorum_conflict(payload: QuorumConflict) -> Self {
-        Self::QuorumConflict(payload)
+    pub fn quorum_refused(payload: QuorumConflict) -> Self {
+        Self::QuorumRefused(payload)
     }
     pub fn founding_conveyed(payload: FoundingConveyanceReceipt) -> Self {
         Self::FoundingConveyed(payload)
@@ -3997,7 +3958,7 @@ impl From<Identity> for Rule {
 #[rustfmt::skip]
 impl From<Threshold> for Rule {
     fn from(payload: Threshold) -> Self {
-        Self::Threshold(payload)
+        Self::ThresholdRule(payload)
     }
 }
 
@@ -4011,14 +3972,14 @@ impl From<WorkflowGuard> for Rule {
 #[rustfmt::skip]
 impl From<Composition> for Rule {
     fn from(payload: Composition) -> Self {
-        Self::Composition(payload)
+        Self::Composite(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<TimeSwitch> for Rule {
     fn from(payload: TimeSwitch) -> Self {
-        Self::TimeSwitch(payload)
+        Self::Timed(payload)
     }
 }
 
@@ -4131,27 +4092,6 @@ impl From<AuthorizedObjectKind> for AuthorizedObjectInterest {
 impl From<ComponentObjectInterest> for AuthorizedObjectInterest {
     fn from(payload: ComponentObjectInterest) -> Self {
         Self::ComponentObject(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl From<IdentityUpdate> for CriomeEvent {
-    fn from(payload: IdentityUpdate) -> Self {
-        Self::IdentityUpdate(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl From<AuthorizationUpdate> for CriomeEvent {
-    fn from(payload: AuthorizationUpdate) -> Self {
-        Self::AuthorizationUpdate(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl From<AuthorizedObjectUpdate> for CriomeEvent {
-    fn from(payload: AuthorizedObjectUpdate) -> Self {
-        Self::AuthorizedObjectUpdate(payload)
     }
 }
 
@@ -4375,42 +4315,42 @@ impl From<FoundingConveyance> for Input {
 #[rustfmt::skip]
 impl From<SignReceipt> for Output {
     fn from(payload: SignReceipt) -> Self {
-        Self::SignReceipt(payload)
+        Self::Signed(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<VerificationResult> for Output {
     fn from(payload: VerificationResult) -> Self {
-        Self::VerificationResult(payload)
+        Self::Verified(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<IdentityReceipt> for Output {
     fn from(payload: IdentityReceipt) -> Self {
-        Self::IdentityReceipt(payload)
+        Self::IdentityRegistered(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<IdentitySnapshot> for Output {
     fn from(payload: IdentitySnapshot) -> Self {
-        Self::IdentitySnapshot(payload)
+        Self::Identities(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<AttestationReceipt> for Output {
     fn from(payload: AttestationReceipt) -> Self {
-        Self::AttestationReceipt(payload)
+        Self::Attested(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<AuthorizationPending> for Output {
     fn from(payload: AuthorizationPending) -> Self {
-        Self::AuthorizationPending(payload)
+        Self::Pending(payload)
     }
 }
 
@@ -4424,147 +4364,147 @@ impl From<AuthorizationGrant> for Output {
 #[rustfmt::skip]
 impl From<AuthorizationDenied> for Output {
     fn from(payload: AuthorizationDenied) -> Self {
-        Self::AuthorizationDenied(payload)
+        Self::Denied(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<AuthorizationExpired> for Output {
     fn from(payload: AuthorizationExpired) -> Self {
-        Self::AuthorizationExpired(payload)
+        Self::Expired(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<AuthorizationUnavailable> for Output {
     fn from(payload: AuthorizationUnavailable) -> Self {
-        Self::AuthorizationUnavailable(payload)
+        Self::Unavailable(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<AuthorizationObservationSnapshot> for Output {
     fn from(payload: AuthorizationObservationSnapshot) -> Self {
-        Self::AuthorizationObservationSnapshot(payload)
+        Self::AuthorizationObserved(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<SignatureRouteReceipt> for Output {
     fn from(payload: SignatureRouteReceipt) -> Self {
-        Self::SignatureRouteReceipt(payload)
+        Self::SignatureRouted(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<SignatureSubmissionReceipt> for Output {
     fn from(payload: SignatureSubmissionReceipt) -> Self {
-        Self::SignatureSubmissionReceipt(payload)
+        Self::SignatureSubmitted(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<ParkedAuthorizationSnapshot> for Output {
     fn from(payload: ParkedAuthorizationSnapshot) -> Self {
-        Self::ParkedAuthorizationSnapshot(payload)
+        Self::ParkedAuthorizations(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<ContractAdmitted> for Output {
     fn from(payload: ContractAdmitted) -> Self {
-        Self::ContractAdmitted(payload)
+        Self::ContractAccepted(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<ContractFound> for Output {
     fn from(payload: ContractFound) -> Self {
-        Self::ContractFound(payload)
+        Self::ContractLocated(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<ContractMissing> for Output {
     fn from(payload: ContractMissing) -> Self {
-        Self::ContractMissing(payload)
+        Self::ContractAbsent(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<ContractAdmissionRejected> for Output {
     fn from(payload: ContractAdmissionRejected) -> Self {
-        Self::ContractAdmissionRejected(payload)
+        Self::ContractRefused(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<AuthorizationEvaluated> for Output {
     fn from(payload: AuthorizationEvaluated) -> Self {
-        Self::AuthorizationEvaluated(payload)
+        Self::AuthorizationJudged(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<AuthorizedObjectUpdateSnapshot> for Output {
     fn from(payload: AuthorizedObjectUpdateSnapshot) -> Self {
-        Self::AuthorizedObjectUpdateSnapshot(payload)
+        Self::AuthorizedObjectsUpdated(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<AuthorizedObjectUpdateRetracted> for Output {
     fn from(payload: AuthorizedObjectUpdateRetracted) -> Self {
-        Self::AuthorizedObjectUpdateRetracted(payload)
+        Self::AuthorizedObjectRetracted(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<ContractTimeCheckScheduled> for Output {
     fn from(payload: ContractTimeCheckScheduled) -> Self {
-        Self::ContractTimeCheckScheduled(payload)
+        Self::TimeCheckScheduled(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<DueContractChecksEvaluated> for Output {
     fn from(payload: DueContractChecksEvaluated) -> Self {
-        Self::DueContractChecksEvaluated(payload)
+        Self::DueChecksEvaluated(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<AuthorizationObservationRetracted> for Output {
     fn from(payload: AuthorizationObservationRetracted) -> Self {
-        Self::AuthorizationObservationRetracted(payload)
+        Self::AuthorizationObservationClosed(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<SubscriptionRetracted> for Output {
     fn from(payload: SubscriptionRetracted) -> Self {
-        Self::SubscriptionRetracted(payload)
+        Self::SubscriptionClosed(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<Rejection> for Output {
     fn from(payload: Rejection) -> Self {
-        Self::Rejection(payload)
+        Self::Refused(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<NodePublicKey> for Output {
     fn from(payload: NodePublicKey) -> Self {
-        Self::NodePublicKey(payload)
+        Self::PublicKeyObserved(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<QuorumConflict> for Output {
     fn from(payload: QuorumConflict) -> Self {
-        Self::QuorumConflict(payload)
+        Self::QuorumRefused(payload)
     }
 }
 
@@ -4640,38 +4580,38 @@ pub mod short_header {
     pub const INPUT_OBSERVE_QUORUM_ROUND: u64 = 0x001C000000000000;
     pub const INPUT_OBSERVE_NODE_PUBLIC_KEY: u64 = 0x001D000000000000;
     pub const INPUT_CONVEY_FOUNDING: u64 = 0x001E000000000000;
-    pub const OUTPUT_SIGN_RECEIPT: u64 = 0x0100000000000000;
-    pub const OUTPUT_VERIFICATION_RESULT: u64 = 0x0101000000000000;
-    pub const OUTPUT_IDENTITY_RECEIPT: u64 = 0x0102000000000000;
-    pub const OUTPUT_IDENTITY_SNAPSHOT: u64 = 0x0103000000000000;
-    pub const OUTPUT_ATTESTATION_RECEIPT: u64 = 0x0104000000000000;
-    pub const OUTPUT_AUTHORIZATION_PENDING: u64 = 0x0105000000000000;
+    pub const OUTPUT_SIGNED: u64 = 0x0100000000000000;
+    pub const OUTPUT_VERIFIED: u64 = 0x0101000000000000;
+    pub const OUTPUT_IDENTITY_REGISTERED: u64 = 0x0102000000000000;
+    pub const OUTPUT_IDENTITIES: u64 = 0x0103000000000000;
+    pub const OUTPUT_ATTESTED: u64 = 0x0104000000000000;
+    pub const OUTPUT_PENDING: u64 = 0x0105000000000000;
     pub const OUTPUT_AUTHORIZATION_GRANTED: u64 = 0x0106000000000000;
-    pub const OUTPUT_AUTHORIZATION_DENIED: u64 = 0x0107000000000000;
-    pub const OUTPUT_AUTHORIZATION_EXPIRED: u64 = 0x0108000000000000;
-    pub const OUTPUT_AUTHORIZATION_UNAVAILABLE: u64 = 0x0109000000000000;
-    pub const OUTPUT_AUTHORIZATION_OBSERVATION_SNAPSHOT: u64 = 0x010A000000000000;
-    pub const OUTPUT_SIGNATURE_ROUTE_RECEIPT: u64 = 0x010B000000000000;
-    pub const OUTPUT_SIGNATURE_SUBMISSION_RECEIPT: u64 = 0x010C000000000000;
-    pub const OUTPUT_PARKED_AUTHORIZATION_SNAPSHOT: u64 = 0x010D000000000000;
-    pub const OUTPUT_CONTRACT_ADMITTED: u64 = 0x010E000000000000;
-    pub const OUTPUT_CONTRACT_FOUND: u64 = 0x010F000000000000;
-    pub const OUTPUT_CONTRACT_MISSING: u64 = 0x0110000000000000;
-    pub const OUTPUT_CONTRACT_ADMISSION_REJECTED: u64 = 0x0111000000000000;
-    pub const OUTPUT_AUTHORIZATION_EVALUATED: u64 = 0x0112000000000000;
-    pub const OUTPUT_AUTHORIZED_OBJECT_UPDATE_SNAPSHOT: u64 = 0x0113000000000000;
-    pub const OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED: u64 = 0x0114000000000000;
-    pub const OUTPUT_CONTRACT_TIME_CHECK_SCHEDULED: u64 = 0x0115000000000000;
-    pub const OUTPUT_DUE_CONTRACT_CHECKS_EVALUATED: u64 = 0x0116000000000000;
-    pub const OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED: u64 = 0x0117000000000000;
-    pub const OUTPUT_SUBSCRIPTION_RETRACTED: u64 = 0x0118000000000000;
-    pub const OUTPUT_REJECTION: u64 = 0x0119000000000000;
+    pub const OUTPUT_DENIED: u64 = 0x0107000000000000;
+    pub const OUTPUT_EXPIRED: u64 = 0x0108000000000000;
+    pub const OUTPUT_UNAVAILABLE: u64 = 0x0109000000000000;
+    pub const OUTPUT_AUTHORIZATION_OBSERVED: u64 = 0x010A000000000000;
+    pub const OUTPUT_SIGNATURE_ROUTED: u64 = 0x010B000000000000;
+    pub const OUTPUT_SIGNATURE_SUBMITTED: u64 = 0x010C000000000000;
+    pub const OUTPUT_PARKED_AUTHORIZATIONS: u64 = 0x010D000000000000;
+    pub const OUTPUT_CONTRACT_ACCEPTED: u64 = 0x010E000000000000;
+    pub const OUTPUT_CONTRACT_LOCATED: u64 = 0x010F000000000000;
+    pub const OUTPUT_CONTRACT_ABSENT: u64 = 0x0110000000000000;
+    pub const OUTPUT_CONTRACT_REFUSED: u64 = 0x0111000000000000;
+    pub const OUTPUT_AUTHORIZATION_JUDGED: u64 = 0x0112000000000000;
+    pub const OUTPUT_AUTHORIZED_OBJECTS_UPDATED: u64 = 0x0113000000000000;
+    pub const OUTPUT_AUTHORIZED_OBJECT_RETRACTED: u64 = 0x0114000000000000;
+    pub const OUTPUT_TIME_CHECK_SCHEDULED: u64 = 0x0115000000000000;
+    pub const OUTPUT_DUE_CHECKS_EVALUATED: u64 = 0x0116000000000000;
+    pub const OUTPUT_AUTHORIZATION_OBSERVATION_CLOSED: u64 = 0x0117000000000000;
+    pub const OUTPUT_SUBSCRIPTION_CLOSED: u64 = 0x0118000000000000;
+    pub const OUTPUT_REFUSED: u64 = 0x0119000000000000;
     pub const OUTPUT_QUORUM_ROUND_OPENED: u64 = 0x011A000000000000;
     pub const OUTPUT_QUORUM_VOTE_SOLICITED: u64 = 0x011B000000000000;
     pub const OUTPUT_QUORUM_VOTE_ACCEPTED: u64 = 0x011C000000000000;
     pub const OUTPUT_QUORUM_ROUND_OBSERVED: u64 = 0x011D000000000000;
-    pub const OUTPUT_NODE_PUBLIC_KEY: u64 = 0x011E000000000000;
-    pub const OUTPUT_QUORUM_CONFLICT: u64 = 0x011F000000000000;
+    pub const OUTPUT_PUBLIC_KEY_OBSERVED: u64 = 0x011E000000000000;
+    pub const OUTPUT_QUORUM_REFUSED: u64 = 0x011F000000000000;
     pub const OUTPUT_FOUNDING_CONVEYED: u64 = 0x0120000000000000;
 }
 
@@ -4775,38 +4715,38 @@ pub enum InputRoute {
     Eq,
 )]
 pub enum OutputRoute {
-    SignReceipt,
-    VerificationResult,
-    IdentityReceipt,
-    IdentitySnapshot,
-    AttestationReceipt,
-    AuthorizationPending,
+    Signed,
+    Verified,
+    IdentityRegistered,
+    Identities,
+    Attested,
+    Pending,
     AuthorizationGranted,
-    AuthorizationDenied,
-    AuthorizationExpired,
-    AuthorizationUnavailable,
-    AuthorizationObservationSnapshot,
-    SignatureRouteReceipt,
-    SignatureSubmissionReceipt,
-    ParkedAuthorizationSnapshot,
-    ContractAdmitted,
-    ContractFound,
-    ContractMissing,
-    ContractAdmissionRejected,
-    AuthorizationEvaluated,
-    AuthorizedObjectUpdateSnapshot,
-    AuthorizedObjectUpdateRetracted,
-    ContractTimeCheckScheduled,
-    DueContractChecksEvaluated,
-    AuthorizationObservationRetracted,
-    SubscriptionRetracted,
-    Rejection,
+    Denied,
+    Expired,
+    Unavailable,
+    AuthorizationObserved,
+    SignatureRouted,
+    SignatureSubmitted,
+    ParkedAuthorizations,
+    ContractAccepted,
+    ContractLocated,
+    ContractAbsent,
+    ContractRefused,
+    AuthorizationJudged,
+    AuthorizedObjectsUpdated,
+    AuthorizedObjectRetracted,
+    TimeCheckScheduled,
+    DueChecksEvaluated,
+    AuthorizationObservationClosed,
+    SubscriptionClosed,
+    Refused,
     QuorumRoundOpened,
     QuorumVoteSolicited,
     QuorumVoteAccepted,
     QuorumRoundObserved,
-    NodePublicKey,
-    QuorumConflict,
+    PublicKeyObserved,
+    QuorumRefused,
     FoundingConveyed,
 }
 
@@ -5027,115 +4967,83 @@ impl Input {
 impl Output {
     pub fn route(&self) -> OutputRoute {
         match self {
-            Self::SignReceipt(_) => OutputRoute::SignReceipt,
-            Self::VerificationResult(_) => OutputRoute::VerificationResult,
-            Self::IdentityReceipt(_) => OutputRoute::IdentityReceipt,
-            Self::IdentitySnapshot(_) => OutputRoute::IdentitySnapshot,
-            Self::AttestationReceipt(_) => OutputRoute::AttestationReceipt,
-            Self::AuthorizationPending(_) => OutputRoute::AuthorizationPending,
+            Self::Signed(_) => OutputRoute::Signed,
+            Self::Verified(_) => OutputRoute::Verified,
+            Self::IdentityRegistered(_) => OutputRoute::IdentityRegistered,
+            Self::Identities(_) => OutputRoute::Identities,
+            Self::Attested(_) => OutputRoute::Attested,
+            Self::Pending(_) => OutputRoute::Pending,
             Self::AuthorizationGranted(_) => OutputRoute::AuthorizationGranted,
-            Self::AuthorizationDenied(_) => OutputRoute::AuthorizationDenied,
-            Self::AuthorizationExpired(_) => OutputRoute::AuthorizationExpired,
-            Self::AuthorizationUnavailable(_) => OutputRoute::AuthorizationUnavailable,
-            Self::AuthorizationObservationSnapshot(_) => {
-                OutputRoute::AuthorizationObservationSnapshot
+            Self::Denied(_) => OutputRoute::Denied,
+            Self::Expired(_) => OutputRoute::Expired,
+            Self::Unavailable(_) => OutputRoute::Unavailable,
+            Self::AuthorizationObserved(_) => OutputRoute::AuthorizationObserved,
+            Self::SignatureRouted(_) => OutputRoute::SignatureRouted,
+            Self::SignatureSubmitted(_) => OutputRoute::SignatureSubmitted,
+            Self::ParkedAuthorizations(_) => OutputRoute::ParkedAuthorizations,
+            Self::ContractAccepted(_) => OutputRoute::ContractAccepted,
+            Self::ContractLocated(_) => OutputRoute::ContractLocated,
+            Self::ContractAbsent(_) => OutputRoute::ContractAbsent,
+            Self::ContractRefused(_) => OutputRoute::ContractRefused,
+            Self::AuthorizationJudged(_) => OutputRoute::AuthorizationJudged,
+            Self::AuthorizedObjectsUpdated(_) => OutputRoute::AuthorizedObjectsUpdated,
+            Self::AuthorizedObjectRetracted(_) => OutputRoute::AuthorizedObjectRetracted,
+            Self::TimeCheckScheduled(_) => OutputRoute::TimeCheckScheduled,
+            Self::DueChecksEvaluated(_) => OutputRoute::DueChecksEvaluated,
+            Self::AuthorizationObservationClosed(_) => {
+                OutputRoute::AuthorizationObservationClosed
             }
-            Self::SignatureRouteReceipt(_) => OutputRoute::SignatureRouteReceipt,
-            Self::SignatureSubmissionReceipt(_) => {
-                OutputRoute::SignatureSubmissionReceipt
-            }
-            Self::ParkedAuthorizationSnapshot(_) => {
-                OutputRoute::ParkedAuthorizationSnapshot
-            }
-            Self::ContractAdmitted(_) => OutputRoute::ContractAdmitted,
-            Self::ContractFound(_) => OutputRoute::ContractFound,
-            Self::ContractMissing(_) => OutputRoute::ContractMissing,
-            Self::ContractAdmissionRejected(_) => OutputRoute::ContractAdmissionRejected,
-            Self::AuthorizationEvaluated(_) => OutputRoute::AuthorizationEvaluated,
-            Self::AuthorizedObjectUpdateSnapshot(_) => {
-                OutputRoute::AuthorizedObjectUpdateSnapshot
-            }
-            Self::AuthorizedObjectUpdateRetracted(_) => {
-                OutputRoute::AuthorizedObjectUpdateRetracted
-            }
-            Self::ContractTimeCheckScheduled(_) => {
-                OutputRoute::ContractTimeCheckScheduled
-            }
-            Self::DueContractChecksEvaluated(_) => {
-                OutputRoute::DueContractChecksEvaluated
-            }
-            Self::AuthorizationObservationRetracted(_) => {
-                OutputRoute::AuthorizationObservationRetracted
-            }
-            Self::SubscriptionRetracted(_) => OutputRoute::SubscriptionRetracted,
-            Self::Rejection(_) => OutputRoute::Rejection,
+            Self::SubscriptionClosed(_) => OutputRoute::SubscriptionClosed,
+            Self::Refused(_) => OutputRoute::Refused,
             Self::QuorumRoundOpened(_) => OutputRoute::QuorumRoundOpened,
             Self::QuorumVoteSolicited(_) => OutputRoute::QuorumVoteSolicited,
             Self::QuorumVoteAccepted(_) => OutputRoute::QuorumVoteAccepted,
             Self::QuorumRoundObserved(_) => OutputRoute::QuorumRoundObserved,
-            Self::NodePublicKey(_) => OutputRoute::NodePublicKey,
-            Self::QuorumConflict(_) => OutputRoute::QuorumConflict,
+            Self::PublicKeyObserved(_) => OutputRoute::PublicKeyObserved,
+            Self::QuorumRefused(_) => OutputRoute::QuorumRefused,
             Self::FoundingConveyed(_) => OutputRoute::FoundingConveyed,
         }
     }
     pub fn short_header(&self) -> u64 {
         match self {
-            Self::SignReceipt(_) => short_header::OUTPUT_SIGN_RECEIPT,
-            Self::VerificationResult(_) => short_header::OUTPUT_VERIFICATION_RESULT,
-            Self::IdentityReceipt(_) => short_header::OUTPUT_IDENTITY_RECEIPT,
-            Self::IdentitySnapshot(_) => short_header::OUTPUT_IDENTITY_SNAPSHOT,
-            Self::AttestationReceipt(_) => short_header::OUTPUT_ATTESTATION_RECEIPT,
-            Self::AuthorizationPending(_) => short_header::OUTPUT_AUTHORIZATION_PENDING,
+            Self::Signed(_) => short_header::OUTPUT_SIGNED,
+            Self::Verified(_) => short_header::OUTPUT_VERIFIED,
+            Self::IdentityRegistered(_) => short_header::OUTPUT_IDENTITY_REGISTERED,
+            Self::Identities(_) => short_header::OUTPUT_IDENTITIES,
+            Self::Attested(_) => short_header::OUTPUT_ATTESTED,
+            Self::Pending(_) => short_header::OUTPUT_PENDING,
             Self::AuthorizationGranted(_) => short_header::OUTPUT_AUTHORIZATION_GRANTED,
-            Self::AuthorizationDenied(_) => short_header::OUTPUT_AUTHORIZATION_DENIED,
-            Self::AuthorizationExpired(_) => short_header::OUTPUT_AUTHORIZATION_EXPIRED,
-            Self::AuthorizationUnavailable(_) => {
-                short_header::OUTPUT_AUTHORIZATION_UNAVAILABLE
+            Self::Denied(_) => short_header::OUTPUT_DENIED,
+            Self::Expired(_) => short_header::OUTPUT_EXPIRED,
+            Self::Unavailable(_) => short_header::OUTPUT_UNAVAILABLE,
+            Self::AuthorizationObserved(_) => short_header::OUTPUT_AUTHORIZATION_OBSERVED,
+            Self::SignatureRouted(_) => short_header::OUTPUT_SIGNATURE_ROUTED,
+            Self::SignatureSubmitted(_) => short_header::OUTPUT_SIGNATURE_SUBMITTED,
+            Self::ParkedAuthorizations(_) => short_header::OUTPUT_PARKED_AUTHORIZATIONS,
+            Self::ContractAccepted(_) => short_header::OUTPUT_CONTRACT_ACCEPTED,
+            Self::ContractLocated(_) => short_header::OUTPUT_CONTRACT_LOCATED,
+            Self::ContractAbsent(_) => short_header::OUTPUT_CONTRACT_ABSENT,
+            Self::ContractRefused(_) => short_header::OUTPUT_CONTRACT_REFUSED,
+            Self::AuthorizationJudged(_) => short_header::OUTPUT_AUTHORIZATION_JUDGED,
+            Self::AuthorizedObjectsUpdated(_) => {
+                short_header::OUTPUT_AUTHORIZED_OBJECTS_UPDATED
             }
-            Self::AuthorizationObservationSnapshot(_) => {
-                short_header::OUTPUT_AUTHORIZATION_OBSERVATION_SNAPSHOT
+            Self::AuthorizedObjectRetracted(_) => {
+                short_header::OUTPUT_AUTHORIZED_OBJECT_RETRACTED
             }
-            Self::SignatureRouteReceipt(_) => {
-                short_header::OUTPUT_SIGNATURE_ROUTE_RECEIPT
+            Self::TimeCheckScheduled(_) => short_header::OUTPUT_TIME_CHECK_SCHEDULED,
+            Self::DueChecksEvaluated(_) => short_header::OUTPUT_DUE_CHECKS_EVALUATED,
+            Self::AuthorizationObservationClosed(_) => {
+                short_header::OUTPUT_AUTHORIZATION_OBSERVATION_CLOSED
             }
-            Self::SignatureSubmissionReceipt(_) => {
-                short_header::OUTPUT_SIGNATURE_SUBMISSION_RECEIPT
-            }
-            Self::ParkedAuthorizationSnapshot(_) => {
-                short_header::OUTPUT_PARKED_AUTHORIZATION_SNAPSHOT
-            }
-            Self::ContractAdmitted(_) => short_header::OUTPUT_CONTRACT_ADMITTED,
-            Self::ContractFound(_) => short_header::OUTPUT_CONTRACT_FOUND,
-            Self::ContractMissing(_) => short_header::OUTPUT_CONTRACT_MISSING,
-            Self::ContractAdmissionRejected(_) => {
-                short_header::OUTPUT_CONTRACT_ADMISSION_REJECTED
-            }
-            Self::AuthorizationEvaluated(_) => {
-                short_header::OUTPUT_AUTHORIZATION_EVALUATED
-            }
-            Self::AuthorizedObjectUpdateSnapshot(_) => {
-                short_header::OUTPUT_AUTHORIZED_OBJECT_UPDATE_SNAPSHOT
-            }
-            Self::AuthorizedObjectUpdateRetracted(_) => {
-                short_header::OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED
-            }
-            Self::ContractTimeCheckScheduled(_) => {
-                short_header::OUTPUT_CONTRACT_TIME_CHECK_SCHEDULED
-            }
-            Self::DueContractChecksEvaluated(_) => {
-                short_header::OUTPUT_DUE_CONTRACT_CHECKS_EVALUATED
-            }
-            Self::AuthorizationObservationRetracted(_) => {
-                short_header::OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED
-            }
-            Self::SubscriptionRetracted(_) => short_header::OUTPUT_SUBSCRIPTION_RETRACTED,
-            Self::Rejection(_) => short_header::OUTPUT_REJECTION,
+            Self::SubscriptionClosed(_) => short_header::OUTPUT_SUBSCRIPTION_CLOSED,
+            Self::Refused(_) => short_header::OUTPUT_REFUSED,
             Self::QuorumRoundOpened(_) => short_header::OUTPUT_QUORUM_ROUND_OPENED,
             Self::QuorumVoteSolicited(_) => short_header::OUTPUT_QUORUM_VOTE_SOLICITED,
             Self::QuorumVoteAccepted(_) => short_header::OUTPUT_QUORUM_VOTE_ACCEPTED,
             Self::QuorumRoundObserved(_) => short_header::OUTPUT_QUORUM_ROUND_OBSERVED,
-            Self::NodePublicKey(_) => short_header::OUTPUT_NODE_PUBLIC_KEY,
-            Self::QuorumConflict(_) => short_header::OUTPUT_QUORUM_CONFLICT,
+            Self::PublicKeyObserved(_) => short_header::OUTPUT_PUBLIC_KEY_OBSERVED,
+            Self::QuorumRefused(_) => short_header::OUTPUT_QUORUM_REFUSED,
             Self::FoundingConveyed(_) => short_header::OUTPUT_FOUNDING_CONVEYED,
         }
     }
@@ -5143,70 +5051,56 @@ impl Output {
         header: u64,
     ) -> Result<OutputRoute, SignalFrameError> {
         match header {
-            short_header::OUTPUT_SIGN_RECEIPT => Ok(OutputRoute::SignReceipt),
-            short_header::OUTPUT_VERIFICATION_RESULT => {
-                Ok(OutputRoute::VerificationResult)
+            short_header::OUTPUT_SIGNED => Ok(OutputRoute::Signed),
+            short_header::OUTPUT_VERIFIED => Ok(OutputRoute::Verified),
+            short_header::OUTPUT_IDENTITY_REGISTERED => {
+                Ok(OutputRoute::IdentityRegistered)
             }
-            short_header::OUTPUT_IDENTITY_RECEIPT => Ok(OutputRoute::IdentityReceipt),
-            short_header::OUTPUT_IDENTITY_SNAPSHOT => Ok(OutputRoute::IdentitySnapshot),
-            short_header::OUTPUT_ATTESTATION_RECEIPT => {
-                Ok(OutputRoute::AttestationReceipt)
-            }
-            short_header::OUTPUT_AUTHORIZATION_PENDING => {
-                Ok(OutputRoute::AuthorizationPending)
-            }
+            short_header::OUTPUT_IDENTITIES => Ok(OutputRoute::Identities),
+            short_header::OUTPUT_ATTESTED => Ok(OutputRoute::Attested),
+            short_header::OUTPUT_PENDING => Ok(OutputRoute::Pending),
             short_header::OUTPUT_AUTHORIZATION_GRANTED => {
                 Ok(OutputRoute::AuthorizationGranted)
             }
-            short_header::OUTPUT_AUTHORIZATION_DENIED => {
-                Ok(OutputRoute::AuthorizationDenied)
+            short_header::OUTPUT_DENIED => Ok(OutputRoute::Denied),
+            short_header::OUTPUT_EXPIRED => Ok(OutputRoute::Expired),
+            short_header::OUTPUT_UNAVAILABLE => Ok(OutputRoute::Unavailable),
+            short_header::OUTPUT_AUTHORIZATION_OBSERVED => {
+                Ok(OutputRoute::AuthorizationObserved)
             }
-            short_header::OUTPUT_AUTHORIZATION_EXPIRED => {
-                Ok(OutputRoute::AuthorizationExpired)
+            short_header::OUTPUT_SIGNATURE_ROUTED => Ok(OutputRoute::SignatureRouted),
+            short_header::OUTPUT_SIGNATURE_SUBMITTED => {
+                Ok(OutputRoute::SignatureSubmitted)
             }
-            short_header::OUTPUT_AUTHORIZATION_UNAVAILABLE => {
-                Ok(OutputRoute::AuthorizationUnavailable)
+            short_header::OUTPUT_PARKED_AUTHORIZATIONS => {
+                Ok(OutputRoute::ParkedAuthorizations)
             }
-            short_header::OUTPUT_AUTHORIZATION_OBSERVATION_SNAPSHOT => {
-                Ok(OutputRoute::AuthorizationObservationSnapshot)
+            short_header::OUTPUT_CONTRACT_ACCEPTED => Ok(OutputRoute::ContractAccepted),
+            short_header::OUTPUT_CONTRACT_LOCATED => Ok(OutputRoute::ContractLocated),
+            short_header::OUTPUT_CONTRACT_ABSENT => Ok(OutputRoute::ContractAbsent),
+            short_header::OUTPUT_CONTRACT_REFUSED => Ok(OutputRoute::ContractRefused),
+            short_header::OUTPUT_AUTHORIZATION_JUDGED => {
+                Ok(OutputRoute::AuthorizationJudged)
             }
-            short_header::OUTPUT_SIGNATURE_ROUTE_RECEIPT => {
-                Ok(OutputRoute::SignatureRouteReceipt)
+            short_header::OUTPUT_AUTHORIZED_OBJECTS_UPDATED => {
+                Ok(OutputRoute::AuthorizedObjectsUpdated)
             }
-            short_header::OUTPUT_SIGNATURE_SUBMISSION_RECEIPT => {
-                Ok(OutputRoute::SignatureSubmissionReceipt)
+            short_header::OUTPUT_AUTHORIZED_OBJECT_RETRACTED => {
+                Ok(OutputRoute::AuthorizedObjectRetracted)
             }
-            short_header::OUTPUT_PARKED_AUTHORIZATION_SNAPSHOT => {
-                Ok(OutputRoute::ParkedAuthorizationSnapshot)
+            short_header::OUTPUT_TIME_CHECK_SCHEDULED => {
+                Ok(OutputRoute::TimeCheckScheduled)
             }
-            short_header::OUTPUT_CONTRACT_ADMITTED => Ok(OutputRoute::ContractAdmitted),
-            short_header::OUTPUT_CONTRACT_FOUND => Ok(OutputRoute::ContractFound),
-            short_header::OUTPUT_CONTRACT_MISSING => Ok(OutputRoute::ContractMissing),
-            short_header::OUTPUT_CONTRACT_ADMISSION_REJECTED => {
-                Ok(OutputRoute::ContractAdmissionRejected)
+            short_header::OUTPUT_DUE_CHECKS_EVALUATED => {
+                Ok(OutputRoute::DueChecksEvaluated)
             }
-            short_header::OUTPUT_AUTHORIZATION_EVALUATED => {
-                Ok(OutputRoute::AuthorizationEvaluated)
+            short_header::OUTPUT_AUTHORIZATION_OBSERVATION_CLOSED => {
+                Ok(OutputRoute::AuthorizationObservationClosed)
             }
-            short_header::OUTPUT_AUTHORIZED_OBJECT_UPDATE_SNAPSHOT => {
-                Ok(OutputRoute::AuthorizedObjectUpdateSnapshot)
+            short_header::OUTPUT_SUBSCRIPTION_CLOSED => {
+                Ok(OutputRoute::SubscriptionClosed)
             }
-            short_header::OUTPUT_AUTHORIZED_OBJECT_UPDATE_RETRACTED => {
-                Ok(OutputRoute::AuthorizedObjectUpdateRetracted)
-            }
-            short_header::OUTPUT_CONTRACT_TIME_CHECK_SCHEDULED => {
-                Ok(OutputRoute::ContractTimeCheckScheduled)
-            }
-            short_header::OUTPUT_DUE_CONTRACT_CHECKS_EVALUATED => {
-                Ok(OutputRoute::DueContractChecksEvaluated)
-            }
-            short_header::OUTPUT_AUTHORIZATION_OBSERVATION_RETRACTED => {
-                Ok(OutputRoute::AuthorizationObservationRetracted)
-            }
-            short_header::OUTPUT_SUBSCRIPTION_RETRACTED => {
-                Ok(OutputRoute::SubscriptionRetracted)
-            }
-            short_header::OUTPUT_REJECTION => Ok(OutputRoute::Rejection),
+            short_header::OUTPUT_REFUSED => Ok(OutputRoute::Refused),
             short_header::OUTPUT_QUORUM_ROUND_OPENED => {
                 Ok(OutputRoute::QuorumRoundOpened)
             }
@@ -5219,8 +5113,10 @@ impl Output {
             short_header::OUTPUT_QUORUM_ROUND_OBSERVED => {
                 Ok(OutputRoute::QuorumRoundObserved)
             }
-            short_header::OUTPUT_NODE_PUBLIC_KEY => Ok(OutputRoute::NodePublicKey),
-            short_header::OUTPUT_QUORUM_CONFLICT => Ok(OutputRoute::QuorumConflict),
+            short_header::OUTPUT_PUBLIC_KEY_OBSERVED => {
+                Ok(OutputRoute::PublicKeyObserved)
+            }
+            short_header::OUTPUT_QUORUM_REFUSED => Ok(OutputRoute::QuorumRefused),
             short_header::OUTPUT_FOUNDING_CONVEYED => Ok(OutputRoute::FoundingConveyed),
             _ => {
                 Err(SignalFrameError::UnknownHeader {

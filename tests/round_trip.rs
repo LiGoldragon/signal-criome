@@ -8,42 +8,41 @@ use signal_criome::{
     AuthorizationObservationToken, AuthorizationPending, AuthorizationPolicyClass,
     AuthorizationPolicySatisfaction, AuthorizationRejection, AuthorizationRequestSlot,
     AuthorizationScope, AuthorizationStateRecord, AuthorizationStatus, AuthorizationUnavailable,
-    AuthorizationUpdate, AuthorizationVerification, AuthorizedObjectInterest, AuthorizedObjectKind,
+    AuthorizationVerification, AuthorizedObjectInterest, AuthorizedObjectKind,
     AuthorizedObjectObservation, AuthorizedObjectReference, AuthorizedObjectUpdate,
     AuthorizedObjectUpdateRetracted, AuthorizedObjectUpdateSnapshot, AuthorizedObjectUpdateToken,
     BlsPublicKey, BlsSignature, ChannelGrantAttestationRequest, CoSignatureExpectation,
     ComponentKind, ComponentRelease, Composition, CompositionDigest, ContentPurpose,
     ContentReference, Contract, ContractAdmissionRejected, ContractAdmissionRejectionReason,
     ContractAdmitted, ContractDigest, ContractFound, ContractMissing, ContractName,
-    ContractOperationHead, ContractParent, CriomeDaemonConfiguration, CriomeEvent,
-    CriomeFrame as Frame, CriomeFrameBody as FrameBody, CriomeReply, CriomeRequest, DaemonPath,
-    EscalationTarget, EvaluationDecision, EvaluationRejectionReason, Evidence, ExpiryAction,
-    FoundedRoot, FoundingConveyance, FoundingConveyanceOutcome, FoundingConveyanceReceipt,
-    FoundingMember, FoundingProposal, FoundingSignature, FoundingSignatureReturn, GenesisDomainTag,
-    Identity, IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation,
-    IdentitySnapshot, IdentitySubscription, IdentitySubscriptionToken, IdentityUpdate,
-    InterceptPolicy, InterceptPolicyIdentifier, InterceptPolicyProposal, InterceptPolicyWindow,
-    InterceptTargetSelector, KeyPurpose, MentciSessionSlot, NodePublicKey,
-    NodePublicKeyObservation, ObjectCoSignature, ObjectDigest, OperationDigest,
-    ParkedAuthorization, ParkedAuthorizationObservation, ParkedAuthorizationSnapshot,
-    ParkedRequestIdentifier, ParkedRequestOutcome, ParkedRequestResolution, ParkedRequestSnapshot,
-    ParkedSpiritRequest, PeerActorRoute, PolicyDurationNanos, PolicyMember, PolicyOverlapMode,
-    PolicyPriority, PrincipalName, PrincipalStatus, PublicKeyFingerprint, QuorumConflict,
-    QuorumProposal, QuorumRoundIdentifier, QuorumRoundState, QuorumRoundStatus, QuorumShortfall,
-    QuorumVote, QuorumVoteSolicitation, QuorumWindowNanos, RawSpiritOperationPayload, Rejection,
-    RejectionReason, ReplayNonce, RequiredSignatureThreshold, RootAnchorDigest,
-    RootFoundingStatement, RootGenesis, RoundPhase, RouterSubmissionConfiguration, Rule,
-    SignReceipt, SignRequest, SignalCallAuthorization, SignatureAuthorizationResult,
-    SignatureEnvelope, SignatureRouteReceipt, SignatureScheme, SignatureSolicitation,
-    SignatureSolicitationRoute, SignatureSubmission, SignatureSubmissionReceipt,
-    SpiritAuthorizationContext, SpiritOperationName, SpiritOperationNames, SpiritProcessKey,
-    StampedSignatureEnvelope, SubscriptionRetracted, Threshold, TimeSignature, TimeWindow,
-    TimestampNanos, VerificationDecision, VerificationResult, VerifyRequest, WorkflowDigest,
-    WorkflowGuard, WorkflowProvenanceDigest, WorkflowReceipt,
+    ContractOperationHead, ContractParent, CriomeDaemonConfiguration, CriomeFrame as Frame,
+    CriomeFrameBody as FrameBody, CriomeReply, CriomeRequest, DaemonPath, EscalationTarget,
+    EvaluationDecision, EvaluationRejectionReason, Evidence, ExpiryAction, FoundedRoot,
+    FoundingConveyance, FoundingConveyanceOutcome, FoundingConveyanceReceipt, FoundingMember,
+    FoundingProposal, FoundingSignature, FoundingSignatureReturn, GenesisDomainTag, Identity,
+    IdentityLookup, IdentityReceipt, IdentityRegistration, IdentityRevocation, IdentitySnapshot,
+    IdentitySubscription, IdentitySubscriptionToken, InterceptPolicy, InterceptPolicyIdentifier,
+    InterceptPolicyProposal, InterceptPolicyWindow, InterceptTargetSelector, KeyPurpose,
+    MentciSessionSlot, NodePublicKey, NodePublicKeyObservation, ObjectCoSignature, ObjectDigest,
+    OperationDigest, ParkedAuthorization, ParkedAuthorizationObservation,
+    ParkedAuthorizationSnapshot, ParkedRequestIdentifier, ParkedRequestOutcome,
+    ParkedRequestResolution, ParkedRequestSnapshot, ParkedSpiritRequest, PeerActorRoute,
+    PolicyDurationNanos, PolicyMember, PolicyOverlapMode, PolicyPriority, PrincipalName,
+    PrincipalStatus, PublicKeyFingerprint, QuorumConflict, QuorumProposal, QuorumRoundIdentifier,
+    QuorumRoundState, QuorumRoundStatus, QuorumShortfall, QuorumVote, QuorumVoteSolicitation,
+    QuorumWindowNanos, RawSpiritOperationPayload, Rejection, RejectionReason, ReplayNonce,
+    RequiredSignatureThreshold, RootAnchorDigest, RootFoundingStatement, RootGenesis, RoundPhase,
+    RouterSubmissionConfiguration, Rule, SignReceipt, SignRequest, SignalCallAuthorization,
+    SignatureAuthorizationResult, SignatureEnvelope, SignatureRouteReceipt, SignatureScheme,
+    SignatureSolicitation, SignatureSolicitationRoute, SignatureSubmission,
+    SignatureSubmissionReceipt, SpiritAuthorizationContext, SpiritOperationName,
+    SpiritOperationNames, SpiritProcessKey, StampedSignatureEnvelope, SubscriptionRetracted,
+    Threshold, TimeSignature, TimeWindow, TimestampNanos, VerificationDecision, VerificationResult,
+    VerifyRequest, WorkflowDigest, WorkflowGuard, WorkflowProvenanceDigest, WorkflowReceipt,
 };
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
-    SignalOperationHeads, StreamEventIdentifier, SubReply, SubscriptionTokenInner,
+    SignalOperationHeads, SubReply,
 };
 
 fn persona(name: &str) -> Identity {
@@ -308,7 +307,7 @@ fn founding_member(name: &str) -> FoundingMember {
 
 fn root_genesis() -> RootGenesis {
     RootGenesis::new(
-        Contract::root(Rule::threshold(Threshold::new(
+        Contract::root(Rule::threshold_rule(Threshold::new(
             RequiredSignatureThreshold::new(2),
             vec![
                 PolicyMember::key_member(host("mirror-alpha")),
@@ -360,7 +359,7 @@ fn founding_conveyance_receipt() -> FoundingConveyanceReceipt {
 }
 
 fn policy_contract() -> Contract {
-    Contract::root(Rule::threshold(Threshold::new(
+    Contract::root(Rule::threshold_rule(Threshold::new(
         RequiredSignatureThreshold::new(2),
         vec![
             PolicyMember::key_member(developer("operator")),
@@ -496,14 +495,6 @@ fn exchange() -> ExchangeIdentifier {
     )
 }
 
-fn stream_event() -> StreamEventIdentifier {
-    StreamEventIdentifier::new(
-        SessionEpoch::new(1),
-        ExchangeLane::Acceptor,
-        LaneSequence::first(),
-    )
-}
-
 fn round_trip_request(request: CriomeRequest) -> CriomeRequest {
     let frame = Frame::new(FrameBody::Request {
         exchange: exchange(),
@@ -535,21 +526,6 @@ fn round_trip_reply(reply: CriomeReply) -> CriomeReply {
             other => panic!("expected accepted reply, got {other:?}"),
         },
         other => panic!("expected reply operation, got {other:?}"),
-    }
-}
-
-fn round_trip_event(event: CriomeEvent) -> CriomeEvent {
-    let frame = Frame::new(FrameBody::SubscriptionEvent {
-        event_identifier: stream_event(),
-        token: SubscriptionTokenInner::new(1),
-        event,
-    });
-    let bytes = frame.encode_length_prefixed().expect("encode event");
-    let decoded = Frame::decode_length_prefixed(&bytes).expect("decode event");
-
-    match decoded.into_body() {
-        FrameBody::SubscriptionEvent { event, .. } => event,
-        other => panic!("expected subscription event, got {other:?}"),
     }
 }
 
@@ -715,71 +691,69 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
         principal_status: PrincipalStatus::Active,
     };
     let replies = vec![
-        CriomeReply::SignReceipt(SignReceipt {
+        CriomeReply::Signed(SignReceipt {
             attestation: attestation(ContentPurpose::SignedObject),
             timestamp_nanos: TimestampNanos::new(1),
         }),
-        CriomeReply::VerificationResult(VerificationResult::new(
+        CriomeReply::Verified(VerificationResult::new(
             VerificationDecision::Valid,
             Some(developer("operator")),
             Some(TimestampNanos::new(2)),
         )),
-        CriomeReply::IdentityReceipt(receipt.clone()),
-        CriomeReply::IdentitySnapshot(IdentitySnapshot::from_identities(vec![receipt.clone()])),
-        CriomeReply::AttestationReceipt(AttestationReceipt::new(attestation(
+        CriomeReply::IdentityRegistered(receipt.clone()),
+        CriomeReply::Identities(IdentitySnapshot::from_identities(vec![receipt.clone()])),
+        CriomeReply::Attested(AttestationReceipt::new(attestation(
             ContentPurpose::Archive,
         ))),
-        CriomeReply::AuthorizationPending(AuthorizationPending::new(
+        CriomeReply::Pending(AuthorizationPending::new(
             authorization_request_slot(),
             ObjectDigest::from_bytes(b"signal-lojix request"),
             vec![developer("reviewer")],
             authorization_observation_token(),
         )),
         CriomeReply::AuthorizationGranted(authorization_grant()),
-        CriomeReply::AuthorizationDenied(AuthorizationDenied {
+        CriomeReply::Denied(AuthorizationDenied {
             authorization_request_slot: authorization_request_slot(),
             authorization_denial: AuthorizationDenial {
                 authorization_denial_source: AuthorizationDenialSource::Policy,
                 authorization_denial_reason: AuthorizationDenialReason::SignatureScopeMismatch,
             },
         }),
-        CriomeReply::AuthorizationExpired(AuthorizationExpired {
+        CriomeReply::Expired(AuthorizationExpired {
             authorization_request_slot: authorization_request_slot(),
             timestamp_nanos: TimestampNanos::new(13),
         }),
-        CriomeReply::AuthorizationUnavailable(AuthorizationUnavailable {
+        CriomeReply::Unavailable(AuthorizationUnavailable {
             authorization_request_slot: authorization_request_slot(),
             principal_name: PrincipalName::new("criome-peer-unreachable"),
         }),
-        CriomeReply::AuthorizationObservationSnapshot(
-            AuthorizationObservationSnapshot::from_states(vec![authorization_state(
-                AuthorizationStatus::Pending,
-            )]),
-        ),
-        CriomeReply::ParkedAuthorizationSnapshot(ParkedAuthorizationSnapshot::from_parked(vec![
+        CriomeReply::AuthorizationObserved(AuthorizationObservationSnapshot::from_states(vec![
+            authorization_state(AuthorizationStatus::Pending),
+        ])),
+        CriomeReply::ParkedAuthorizations(ParkedAuthorizationSnapshot::from_parked(vec![
             ParkedAuthorization::from_evaluation(
                 authorization_request_slot(),
                 authorization_evaluation(),
             ),
         ])),
-        CriomeReply::SignatureRouteReceipt(SignatureRouteReceipt {
+        CriomeReply::SignatureRouted(SignatureRouteReceipt {
             authorization_request_slot: authorization_request_slot(),
             identity: host("balboa"),
         }),
-        CriomeReply::SignatureSubmissionReceipt(SignatureSubmissionReceipt {
+        CriomeReply::SignatureSubmitted(SignatureSubmissionReceipt {
             authorization_request_slot: authorization_request_slot(),
             identity: developer("reviewer"),
         }),
-        CriomeReply::ContractAdmitted(ContractAdmitted::new(contract_digest())),
-        CriomeReply::ContractFound(ContractFound {
+        CriomeReply::ContractAccepted(ContractAdmitted::new(contract_digest())),
+        CriomeReply::ContractLocated(ContractFound {
             contract_digest: contract_digest(),
             contract: policy_contract(),
         }),
-        CriomeReply::ContractMissing(ContractMissing::new(contract_digest())),
-        CriomeReply::ContractAdmissionRejected(ContractAdmissionRejected::new(
+        CriomeReply::ContractAbsent(ContractMissing::new(contract_digest())),
+        CriomeReply::ContractRefused(ContractAdmissionRejected::new(
             ContractAdmissionRejectionReason::DuplicatePolicyMember,
         )),
-        CriomeReply::AuthorizationEvaluated(AuthorizationEvaluated {
+        CriomeReply::AuthorizationJudged(AuthorizationEvaluated {
             contract_digest: contract_digest(),
             evaluation_decision: EvaluationDecision::Rejected(
                 EvaluationRejectionReason::QuorumShort(QuorumShortfall {
@@ -788,55 +762,31 @@ fn reply_variants_round_trip_through_length_prefixed_frame() {
                 }),
             ),
         }),
-        CriomeReply::AuthorizedObjectUpdateSnapshot(AuthorizedObjectUpdateSnapshot::from_updates(
-            vec![authorized_object_update()],
-        )),
-        CriomeReply::AuthorizedObjectUpdateRetracted(AuthorizedObjectUpdateRetracted::new(
+        CriomeReply::AuthorizedObjectsUpdated(AuthorizedObjectUpdateSnapshot::from_updates(vec![
+            authorized_object_update(),
+        ])),
+        CriomeReply::AuthorizedObjectRetracted(AuthorizedObjectUpdateRetracted::new(
             authorized_object_update_token(),
         )),
-        CriomeReply::AuthorizationObservationRetracted(AuthorizationObservationRetracted::new(
+        CriomeReply::AuthorizationObservationClosed(AuthorizationObservationRetracted::new(
             authorization_observation_token(),
         )),
-        CriomeReply::SubscriptionRetracted(SubscriptionRetracted::new(
+        CriomeReply::SubscriptionClosed(SubscriptionRetracted::new(
             IdentitySubscriptionToken::new(agent("operator")),
         )),
-        CriomeReply::Rejection(Rejection::new(RejectionReason::ReplayAttempted)),
+        CriomeReply::Refused(Rejection::new(RejectionReason::ReplayAttempted)),
         CriomeReply::QuorumRoundOpened(quorum_round_state()),
         CriomeReply::QuorumVoteSolicited(quorum_round_state()),
         CriomeReply::QuorumVoteAccepted(quorum_round_state()),
         CriomeReply::QuorumRoundObserved(quorum_round_state()),
-        CriomeReply::NodePublicKey(node_public_key()),
-        CriomeReply::QuorumConflict(quorum_conflict()),
+        CriomeReply::PublicKeyObserved(node_public_key()),
+        CriomeReply::QuorumRefused(quorum_conflict()),
         CriomeReply::FoundingConveyed(founding_conveyance_receipt()),
     ];
 
     for reply in replies {
         assert_eq!(round_trip_reply(reply.clone()), reply);
     }
-}
-
-#[test]
-fn identity_update_event_round_trips_through_length_prefixed_frame() {
-    let receipt = IdentityReceipt {
-        identity: persona("designer"),
-        principal_status: PrincipalStatus::Active,
-    };
-    let event = CriomeEvent::IdentityUpdate(IdentityUpdate::new(receipt));
-    assert_eq!(round_trip_event(event.clone()), event);
-}
-
-#[test]
-fn authorization_update_event_round_trips_through_length_prefixed_frame() {
-    let event = CriomeEvent::AuthorizationUpdate(AuthorizationUpdate::new(authorization_state(
-        AuthorizationStatus::Granted,
-    )));
-    assert_eq!(round_trip_event(event.clone()), event);
-}
-
-#[test]
-fn authorized_object_update_event_round_trips_through_length_prefixed_frame() {
-    let event = CriomeEvent::AuthorizedObjectUpdate(authorized_object_update());
-    assert_eq!(round_trip_event(event.clone()), event);
 }
 
 #[test]
@@ -861,7 +811,7 @@ fn authorization_grant_carries_satisfied_policy_threshold() {
         1,
     );
     assert_eq!(
-        grant.authorization_policy_satisfaction.vec_identity(),
+        grant.authorization_policy_satisfaction.identity_vector(),
         &[cluster("uranus")],
     );
 }
@@ -871,9 +821,8 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
     let source = std::fs::read_to_string("schema/lib.schema").expect("read schema");
 
     for required in [
-        "    StampedSignatureEnvelope\n",
-        "    (Vector StampedSignatureEnvelope)\n",
-        "    (Vec StampedSignatureEnvelope)\n",
+        "StampedSignatureEnvelope.{ AttestedMoment SignatureEnvelope }",
+        "Vector.StampedSignatureEnvelope",
     ] {
         assert!(
             source.contains(required),
@@ -881,7 +830,7 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
         );
     }
     assert!(
-        source.contains("TimeSignature {\n    Identity\n    SignatureEnvelope\n  }"),
+        source.contains("TimeSignature.{ Identity SignatureEnvelope }"),
         "time signatures must stay bare because they create AttestedMoment"
     );
 }
@@ -890,14 +839,16 @@ fn quorum_signed_surfaces_carry_attested_moment_stamps() {
 fn authorized_object_update_carries_references_not_payloads() {
     let source = std::fs::read_to_string("schema/lib.schema").expect("read schema");
 
+    assert!(
+        source.contains(
+            "AuthorizedObjectReference.{ ComponentKind ObjectDigest AuthorizedObjectKind }"
+        )
+    );
     assert!(source.contains(
-        "AuthorizedObjectReference {\n    ComponentKind\n    ObjectDigest\n    AuthorizedObjectKind\n  }"
-    ));
-    assert!(source.contains(
-        "AuthorizedObjectUpdate {\n    AuthorizedObjectReference\n    ContractDigest\n    EvaluationDecision\n    AttestedMoment\n  }"
+        "AuthorizedObjectUpdate.{ AuthorizedObjectReference ContractDigest EvaluationDecision AttestedMoment }"
     ));
     assert!(
-        !source.contains("AuthorizedObjectUpdate {\n    Contract\n"),
+        !source.contains("AuthorizedObjectUpdate.{ Contract"),
         "authorized object pulse must not carry inline contract payloads"
     );
 }
@@ -921,12 +872,12 @@ fn authorization_denial_distinguishes_policy_from_signer_refusal() {
 
     assert_ne!(policy_denial, signer_denial);
     assert_eq!(
-        round_trip_reply(CriomeReply::AuthorizationDenied(policy_denial.clone())),
-        CriomeReply::AuthorizationDenied(policy_denial)
+        round_trip_reply(CriomeReply::Denied(policy_denial.clone())),
+        CriomeReply::Denied(policy_denial)
     );
     assert_eq!(
-        round_trip_reply(CriomeReply::AuthorizationDenied(signer_denial.clone())),
-        CriomeReply::AuthorizationDenied(signer_denial)
+        round_trip_reply(CriomeReply::Denied(signer_denial.clone())),
+        CriomeReply::Denied(signer_denial)
     );
 }
 
@@ -994,7 +945,7 @@ fn composition_rule_uses_content_addressed_children() {
         composition_digest("guardian-workflow-step"),
         composition_digest("psyche-escalation-step"),
     ]);
-    let contract = Contract::root(Rule::composition(composition.clone()));
+    let contract = Contract::root(Rule::composite(composition.clone()));
 
     assert_eq!(
         round_trip_request(CriomeRequest::AdmitContract(contract.clone())),
@@ -1013,7 +964,7 @@ fn full_guard_decision_outcomes_round_trip() {
         EvaluationDecision::escalate(EscalationTarget::Workflow(workflow_digest())),
         EvaluationDecision::escalate(EscalationTarget::smarter_agent(agent("guardian"))),
     ] {
-        let reply = CriomeReply::AuthorizationEvaluated(AuthorizationEvaluated {
+        let reply = CriomeReply::AuthorizationJudged(AuthorizationEvaluated {
             contract_digest: contract_digest(),
             evaluation_decision: decision,
         });
@@ -1129,12 +1080,12 @@ fn root_request_round_trips_through_nota_text() {
 #[test]
 fn root_reply_round_trips_through_nota_text() {
     round_trip_nota(
-        CriomeReply::VerificationResult(VerificationResult::new(
+        CriomeReply::Verified(VerificationResult::new(
             VerificationDecision::UnknownSigner,
             None,
             None,
         )),
-        "(VerificationResult (UnknownSigner None None))",
+        "(Verified (UnknownSigner None None))",
     );
 }
 
