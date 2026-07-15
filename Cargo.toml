@@ -37,7 +37,7 @@ signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch
 thiserror   = "2"
 
 [build-dependencies]
-schema-rust = { package = "schema-rust", git = "https://github.com/LiGoldragon/schema-rust.git", rev = "87de872d" }
+schema-rust = { package = "schema-rust", git = "https://github.com/LiGoldragon/schema-rust.git", branch = "main" }
 
 [lints.rust]
 unsafe_code = "forbid"

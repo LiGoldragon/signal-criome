@@ -529,7 +529,7 @@ dependencies = [
 [[package]]
 name = "schema-rust"
 version = "0.8.0"
-source = "git+https://github.com/LiGoldragon/schema-rust.git?rev=87de872d#87de872dbc4ee124a6a1133ff520b594063304f5"
+source = "git+https://github.com/LiGoldragon/schema-rust.git?branch=main#87de872dbc4ee124a6a1133ff520b594063304f5"
 dependencies = [
  "nota",
  "prettyplease",
