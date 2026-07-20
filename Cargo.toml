@@ -1,6 +1,6 @@
 [package]
 name         = "signal-criome"
-version      = "0.12.0"
+version      = "0.12.1"
 edition      = "2024"
 rust-version = "1.88"
 license      = "MIT OR Apache-2.0"
@@ -31,9 +31,9 @@ nota-text = ["dep:nota", "signal-frame/nota-text"]
 [dependencies]
 blake3      = "1"
 blst        = "0.3"
-nota = { package = "nota", git = "https://github.com/LiGoldragon/nota.git", branch = "main", optional = true }
+nota = { package = "nota", git = "https://github.com/LiGoldragon/nota.git", rev = "ce7c564de0a0518eaa1938d55dccc460a67cadb4", optional = true }
 rkyv        = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
-signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", default-features = false }
+signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", rev = "91e675298b79ec2aab2e0714a5e3e5b2d6d07339", default-features = false }
 thiserror   = "2"
 
 [build-dependencies]
