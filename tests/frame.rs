@@ -1,7 +1,7 @@
 use signal_criome::schema::lib::{ContractMarker, InputRoute, z2VN3L, z2VaZo};
 
 #[test]
-fn request_route_and_frame_round_trip_follow_the_generated_interface() {
+fn request_route_and_frame_round_trip_follow_the_strict_interface() {
     let request = z2VN3L::z2VMY4(z2VaZo {});
     assert_eq!(request.route(), InputRoute::ObserveNodePublicKey);
 

@@ -37,7 +37,7 @@
           ];
           craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
           # Include `examples/` for canonical Dotos fixtures and `ethos/`
-          # for the build-time generated-artifact freshness check.
+          # for the checked-in Interface source.
           examplesFilter = path: _type: builtins.match ".*/examples(/.*)?$" path != null;
           ethosFilter = path: _type: builtins.match ".*/ethos(/.*)?$" path != null;
           sourceFilter =

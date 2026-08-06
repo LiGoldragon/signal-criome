@@ -2,5 +2,5 @@
 
 #![allow(non_camel_case_types)]
 
-include!("lib/generated.rs");
+include!("lib/binding.rs");
 include!("lib/behavior.rs");

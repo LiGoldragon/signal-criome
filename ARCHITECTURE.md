@@ -17,22 +17,13 @@ parallel schemas are forbidden.
 ## Authority and projection
 
 The ethos/interface.ethos file is the sole textual structural source. It is a
-strict, role-free Interface version 1.0.0 transaction. The
-src/bootstrap_manifest.rs file contains explicitly minted authority, vocabulary,
-declaration, variant, and canonical-order seats. Spelling, file position, and
-content hashes never mint identity.
+strict, role-free Interface version 1.0.0 transaction. Its checked-in Rust
+binding contains the encoded authority vocabulary, declaration, variant, and
+canonical-order seats. Spelling, file position, and content hashes never mint
+identity.
 
-The build program:
-
-1. opens the producer-owned authority state;
-2. applies the strict Interface transaction under that authority;
-3. translates the verified Whole Logos through the Rust Logos;
-4. checks src/schema/lib/generated.rs byte-for-byte; and
-5. publishes the owned ethos directory for consumers.
-
-The generated projection contains encoded identifiers only. There is no legacy
-schema source, legacy schema parser, readable generated type layer, or readable
-Rust alias layer.
+The binding contains encoded identifiers only. There is no second structural
+source, parser, readable type layer, or readable Rust alias layer.
 
 ## Current bootstrap boundary
 
@@ -44,7 +35,7 @@ behavior not yet expressible in the strict Interface:
 - ordinary CriomeRequest and CriomeReply role seating;
 - Signal frame routing under allocated contract ID 3, wire revision 2.
 
-The handwritten behavior names generated encoded Rust types directly. When the
+The handwritten behavior names encoded Rust types directly. When the
 language train acquires these behavior forms, this file should shrink or vanish;
 the structural Interface must not change merely because a bootstrap substrate
 does.
@@ -62,7 +53,7 @@ The request and reply roots cover:
 - parked authorizations and cross-Criome signature routing.
 
 Wire enums are closed. Names such as UnknownSigner and UnknownIdentity are
-positive domain rejections, not compatibility escape hatches. Authorization
+positive domain rejections, not extension escape hatches. Authorization
 facts name the exact object or request digest and the signatures that satisfy a
 policy. Proof is referenced; content records do not absorb proof fields.
 
@@ -73,24 +64,23 @@ operations. The latter belong on meta-signal-criome.
 ## Dependency boundary
 
 The default runtime dependency graph contains only ordinary framing and
-structural runtime support. Bootstrap authorities, translators, and Rust
-projection machinery are build dependencies. Dotos is the sole optional text
-projection and enters only through dotos-text.
+structural runtime support. Dotos is the sole optional text projection and
+enters only through dotos-text.
 
 All Git dependencies are pinned to exact reviewed producer commits. A corrected
 producer is published before a consumer changes its pin.
 
 ## Evidence
 
-- tests/interface_contract.rs proves the strict Interface is the sole schema
-  authority and the Rust projection contains no readable root names.
+- tests/interface_contract.rs proves the strict Interface is the sole
+  structural authority and the Rust binding contains no readable root names.
 - tests/frame.rs proves encoded request values retain their ordinary route and
   round-trip through the allocated frame binding.
 - tests/round_trip.rs proves Dotos retains the human operation head while Rust
   remains encoded.
-- tests/dependency_boundary.rs proves bootstrap and retired crates stay out of
-  the runtime graph and pins the corrected generator.
+- tests/dependency_boundary.rs proves retired infrastructure stays out of the
+  runtime graph.
 
 Any structural change updates the Ethos transaction, mints new explicit seats
-where identity is genuinely new, regenerates the projection, updates behavior
+where identity is genuinely new, updates the checked-in binding and behavior
 only when necessary, and renews all four witnesses.
