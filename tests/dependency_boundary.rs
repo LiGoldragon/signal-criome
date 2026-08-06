@@ -70,4 +70,10 @@ fn imported_interfaces_share_the_standard_structural_carrier() {
     assert!(behavior.contains("pub use signal_standard::schema::lib"));
     assert!(!behavior.contains("pub enum WireValue"));
     assert!(!behavior.contains("pub trait WireShape"));
+
+    assert!(
+        signal_criome::bootstrap_manifest::DECLARATION_SEATS
+            .iter()
+            .any(|seat| seat.spelling == "AuthorizationRequestSlot")
+    );
 }
