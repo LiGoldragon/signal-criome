@@ -77,3 +77,12 @@ fn imported_interfaces_share_the_standard_structural_carrier() {
             .any(|seat| seat.spelling == "AuthorizationRequestSlot")
     );
 }
+
+#[test]
+fn producer_publishes_its_ethos_source_without_retired_schema_metadata() {
+    let manifest = include_str!("../Cargo.toml");
+    let build = include_str!("../build.rs");
+    assert!(manifest.contains("664335240a40728826cfaa09e3100cd867031912"));
+    assert!(build.contains("CargoEthosSourceMetadata"));
+    assert!(!build.contains(concat!("CargoSchema", "Metadata")));
+}
