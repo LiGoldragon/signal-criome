@@ -67,6 +67,10 @@ The default runtime dependency graph contains only ordinary framing and
 structural runtime support. Dotos is the sole optional text projection and
 enters only through dotos-text.
 
+Imported Interfaces and this producer share `signal-standard`'s one structural
+wire carrier. No contract-private carrier or conversion shadow exists at an
+import boundary.
+
 All Git dependencies are pinned to exact reviewed producer commits. A corrected
 producer is published before a consumer changes its pin.
 

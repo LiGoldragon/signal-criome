@@ -9,60 +9,9 @@ use rkyv::{
     Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize,
     rancor::Source as _,
 };
-
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
-#[rkyv(serialize_bounds(
-    __S: rkyv::ser::Writer + rkyv::ser::Allocator,
-    __S::Error: rkyv::rancor::Source,
-))]
-#[rkyv(deserialize_bounds(__D::Error: rkyv::rancor::Source))]
-#[rkyv(bytecheck(bounds(__C: rkyv::validation::ArchiveContext)))]
-#[doc(hidden)]
-pub enum WireValue {
-    Text(std::string::String), Integer(u64), Boolean(bool),
-    Sequence(#[rkyv(omit_bounds)] Vec<WireValue>),
-    Absent, Present(#[rkyv(omit_bounds)] Box<WireValue>),
-    Product(#[rkyv(omit_bounds)] Vec<WireValue>),
-    Variant { ordinal: u16, #[rkyv(omit_bounds)] fields: Vec<WireValue> },
-}
-#[derive(Debug, thiserror::Error)]
-#[error("structural wire value does not match the authority-verified Interface")]
-#[doc(hidden)]
-pub struct WireShapeError;
-
-/// Current-stage structural behavior shared by Interfaces that import these
-/// producer-owned types.
-#[doc(hidden)]
-pub trait WireShape: Sized {
-    fn to_wire(&self) -> WireValue;
-    fn from_wire(value: WireValue) -> Result<Self, WireShapeError>;
-}
-
-impl WireShape for std::string::String {
-    fn to_wire(&self) -> WireValue { WireValue::Text(self.clone()) }
-    fn from_wire(value: WireValue) -> Result<Self, WireShapeError> { match value { WireValue::Text(value) => Ok(value), _ => Err(WireShapeError) } }
-}
-impl WireShape for u64 {
-    fn to_wire(&self) -> WireValue { WireValue::Integer(*self) }
-    fn from_wire(value: WireValue) -> Result<Self, WireShapeError> { match value { WireValue::Integer(value) => Ok(value), _ => Err(WireShapeError) } }
-}
-impl WireShape for bool {
-    fn to_wire(&self) -> WireValue { WireValue::Boolean(*self) }
-    fn from_wire(value: WireValue) -> Result<Self, WireShapeError> { match value { WireValue::Boolean(value) => Ok(value), _ => Err(WireShapeError) } }
-}
-impl<Value: WireShape> WireShape for Vec<Value> {
-    fn to_wire(&self) -> WireValue { WireValue::Sequence(self.iter().map(WireShape::to_wire).collect()) }
-    fn from_wire(value: WireValue) -> Result<Self, WireShapeError> {
-        let WireValue::Sequence(values) = value else { return Err(WireShapeError) };
-        values.into_iter().map(Value::from_wire).collect()
-    }
-}
-impl<Value: WireShape> WireShape for Option<Value> {
-    fn to_wire(&self) -> WireValue { match self { Some(value) => WireValue::Present(Box::new(value.to_wire())), None => WireValue::Absent } }
-    fn from_wire(value: WireValue) -> Result<Self, WireShapeError> {
-        match value { WireValue::Present(value) => Ok(Some(Value::from_wire(*value)?)), WireValue::Absent => Ok(None), _ => Err(WireShapeError) }
-    }
-}
+pub use signal_standard::schema::lib::{
+    ArchivedWireValue, WireShape, WireShapeError, WireValue,
+};
 fn one_field(mut fields: Vec<WireValue>) -> Result<WireValue, WireShapeError> {
     if fields.len() != 1 { return Err(WireShapeError); }
     Ok(fields.pop().expect("one field checked"))

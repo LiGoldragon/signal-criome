@@ -58,3 +58,16 @@ fn dotos_text_feature_is_the_only_text_projection_opt_in() {
         );
     }
 }
+
+#[test]
+fn imported_interfaces_share_the_standard_structural_carrier() {
+    fn accepts_standard<Value: signal_standard::schema::lib::WireShape>() {}
+    accepts_standard::<signal_criome::schema::lib::z2VUph>();
+    accepts_standard::<signal_criome::schema::lib::z2VfEW>();
+    accepts_standard::<signal_criome::schema::lib::z2VNo7>();
+
+    let behavior = include_str!("../src/schema/lib/behavior.rs");
+    assert!(behavior.contains("pub use signal_standard::schema::lib"));
+    assert!(!behavior.contains("pub enum WireValue"));
+    assert!(!behavior.contains("pub trait WireShape"));
+}
