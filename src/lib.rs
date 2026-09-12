@@ -1,13 +1,21 @@
-//! Ordinary Criome trust and attestation Interface.
+//! Ordinary Signal contract for Criome.
 //!
-//! `ethos/interface.ethos` is the canonical textual projection of one
-//! authority-verified, role-free bootstrap Interface. Its checked Rust
-//! projection carries only encoded identities. Request/reply role seating,
-//! structural wire behavior, and Signal framing remain handwritten Rust until
-//! the language train reaches that behavior slice.
+//! Criome is the trust component: it registers identities, admits contracts,
+//! authorizes objects against them, gathers quorum signatures, proves time by
+//! attested moment, and conveys root founding. Every object this contract
+//! speaks of is referred to by digest, so no declaration reaches itself and
+//! the whole contract fits the rkyv archive the Signal frame carries.
+//!
+//! `ethos/signal.ethos` is the schema authority; `build.rs` checks the
+//! checked-in Rust projection in `src/generated/signal.rs` against it. The
+//! portable rkyv frame, its kinds, the wire framing, and the cross-component
+//! taxonomy all come from `signal` — one frame type and one taxonomy across
+//! the estate, never a per-contract copy of either.
 
-pub mod bootstrap_manifest;
-pub mod schema;
+pub mod generated;
+pub use generated::signal::*;
 
-pub const CRIOME_INTERFACE_SOURCE: &str = include_str!("../ethos/interface.ethos");
-pub const CRIOME_INTERFACE_RUST: &str = include_str!("schema/lib/binding.rs");
+/// The authored Ethos source of this contract.
+pub const ETHOS: &str = include_str!("../ethos/signal.ethos");
+/// The Rust projection generated from [`ETHOS`].
+pub const ETHOS_RUST: &str = include_str!("generated/signal.rs");

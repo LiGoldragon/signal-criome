@@ -1,17 +1,26 @@
 # signal-criome
 
-The ordinary Signal Interface for Criome trust, attestation, and
-authorization traffic.
+The ordinary Signal contract for Criome: identity registration, contract
+admission, object authorization, quorum rounds, attested time, founding
+conveyance, and the parked-request intercept surface.
 
-The ethos/interface.ethos file is the sole human-readable structural authority.
-The build verifies that authority-sealed Interface and its checked-in,
-encoded-name Rust projection. Handwritten Rust supplies only behavior the
-bootstrap language does not yet express: structural codecs, ordinary
-request/reply seating, and the allocated Signal frame boundary.
+`ethos/signal.ethos` is the schema authority. `build.rs` regenerates the
+projection with `ethos-zero` and asserts it against the committed
+`src/generated/signal.rs`, so the two can never drift. The crate's public
+surface is that projection, re-exported from `src/lib.rs` under the names the
+ethos declares.
 
-The crate owns wire vocabulary, not the Criome daemon, storage, key custody,
-policy execution, actors, sockets, or an operating-system substrate.
+The portable rkyv `Signal<T>` frame, the wire framing, and the cross-component
+taxonomy — `ComponentKind`, `ObjectDigest`, `AuthorizedObjectReference` and
+their companions — come from `signal`. They are imported, never copied: a
+vendored frame is a different Rust type from every other contract's frame,
+and a per-component taxonomy is not a cross-component taxonomy.
 
-The Rust API intentionally exposes encoded identities. Human and agent readers
-meet the vocabulary through Ethos and Dotos; no second readable Rust schema is
-maintained.
+`examples/canonical.datom` holds one canonical Datom value per line. It is
+written by the codec, never spelled by hand: `tests/contract.rs` rewrites it
+on demand and asserts, on every run, that each line is exactly what the codec
+writes for one canonical value and that each actualizes back into exactly one
+of `Query` and `Response`.
+
+The crate owns wire vocabulary. It owns no daemon, no storage, no key custody,
+no policy execution, no actors, and no sockets.

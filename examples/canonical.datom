@@ -1,0 +1,15 @@
+; Canonical Datom examples for signal-criome.
+; Written by `rewrite_the_canonical_file`; never spelled by hand.
+
+ObserveParkedAuthorizations.{}
+ObserveAuthorization.{ slot-1 }
+RegisterIdentity.{ Host.prometheus b0b1 f1n93r HostPublication Some.{ Bls12_381MinSig b0b1 51g1 } }
+Sign.{ { d1ge57 SignedObject criome } Agent.agent { Authorization criome persona nonce-1 } Some.1700000000000000001 }
+ScheduleContractTimeCheck.{ c0117ac7 1700000000000000003 { Criome d1ge57 Contract } ObjectKind.Head }
+AdmitContract.{ SignedBy.Host.prometheus Parent.c0117ac7 }
+RouteSignatureRequest.{ { slot-1 d1ge57 root admit «archive and release, once» Persona.persona Cluster.cluster } Agent.agent }
+RunDueContractChecks.{ { { 1700000000000000000 1700000060000000000 } 2 [ Cluster.cluster Developer.developer ] } [ { Cluster.cluster { Bls12_381MinSig b0b1 51g1 } } ] }
+Refused.{ ReplayAttempted }
+Signed.{ { { d1ge57 SignedObject criome } Persona.persona { Bls12_381MinSig b0b1 51g1 } 1700000000000000000 None { Authorization criome persona nonce-1 } } 1700000000000000002 }
+Attested.{ { { d1ge57 SignedObject criome } Persona.persona { Bls12_381MinSig b0b1 51g1 } 1700000000000000000 None { Authorization criome persona nonce-1 } } }
+Denied.{ slot-1 { Policy PolicyRefused } }

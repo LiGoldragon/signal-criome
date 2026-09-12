@@ -1,6 +1,0 @@
-;; Canonical Dotos example for the ordinary Criome Interface.
-;;
-;; Dotos keeps the human operation head while the Rust projection uses only
-;; authority-encoded identities.
-
-ObserveNodePublicKey.()

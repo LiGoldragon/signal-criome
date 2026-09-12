@@ -2,89 +2,95 @@
 
 ## Center
 
-This repository owns the ordinary Criome Interface: the structural language
-shared by clients, peer Criome instances, agents, harnesses, and GUIs when they
-exchange trust, attestation, founding, quorum, and authorization facts.
+This repository owns the ordinary Criome contract: the vocabulary clients,
+peer Criome instances, agents, harnesses and interfaces use when they exchange
+trust, attestation, founding, quorum and authorization facts.
 
-The Interface is not modeled as a Rust API with a serialization format attached.
-Its authority is language-independent. Rust is one checked bootstrap projection
-and may disappear without changing the Interface's identity.
-
-Beauty, elegant logic, and extension without duplication govern this boundary.
-There is one structural authority and one ordinary role seating; convenient
-parallel schemas are forbidden.
+There is one structural authority and one projection of it. Parallel schemas
+are forbidden, and so is a hand-written Rust type that shadows a declared one.
 
 ## Authority and projection
 
-The ethos/interface.ethos file is the sole textual structural source. It is a
-strict, role-free Interface version 1.0.0 transaction. Its checked-in Rust
-binding contains the encoded authority vocabulary, declaration, variant, and
-canonical-order seats. Spelling, file position, and content hashes never mint
-identity.
+`ethos/signal.ethos` is the sole textual source. It is a `Signal` root: an
+import list, the request variants, the reply variants, and the type
+declarations. `ethos-zero` projects it into Rust.
 
-The binding contains encoded identifiers only. There is no second structural
-source, parser, readable type layer, or readable Rust alias layer.
+`src/generated/signal.rs` is that projection, committed. `build.rs` reads the
+ethos, generates afresh, and asserts equality with the committed file; a build
+cannot succeed while the two differ. `src/lib.rs` re-exports the projection
+and nothing else, so every name a consumer writes is a name the ethos
+declares.
 
-## Current bootstrap boundary
+The request and reply roots are named `Query` and `Response` — `ethos-zero`
+names them, not this contract.
 
-The src/schema/lib/behavior.rs file is deliberately handwritten. It adds only
-behavior not yet expressible in the strict Interface:
+## What is imported, and why
 
-- structural WireShape conversion used by rkyv;
-- Dotos encoding and decoding behind the dotos-text feature;
-- ordinary CriomeRequest and CriomeReply role seating;
-- Signal frame routing under allocated contract ID 3, wire revision 2.
+The portable `Signal<T>` frame and its three kinds — `Signalizable`,
+`ByteViewable`, `Restorable` — come from `signal`, which provides them with
+blanket implementations. So does the cross-component taxonomy:
+`ComponentKind`, `ObjectDigest`, `AuthorizedObjectKind`,
+`AuthorizedObjectReference`, `AuthorizedObjectInterest` and
+`ComponentObjectInterest`. This contract declares only what is Criome's own.
 
-The handwritten behavior names encoded Rust types directly. When the
-language train acquires these behavior forms, this file should shrink or vanish;
-the structural Interface must not change merely because a bootstrap substrate
-does.
+Vendoring either was considered and refused. A vendored frame is a distinct
+Rust type per contract, so two contracts can no longer be spoken by one
+generic transport; `signal-mirror` and `meta-signal-mirror` had forked exactly
+that way and paid a major bump to unfork. A per-component copy of a
+cross-component taxonomy is not a cross-component taxonomy at all.
 
-## Domain boundary
+The `links = "signal"` key is the argument for vendoring, and it inverts on
+inspection: `links` does not forbid depending on `signal`, it forbids two
+different `signal` sources or revisions in one graph. Every contract in this
+wave pins the same revision, so the key is the mechanism that *enforces* one
+shared frame type — which is exactly the property a wire wants. It bites only
+where consumers pin mutable branches, and that disease is cured by pinning
+revisions, not by forking the wire type.
 
-The request and reply roots cover:
+## A gap in the shared taxonomy, recorded not routed around
 
-- identity registration, lookup, revocation, and observation;
-- signatures, attestations, and verification;
-- exact-request authorization and its pending, granted, denied, expired, and
-  unavailable states;
-- authorization and authorized-object observation;
-- contract admission, time checks, founding, and two-phase quorum gathering;
-- parked authorizations and cross-Criome signature routing.
+`signal::ComponentKind` carries no `Mentci` variant, though `Mentci` is a
+component of this estate. Nothing in this chain needs it — `criome` and
+`mentci` between them name only `Persona`, `Spirit`, `Agent`, `Criome`,
+`Lojix`, `Mirror` and `Router`, all of which `signal` carries — so no local
+narrowing is declared to route around it. Whoever next has reason to add it
+should add it to `signal`.
 
-Wire enums are closed. Names such as UnknownSigner and UnknownIdentity are
-positive domain rejections, not extension escape hatches. Authorization
-facts name the exact object or request digest and the signatures that satisfy a
-policy. Proof is referenced; content records do not absorb proof fields.
+## Shape
 
-The repository does not own daemon execution, persistence, private keys, policy
-evaluation, actor runtimes, sockets, CLI/TUI behavior, or meta-authority
-operations. The latter belong on meta-signal-criome.
+Every object this contract speaks of is referred to by digest —
+`ContractDigest`, `CompositionDigest`, `WorkflowDigest` and their companions
+are all aliases of `signal::ObjectDigest`. That is what keeps the contract free of
+recursion: a rule names its children by digest, never by value, so no
+declaration reaches itself and the whole contract fits the rkyv archive the
+Signal frame carries.
 
-## Dependency boundary
+## Bare tags and the types they would otherwise swallow
 
-The default runtime dependency graph contains only ordinary framing and
-structural runtime support. Dotos is the sole optional text projection and
-enters only through dotos-text.
+A bare enum variant whose name matches a declared type in the same file does
+not generate a tag: it generates a variant carrying that type. Where the
+contract means a tag, the payload type is renamed — never the wire-facing
+variant head, which is the word the wire actually carries.
 
-Imported Interfaces and this producer share `signal-standard`'s one structural
-wire carrier. No contract-private carrier or conversion shadow exists at an
-import boundary.
+Two places in this contract need that care:
 
-All Git dependencies are pinned to exact reviewed producer commits. A corrected
-producer is published before a consumer changes its pin.
+- `ContentPurpose` carries seven bare tags. Two of them, `SignedObject` and
+  `ComponentRelease`, name things the contract also had records for. The
+  record is `ComponentReleaseRecord`; the `SignedObject` record was
+  unreferenced and is gone.
+- `AuthorizedObjectKind` carries the bare tag `Contract`, and this contract
+  declares a policy object of that name. They do not collide, because
+  `AuthorizedObjectKind` is declared in `signal`, where no `Contract` type
+  exists — one more thing importing the taxonomy buys. The policy object keeps
+  its name, which is the name `criome` writes in eighty-three places.
 
-## Evidence
+`ContentPurpose::SignedObject` and `AuthorizedObjectKind::Contract` both
+appear in `examples/canonical.datom`, so a future collision here cannot pass
+silently: it would stop the test compiling.
 
-- tests/interface_contract.rs proves the strict Interface is the sole
-  structural authority and the Rust binding contains no readable root names.
-- tests/frame.rs proves encoded request values retain their ordinary route and
-  round-trip through the allocated frame binding.
-- tests/round_trip.rs proves Dotos retains the human operation head while Rust
-  remains encoded.
-- tests/dependency_boundary.rs proves retired infrastructure stays out of the
-  runtime graph.
+## Boundaries
 
-Any structural change updates the Ethos transaction, mints new explicit seats
-where identity is genuinely new, updates the checked-in binding and behavior
-only when necessary, and renews all four witnesses.
+The crate depends on `signal` for the frame, the framing and the taxonomy,
+`rkyv` for the archive and, under the optional `datom` feature, `datom-codec` and `protos`
+for the Datom text projection. It depends on nothing else, and nothing in it
+reaches a filesystem, a socket, or a clock.
