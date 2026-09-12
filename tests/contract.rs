@@ -1,20 +1,22 @@
 //! The contract's own witness: every canonical value survives the wire, and
 //! every canonical Datom line is the codec's own text for one of them.
+//!
+//! Every name is taken from `signal_criome` alone — the frame and the shared
+//! taxonomy included. A consumer speaks this contract without naming `signal`
+//! itself, and the frame it gets is `signal`'s own type, not a copy.
 
-use signal::{
-    AuthorizedObjectInterest, AuthorizedObjectKind, AuthorizedObjectReference, ByteViewable,
-    ComponentKind, ObjectDigest, Restorable, Signal, Signalizable,
-};
 use signal_criome::{
     Attestation, AttestationReceipt, AttestedMoment, AttestedMomentProposition, AuditContext,
     AuthorizationDenial, AuthorizationDenialReason, AuthorizationDenialSource,
-    AuthorizationObservation, AuthorizationRequestSlot, AuthorizationScope, BlsPublicKey,
-    BlsSignature, ContentPurpose, ContentReference, Contract, ContractDigest, ContractName,
-    ContractOperationHead, ContractParent, ContractTimeCheck, Identity, IdentityRegistration,
-    KeyPurpose, ParkedAuthorizationObservation, PrincipalName, PublicKeyFingerprint, Query,
-    Rejection, RejectionReason, ReplayNonce, Response, Rule, SignReceipt, SignRequest,
-    SignatureEnvelope, SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute,
-    TimeSignature, TimeWindow, TimestampNanos,
+    AuthorizationObservation, AuthorizationRequestSlot, AuthorizationScope,
+    AuthorizedObjectInterest, AuthorizedObjectKind, AuthorizedObjectReference, BlsPublicKey,
+    BlsSignature, ByteViewable, ComponentKind, ContentPurpose, ContentReference, Contract,
+    ContractDigest, ContractName, ContractOperationHead, ContractParent, ContractTimeCheck,
+    Identity, IdentityRegistration, KeyPurpose, ObjectDigest, ParkedAuthorizationObservation,
+    PrincipalName, PublicKeyFingerprint, Query, Rejection, RejectionReason, ReplayNonce, Response,
+    Restorable, Rule, SignReceipt, SignRequest, Signal, Signalizable, SignatureEnvelope,
+    SignatureScheme, SignatureSolicitation, SignatureSolicitationRoute, TimeSignature, TimeWindow,
+    TimestampNanos,
 };
 
 const PRINCIPAL: &str = "criome";
